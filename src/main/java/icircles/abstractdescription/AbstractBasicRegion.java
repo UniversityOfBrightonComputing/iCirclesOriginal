@@ -1,35 +1,36 @@
 package icircles.abstractdescription;
 
 import java.util.Iterator;
+import java.util.Set;
 import java.util.TreeSet;
 
 import icircles.util.DEB;
 
 public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
 
-    TreeSet<AbstractCurve> m_in_set;
-    static TreeSet<AbstractBasicRegion> m_library = new TreeSet<AbstractBasicRegion>();
+    private TreeSet<AbstractCurve> theInSet;
+    private static Set<AbstractBasicRegion> library = new TreeSet<>();
 
     private AbstractBasicRegion(TreeSet<AbstractCurve> in_set) {
-        m_in_set = in_set;
+        theInSet = in_set;
     }
 
     public static AbstractBasicRegion get(TreeSet<AbstractCurve> in_set) {
-        for (AbstractBasicRegion alreadyThere : m_library) {
-            if (alreadyThere.m_in_set.equals(in_set)) {
+        for (AbstractBasicRegion alreadyThere : library) {
+            if (alreadyThere.theInSet.equals(in_set)) {
                 return alreadyThere;
             }
         }
 
-        TreeSet<AbstractCurve> tmp = new TreeSet<AbstractCurve>(in_set);
+        TreeSet<AbstractCurve> tmp = new TreeSet<>(in_set);
         AbstractBasicRegion result = new AbstractBasicRegion(tmp);
-        m_library.add(result);
+        library.add(result);
         return result;
     }
 
     public AbstractBasicRegion moveOutside(AbstractCurve c) {
-        if (m_in_set.contains(c)) {
-            TreeSet<AbstractCurve> contours = new TreeSet<AbstractCurve>(m_in_set);
+        if (theInSet.contains(c)) {
+            TreeSet<AbstractCurve> contours = new TreeSet<>(theInSet);
             contours.remove(c);
             return get(contours);
         } else {
@@ -38,15 +39,15 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
     }
 
     public int compareTo(AbstractBasicRegion other) {
-        if (other.m_in_set.size() < m_in_set.size()) {
+        if (other.theInSet.size() < theInSet.size()) {
             return 1;
-        } else if (other.m_in_set.size() > m_in_set.size()) {
+        } else if (other.theInSet.size() > theInSet.size()) {
             return -1;
         }
 
         // same sized in_set
-        Iterator<AbstractCurve> this_it = m_in_set.iterator();
-        Iterator<AbstractCurve> other_it = other.m_in_set.iterator();
+        Iterator<AbstractCurve> this_it = theInSet.iterator();
+        Iterator<AbstractCurve> other_it = other.theInSet.iterator();
 
         while (this_it.hasNext()) {
             AbstractCurve this_c = this_it.next();
@@ -68,7 +69,7 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
             b.append("(");
         }
         boolean first = true;
-        for (AbstractCurve c : m_in_set) {
+        for (AbstractCurve c : theInSet) {
             if (!first && DEB.level > 1) {
                 b.append(",");
             }
@@ -85,11 +86,11 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
     }
 
     public Iterator<AbstractCurve> getContourIterator() {
-        return m_in_set.iterator();
+        return theInSet.iterator();
     }
 
     public int getNumContours() {
-        return m_in_set.size();
+        return theInSet.size();
     }
 
     public AbstractCurve getStraddledContour(AbstractBasicRegion other) {
@@ -121,19 +122,19 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
     }
 
     public AbstractBasicRegion moved_in(AbstractCurve newCont) {
-        TreeSet<AbstractCurve> conts = new TreeSet<AbstractCurve>(m_in_set);
+        TreeSet<AbstractCurve> conts = new TreeSet<>(theInSet);
         conts.add(newCont);
         return AbstractBasicRegion.get(conts);
     }
 
     public boolean is_in(AbstractCurve c) {
-        return m_in_set.contains(c);
+        return theInSet.contains(c);
     }
 
     public double checksum() {
         double result = 0.0;
         double scaling = 3.1;
-        for (AbstractCurve c : m_in_set) {
+        for (AbstractCurve c : theInSet) {
             result += c.checksum() * scaling;
             scaling += 0.09;
         }
@@ -141,7 +142,7 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
     }
 
     public static void clearLibrary() {
-        m_library.clear();
+        library.clear();
     }
 
     public boolean isLabelEquivalent(AbstractBasicRegion z) {

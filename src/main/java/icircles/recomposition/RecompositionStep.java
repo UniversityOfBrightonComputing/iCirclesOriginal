@@ -9,16 +9,16 @@ import icircles.abstractdescription.AbstractDescription;
 
 public class RecompositionStep {
 
-    AbstractDescription m_from;
-    AbstractDescription m_to;
-    ArrayList<RecompData> m_added_contour_data;
+    private AbstractDescription from;
+    private AbstractDescription to;
+    private ArrayList<RecompData> addedContourData;
 
     public RecompositionStep(AbstractDescription from,
             AbstractDescription to,
             ArrayList<RecompData> added_contour_data) {
-        m_from = from;
-        m_to = to;
-        m_added_contour_data = added_contour_data;
+        this.from = from;
+        this.to = to;
+        addedContourData = added_contour_data;
         DEB.assertCondition(added_contour_data.size() > 0, "no added curve in recomp");
         CurveLabel cl = added_contour_data.get(0).added_curve.getLabel();
         for (RecompData rp : added_contour_data) {
@@ -38,12 +38,12 @@ public class RecompositionStep {
             sb.append("\n");
         }
         sb.append(" from ");
-        sb.append(m_from.debugAsSentence());
+        sb.append(from.debugAsSentence());
         if (DEB.level > 1) {
             sb.append("\n");
         }
         sb.append(" to ");
-        sb.append(m_to.debugAsSentence());
+        sb.append(to.debugAsSentence());
         if (DEB.level > 1) {
             sb.append("\n");
         }
@@ -52,7 +52,7 @@ public class RecompositionStep {
     }
 
     public AbstractDescription to() {
-        return m_to;
+        return to;
     }
 
     public static double checksum(ArrayList<RecompositionStep> rSteps) {
@@ -66,10 +66,10 @@ public class RecompositionStep {
     }
 
     private double checksum() {
-        return 7.1 * m_from.checksum() + 7.3 * m_to.checksum();
+        return 7.1 * from.checksum() + 7.3 * to.checksum();
     }
 
     public Iterator<RecompData> getRecompIterator() {
-        return m_added_contour_data.iterator();
+        return addedContourData.iterator();
     }
 }

@@ -4,31 +4,31 @@ import icircles.util.DEB;
 
 public class AbstractCurve implements Comparable<AbstractCurve> {
 
-    static int id = 0;
-    CurveLabel m_label;
-    int m_id;
+    private static int uniqueId = 0;
+    private CurveLabel label;
+    private int id;
 
     public AbstractCurve(CurveLabel label) {
-        id++;
-        m_id = id;
-        m_label = label;
+        uniqueId++;
+        id = uniqueId;
+        this.label = label;
     }
 
     public CurveLabel getLabel() {
-        return m_label;
+        return label;
     }
 
     public AbstractCurve clone() {
-        return new AbstractCurve(m_label);
+        return new AbstractCurve(label);
     }
 
     public int compareTo(AbstractCurve o) {
-        int tmp = m_label.compareTo(o.m_label);
+        int tmp = label.compareTo(o.label);
         if (tmp != 0) {
             return tmp;
         }
-        int this_id = m_id;
-        int other_id = o.m_id;
+        int this_id = id;
+        int other_id = o.id;
         return (this_id < other_id) ? -1 : (this_id == other_id) ? 0 : 1;
     }
 
@@ -43,31 +43,31 @@ public class AbstractCurve implements Comparable<AbstractCurve> {
             deb_level_was_high = true;
             DEB.level--;
         }
-        sb.append(m_label.debug());
+        sb.append(label.debug());
         if (deb_level_was_high) {
             DEB.level++;
-            sb.append("_" + m_id + ")@");
+            sb.append("_" + id + ")@");
             sb.append(hashCode());
         }
         return sb.toString();
     }
 
     public boolean matches_label(AbstractCurve c) {
-        return m_label == c.m_label;
+        return label == c.label;
     }
 
     public String debugWithId() {
-        return debug() + "_" + m_id;
+        return debug() + "_" + id;
     }
 
     public double checksum() {
         if (DEB.level == 2) {
-            System.out.println("build checksum from " + m_label + " and " + m_id + "\n");
+            System.out.println("build checksum from " + label + " and " + id + "\n");
         }
-        return m_label.checksum() * m_id;
+        return label.checksum() * id;
     }
 
-    public static void reset_id_counter() {
-        id = 0;
+    public static void resetIdCounter() {
+        uniqueId = 0;
     }
 }

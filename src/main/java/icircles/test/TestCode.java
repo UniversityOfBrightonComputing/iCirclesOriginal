@@ -236,7 +236,7 @@ public class TestCode {
             int size) {
         // clear the static id counter for abstract curves
         if (!view_failure) {
-            AbstractCurve.reset_id_counter();
+            AbstractCurve.resetIdCounter();
             AbstractBasicRegion.clearLibrary();
             CurveLabel.clearLibrary();
         }

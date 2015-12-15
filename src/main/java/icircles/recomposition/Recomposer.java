@@ -17,7 +17,7 @@ import icircles.decomposition.DecompositionStep;
 
 public class Recomposer {
 
-    RecompositionStrategy strategy;
+    private RecompositionStrategy strategy;
 
     public Recomposer(int recompStrategy) {
         strategy = RecompositionStrategy.getStrategy(recompStrategy);
@@ -61,20 +61,17 @@ public class Recomposer {
         AbstractDescription to = null;
 
         AbstractCurve was_removed = decomp_step.removed();
-        ArrayList<RecompData> added_contour_data = new ArrayList<RecompData>();
+        ArrayList<RecompData> added_contour_data = new ArrayList<>();
         if (previous != null) {
             from = previous.to();
 
             // find the resulting zones in the previous step got to
-            ArrayList<AbstractBasicRegion> zones_to_split =
-                    new ArrayList<AbstractBasicRegion>();
+            ArrayList<AbstractBasicRegion> zones_to_split = new ArrayList<>();
 
-            TreeMap<AbstractBasicRegion, AbstractBasicRegion> zones_moved_during_decomp = decomp_step.zones_moved();
-            Collection<AbstractBasicRegion> zones_after_moved =
-                    zones_moved_during_decomp.values();
+            TreeMap<AbstractBasicRegion, AbstractBasicRegion> zones_moved_during_decomp = decomp_step.zonesMoved();
+            Collection<AbstractBasicRegion> zones_after_moved = zones_moved_during_decomp.values();
 
-            HashMap<AbstractBasicRegion, AbstractBasicRegion> matched_inverse =
-                    new HashMap<AbstractBasicRegion, AbstractBasicRegion>();
+            HashMap<AbstractBasicRegion, AbstractBasicRegion> matched_inverse = new HashMap<>();
             Iterator<AbstractBasicRegion> moved_it = zones_after_moved.iterator();
             while (moved_it.hasNext()) {
                 AbstractBasicRegion moved = moved_it.next();
@@ -101,8 +98,8 @@ public class Recomposer {
             // for each cluster, make a Contour with label
             for (Cluster cluster : clusters) {
                 AbstractCurve new_cont = was_removed.clone();
-                ArrayList<AbstractBasicRegion> split_zones = new ArrayList<AbstractBasicRegion>();
-                ArrayList<AbstractBasicRegion> added_zones = new ArrayList<AbstractBasicRegion>();
+                ArrayList<AbstractBasicRegion> split_zones = new ArrayList<>();
+                ArrayList<AbstractBasicRegion> added_zones = new ArrayList<>();
                 new_cont_set.add(new_cont);
                 ArrayList<AbstractBasicRegion> cluster_zones = cluster.zones();
                 for (AbstractBasicRegion z : cluster_zones) {
@@ -122,17 +119,17 @@ public class Recomposer {
             from = decomp_step.to()/*.copy()*/;
 
             // make a new Abstract Description
-            TreeSet<AbstractCurve> cs = new TreeSet<AbstractCurve>();
+            TreeSet<AbstractCurve> cs = new TreeSet<>();
             AbstractBasicRegion outside_zone = AbstractBasicRegion.get(cs);
 
-            ArrayList<AbstractBasicRegion> split_zone = new ArrayList<AbstractBasicRegion>();
-            ArrayList<AbstractBasicRegion> added_zone = new ArrayList<AbstractBasicRegion>();
+            ArrayList<AbstractBasicRegion> split_zone = new ArrayList<>();
+            ArrayList<AbstractBasicRegion> added_zone = new ArrayList<>();
             split_zone.add(outside_zone);
             added_contour_data.add(new RecompData(was_removed, split_zone, added_zone));
 
             cs.add(was_removed);
             AbstractBasicRegion new_zone = AbstractBasicRegion.get(cs);
-            TreeSet<AbstractBasicRegion> new_zones = new TreeSet<AbstractBasicRegion>();
+            TreeSet<AbstractBasicRegion> new_zones = new TreeSet<>();
             new_zones.add(new_zone);
             new_zones.add(outside_zone);
             added_zone.add(new_zone);

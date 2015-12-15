@@ -12,25 +12,34 @@ import icircles.abstractdescription.AbstractBasicRegion;
 
 public class DecompositionStep {
 
-    private AbstractDescription m_from;
-    private AbstractDescription m_to;
-    private TreeMap<AbstractBasicRegion, AbstractBasicRegion> m_zones_moved;
-    private AbstractCurve m_removed;                  // in m_from but not m_to
+    private AbstractDescription from;
+    private AbstractDescription to;
+    private TreeMap<AbstractBasicRegion, AbstractBasicRegion> zonesMoved;
 
+    /**
+     * The curve that was removed in this step.
+     * In other words it was in "from" but not in "to".
+     */
+    private AbstractCurve removed;
+
+    /**
+     * Constructs a new decomposition step.
+     *
+     * @param from the abstract description before this step
+     * @param to   the abstract description after this step
+     * @param zonesMoved ???
+     * @param removed the curve that was removed in this step
+     */
     public DecompositionStep(
             AbstractDescription from,
             AbstractDescription to,
-            TreeMap<AbstractBasicRegion, AbstractBasicRegion> zones_moved, // could be derived from from + to
+            TreeMap<AbstractBasicRegion, AbstractBasicRegion> zonesMoved, // could be derived from from + to
             AbstractCurve removed) // could be derived from from + to
     {
-        m_from = from;
-        m_to = to;
-        m_zones_moved = zones_moved;
-        m_removed = removed;
-    }
-
-    public AbstractDescription target() {
-        return m_to;
+        this.from = from;
+        this.to = to;
+        this.zonesMoved = zonesMoved;
+        this.removed = removed;
     }
 
     public String debug() {
@@ -39,22 +48,22 @@ public class DecompositionStep {
         }
         StringBuilder sb = new StringBuilder();
         sb.append("remove ");
-        sb.append(m_from.print_contour(m_removed));
+        sb.append(from.print_contour(removed));
         if (DEB.level > 1) {
             sb.append("\n");
         }
         sb.append(" from ");
-        sb.append(m_from.debugAsSentence());
+        sb.append(from.debugAsSentence());
         if (DEB.level > 1) {
             sb.append("\n");
         }
         sb.append(" to ");
-        sb.append(m_to.debugAsSentence());
+        sb.append(to.debugAsSentence());
         if (DEB.level > 1) {
             sb.append("\n");
         }
         sb.append(" zonesMoved: ");
-        Set<Map.Entry<AbstractBasicRegion, AbstractBasicRegion>> entries = m_zones_moved.entrySet();
+        Set<Map.Entry<AbstractBasicRegion, AbstractBasicRegion>> entries = zonesMoved.entrySet();
         for (Map.Entry<AbstractBasicRegion, AbstractBasicRegion> z_map : entries) {
             sb.append("[");
             sb.append(z_map.getKey().debug());
@@ -66,23 +75,23 @@ public class DecompositionStep {
     }
 
     public AbstractDescription to() {
-        return m_to;
+        return to;
     }
 
     public AbstractDescription from() {
-        return m_from;
+        return from;
     }
 
-    public TreeMap<AbstractBasicRegion, AbstractBasicRegion> zones_moved() {
-        return m_zones_moved;
+    public TreeMap<AbstractBasicRegion, AbstractBasicRegion> zonesMoved() {
+        return zonesMoved;
     }
 
     public AbstractCurve removed() {
-        return m_removed;
+        return removed;
     }
 
     private double checksum() {
-        return 1.1 * m_from.checksum() + 1.3 * m_to.checksum();
+        return 1.1 * from.checksum() + 1.3 * to.checksum();
     }
 
     public static double checksum(ArrayList<DecompositionStep> d_steps) {

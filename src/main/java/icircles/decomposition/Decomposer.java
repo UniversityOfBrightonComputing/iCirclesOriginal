@@ -71,7 +71,7 @@ public class Decomposer {
                     break while_loop;
                 }
                 result.add(step);
-                ad = step.target();
+                ad = step.to();
             }
         }
         if (DEB.level >= 1) {

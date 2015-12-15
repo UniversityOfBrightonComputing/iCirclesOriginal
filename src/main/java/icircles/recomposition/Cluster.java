@@ -8,19 +8,19 @@ import icircles.abstractdescription.AbstractBasicRegion;
 
 public class Cluster {
 
-    ArrayList<AbstractBasicRegion> m_zones;
+    private ArrayList<AbstractBasicRegion> zones;
 
     public Cluster(AbstractBasicRegion z) {
-        m_zones = new ArrayList<AbstractBasicRegion>();
-        m_zones.add(z);
+        zones = new ArrayList<>();
+        zones.add(z);
     }
 
     public Cluster(AbstractBasicRegion z1,
             AbstractBasicRegion z2) {
         DEB.assertCondition(z1.getStraddledContour(z2) != null, "non-adjacent cluster pair");
-        m_zones = new ArrayList<AbstractBasicRegion>();
-        m_zones.add(z1);
-        m_zones.add(z2);
+        zones = new ArrayList<>();
+        zones.add(z1);
+        zones.add(z2);
     }
 
     public Cluster(AbstractBasicRegion z1,
@@ -31,21 +31,21 @@ public class Cluster {
         DEB.assertCondition(z1.getStraddledContour(z3) != null, "non-adjacent cluster pair");
         DEB.assertCondition(z2.getStraddledContour(z4) == z1.getStraddledContour(z3), "non-adjacent cluster pair");
         DEB.assertCondition(z3.getStraddledContour(z4) == z1.getStraddledContour(z2), "non-adjacent cluster pair");
-        m_zones = new ArrayList<AbstractBasicRegion>();
-        m_zones.add(z1);
-        m_zones.add(z2);
-        m_zones.add(z3);
-        m_zones.add(z4);
+        zones = new ArrayList<>();
+        zones.add(z1);
+        zones.add(z2);
+        zones.add(z3);
+        zones.add(z4);
     }
 
     public ArrayList<AbstractBasicRegion> zones() {
-        return m_zones;
+        return zones;
     }
 
     public String debug() {
         String result = "{";
         boolean firstOne = true;
-        for (AbstractBasicRegion abr : m_zones) {
+        for (AbstractBasicRegion abr : zones) {
             if (!firstOne) {
                 result += ",";
             }

@@ -1,31 +1,32 @@
 package icircles.abstractdescription;
 
+import java.util.Set;
 import java.util.TreeSet;
 
 import icircles.util.DEB;
 
 public class CurveLabel implements Comparable<CurveLabel> {
 
-    String m_label;
-    static TreeSet<CurveLabel> m_library = new TreeSet<CurveLabel>();
+    private String label;
+    private static Set<CurveLabel> library = new TreeSet<>();
 
     public static void clearLibrary() {
-        m_library.clear();
+        library.clear();
     }
 
     private CurveLabel(String label) {
-        m_label = label;
+        this.label = label;
     }
 
     public static CurveLabel get(String label) {
-        for (CurveLabel alreadyThere : m_library) {
-            if (alreadyThere.m_label.equals(label)) {
+        for (CurveLabel alreadyThere : library) {
+            if (alreadyThere.label.equals(label)) {
                 return alreadyThere;
             }
         }
 
         CurveLabel result = new CurveLabel(label);
-        m_library.add(result);
+        library.add(result);
         return result;
     }
 
@@ -34,35 +35,35 @@ public class CurveLabel implements Comparable<CurveLabel> {
             return "";
         } else //if(Debug.level == 1)
         {
-            return m_label;
+            return label;
         }
 //		else
 //		{
-//			return m_label + "@"+ hashCode();
+//			return label + "@"+ hashCode();
 //		}
 
     }
 
     public int compareTo(CurveLabel other) {
-        return m_label.compareTo(other.m_label);
+        return label.compareTo(other.label);
     }
 
     public double checksum() {
         double result = 0.0;
         double scaling = 1.1;
-        for (int i = 0; i < m_label.length(); i++) {
-            result += (int) (m_label.charAt(i)) * scaling;
+        for (int i = 0; i < label.length(); i++) {
+            result += (int) (label.charAt(i)) * scaling;
             scaling += 0.01;
         }
         return result;
     }
 
     public boolean isLabelled(String string) {
-        return string.equals(m_label);
+        return string.equals(label);
 
     }
 
     public String getLabel() {
-        return m_label;
+        return label;
     }
 }

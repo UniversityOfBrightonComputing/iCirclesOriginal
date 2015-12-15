@@ -8,10 +8,10 @@ import icircles.abstractdescription.AbstractBasicRegion;
 
 public class ConcreteZone {
 
-    AbstractBasicRegion abr;
-    ArrayList<CircleContour> containingCircles;
-    ArrayList<CircleContour> excludingCircles;
-    Area shape;
+    private AbstractBasicRegion abr;
+    private ArrayList<CircleContour> containingCircles;
+    private ArrayList<CircleContour> excludingCircles;
+    private Area shape;
 
     public ConcreteZone(AbstractBasicRegion abr,
             ArrayList<CircleContour> containingCircles,
