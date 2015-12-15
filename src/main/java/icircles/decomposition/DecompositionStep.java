@@ -12,10 +12,10 @@ import icircles.abstractdescription.AbstractBasicRegion;
 
 public class DecompositionStep {
 
-    AbstractDescription m_from;
-    AbstractDescription m_to;
-    TreeMap<AbstractBasicRegion, AbstractBasicRegion> m_zones_moved;
-    AbstractCurve m_removed;                  // in m_from but not m_to
+    private AbstractDescription m_from;
+    private AbstractDescription m_to;
+    private TreeMap<AbstractBasicRegion, AbstractBasicRegion> m_zones_moved;
+    private AbstractCurve m_removed;                  // in m_from but not m_to
 
     public DecompositionStep(
             AbstractDescription from,
@@ -56,11 +56,11 @@ public class DecompositionStep {
         sb.append(" zonesMoved: ");
         Set<Map.Entry<AbstractBasicRegion, AbstractBasicRegion>> entries = m_zones_moved.entrySet();
         for (Map.Entry<AbstractBasicRegion, AbstractBasicRegion> z_map : entries) {
-            sb.append("<");
+            sb.append("[");
             sb.append(z_map.getKey().debug());
             sb.append("->");
             sb.append(z_map.getValue().debug());
-            sb.append(">");
+            sb.append("]");
         }
         return sb.toString();
     }

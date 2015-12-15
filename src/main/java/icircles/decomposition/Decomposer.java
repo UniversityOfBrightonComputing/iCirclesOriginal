@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import icircles.abstractdescription.CurveLabel;
 import icircles.util.DEB;
 
 import icircles.abstractdescription.AbstractDescription;
@@ -13,8 +14,8 @@ import icircles.abstractdescription.AbstractBasicRegion;
 
 public class Decomposer {
 
-    DecompositionStrategy s;
-    ArrayList<AbstractCurve> toRemove = new ArrayList<AbstractCurve>(); // some utility data
+    private DecompositionStrategy s;
+    private ArrayList<AbstractCurve> toRemove = new ArrayList<AbstractCurve>(); // some utility data
 
     public Decomposer(int decompStrategy) {
         s = DecompositionStrategy.getDecompositionStrategy(decompStrategy);
@@ -82,47 +83,4 @@ public class Decomposer {
         }
         return result;
     }
-    /*
-    public static void main(String args[])
-    {
-    Decomposer d = new Decomposer();
-    DEB.level = 1;
-
-    System.out.println("example 1: ____________ a b ab");
-    ArrayList<DecompositionStep> steplist = d.decompose(
-    AbstractDescription.makeForTesting("a b ab"));
-    for(DecompositionStep step : steplist)
-    System.out.println("step : "+step.debug());
-
-    System.out.println("example 1: ____________ a b ab ac ad de");
-    steplist = d.decompose(
-    AbstractDescription.makeForTesting("a b ab ac ad de"));
-    for(DecompositionStep step : steplist)
-    System.out.println("step : "+step.debug());
-
-    System.out.println("example 1: ____________ a(1) b a(2)b");
-    // an example with multiple curves with the same label
-    CurveLabel a = CurveLabel.get("a");
-    CurveLabel b = CurveLabel.get("b");
-
-    TreeSet<AbstractCurve> tsc = new TreeSet<AbstractCurve>();
-    TreeSet<AbstractBasicRegion> tsz = new TreeSet<AbstractBasicRegion>();
-    AbstractCurve ca1 = new AbstractCurve(a);
-    AbstractCurve ca2 = new AbstractCurve(a);
-    AbstractCurve cb = new AbstractCurve(b);
-    tsz.add(AbstractBasicRegion.get(tsc)); // empty
-    tsc.add(ca1);
-    tsz.add(AbstractBasicRegion.get(tsc)); // in a(1)
-    tsc.clear();
-    tsc.add(cb);
-    tsz.add(AbstractBasicRegion.get(tsc)); // in b
-    tsc.add(ca2);
-    tsz.add(AbstractBasicRegion.get(tsc)); // in a(2) and b
-    tsc.add(ca1);
-    AbstractDescription ad = new AbstractDescription(tsc, tsz);
-    steplist = d.decompose(ad);
-    for(DecompositionStep step : steplist)
-    System.out.println("step : "+step.debug());
-    }
-     */
 }

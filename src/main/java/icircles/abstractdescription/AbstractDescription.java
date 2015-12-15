@@ -317,6 +317,14 @@ public class AbstractDescription {
         }
         return false;
     }
+
+    public boolean hasSameAbstractDescription(AbstractDescription description) {
+        return !description.getCopyOfZones()
+                .stream()
+                .filter(br -> !hasLabelEquivalentZone(br))
+                .findAny()
+                .isPresent();
+    }
 }
 
 //junk change
