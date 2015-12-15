@@ -216,11 +216,9 @@ public class AbstractDescription {
         return false;
     }
 
+    // TODO: replace ad-hoc check with a proper one
     public boolean hasSameAbstractDescription(AbstractDescription description) {
-        return !description.getCopyOfZones()
-                .stream()
-                .filter(br -> !hasLabelEquivalentZone(br))
-                .findAny()
-                .isPresent();
+        DEB.level = 3;
+        return debugAsSentence().equals(description.debugAsSentence());
     }
 }

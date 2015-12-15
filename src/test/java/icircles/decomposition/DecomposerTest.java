@@ -4,6 +4,7 @@ import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
 import icircles.abstractdescription.CurveLabel;
+import icircles.util.DEB;
 import org.junit.Before;
 import org.junit.Test;
 

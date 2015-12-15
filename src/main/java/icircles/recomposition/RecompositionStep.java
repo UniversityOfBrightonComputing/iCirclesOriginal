@@ -2,6 +2,7 @@ package icircles.recomposition;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import icircles.util.DEB;
 import icircles.abstractdescription.CurveLabel;
@@ -11,14 +12,15 @@ public class RecompositionStep {
 
     private AbstractDescription from;
     private AbstractDescription to;
-    private ArrayList<RecompData> addedContourData;
+    private List<RecompData> addedContourData;
 
     public RecompositionStep(AbstractDescription from,
             AbstractDescription to,
-            ArrayList<RecompData> added_contour_data) {
+            List<RecompData> added_contour_data) {
         this.from = from;
         this.to = to;
         addedContourData = added_contour_data;
+
         DEB.assertCondition(added_contour_data.size() > 0, "no added curve in recomp");
         CurveLabel cl = added_contour_data.get(0).added_curve.getLabel();
         for (RecompData rp : added_contour_data) {
