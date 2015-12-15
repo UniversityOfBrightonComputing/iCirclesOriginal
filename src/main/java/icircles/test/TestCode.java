@@ -7,6 +7,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -246,7 +247,7 @@ public class TestCode {
         }
         ArrayList<DecompositionStep> d_steps = new ArrayList<DecompositionStep>();
         ArrayList<RecompositionStep> r_steps = new ArrayList<RecompositionStep>();
-        ArrayList<CircleContour> circles = null;
+        List<CircleContour> circles = null;
         try {
             ConcreteDiagram cd = getDiagram(test_num, d_steps, r_steps, 100); // fixed size for checksumming
             circles = cd.getCircles();

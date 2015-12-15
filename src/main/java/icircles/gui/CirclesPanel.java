@@ -11,6 +11,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -141,12 +142,12 @@ public class CirclesPanel extends JPanel {
 
             // shaded zones
             g.setColor(Color.lightGray);
-            ArrayList<ConcreteZone> zones = diagram.getShadedZones();
+            List<ConcreteZone> zones = diagram.getShadedZones();
             for (ConcreteZone z : zones) {
                 ((Graphics2D) g).fill(z.getShape(diagram.getBox()));
             }
             ((Graphics2D) g).setStroke(new BasicStroke(2));
-            ArrayList<CircleContour> circles = diagram.getCircles();
+            List<CircleContour> circles = diagram.getCircles();
             for (CircleContour cc : circles) {
                 if (useColors) {
                     Color col = labelsToColours.get(cc.ac.getLabel());

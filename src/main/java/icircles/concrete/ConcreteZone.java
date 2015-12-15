@@ -2,20 +2,20 @@ package icircles.concrete;
 
 import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
+import java.util.List;
 
 import icircles.abstractdescription.AbstractBasicRegion;
 
 public class ConcreteZone {
 
     private AbstractBasicRegion abr;
-    private ArrayList<CircleContour> containingCircles;
-    private ArrayList<CircleContour> excludingCircles;
+    private List<CircleContour> containingCircles;
+    private List<CircleContour> excludingCircles;
     private Area shape;
 
     public ConcreteZone(AbstractBasicRegion abr,
-            ArrayList<CircleContour> containingCircles,
-            ArrayList<CircleContour> excludingCircles) {
+            List<CircleContour> containingCircles,
+            List<CircleContour> excludingCircles) {
         this.abr = abr;
         this.containingCircles = containingCircles;
         this.excludingCircles = excludingCircles;

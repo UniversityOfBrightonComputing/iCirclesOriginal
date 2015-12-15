@@ -3,10 +3,7 @@ package icircles.concrete;
 import java.awt.Rectangle;
 import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
 import icircles.decomposition.DecompositionStep;
 import icircles.gui.CirclesPanel;
@@ -19,24 +16,31 @@ import icircles.recomposition.RecompositionStep;
 import icircles.util.CannotDrawException;
 import icircles.util.DEB;
 
-class AngleIterator
-{
-	private int[] ints = {0, 8, 4, 12, 2, 6, 10, 14, 1, 3, 5, 7, 9, 11, 13, 15};
-	private int index = -1;
+/**
+ * A class which will provide an angle between 0 and 2pi. For example, when
+ * fitting a single-piercing around part of an already-drawn circle, we could
+ * get an angle from this iterator and try putting the center of the piercing
+ * circle at that position. To try more positions, add more potential angles to
+ * this iterator. The order in which positions are attempted is determined by
+ * the order in which this iterator generates possible angles.
+ */
+class AngleIterator {
 
-	public AngleIterator(){}
-	
-	public boolean hasNext()
-	{
-		return index < ints.length - 1;
-	}
-	public double next_angle()
-	{
-	   index++;
-	   int mod_index = (index%ints.length);
-       double angle = Math.PI * 2 * ints[mod_index] / (1.0 * ints.length);
-	   return angle;		
-	}	
+    private int[] ints = { 0, 8, 4, 12, 2, 6, 10, 14, 1, 3, 5, 7, 9, 11, 13, 15 };
+    private int index = -1;
+
+    public AngleIterator() {
+    }
+
+    public boolean hasNext() {
+        return index < ints.length - 1;
+    }
+
+    public double nextAngle() {
+        index++;
+        int modIndex = (index % ints.length);
+        return Math.PI * 2 * ints[modIndex] / (1.0 * ints.length);
+    }
 }
 
 public class DiagramCreator {
@@ -60,46 +64,9 @@ public class DiagramCreator {
 
     public ConcreteDiagram createDiagram(int size) throws CannotDrawException {
         make_guide_sizes(); // scores zones too
-        /*
-        Rectangle2D.Double box = null;
-        if (guide_sizes.size() < 1) {
-            box = new Rectangle2D.Double(0, 0, 1000, 1000);
-        } else {
-            box = new Rectangle2D.Double(0, 0, 1000 * guide_sizes.size(), 1000 * guide_sizes.size());
-        }
-        */
-        circles = new ArrayList<CircleContour>();
-        boolean ok = createCircles(/*box, */size);
-        
-        // Some temp code to add seven spider feet in each zone
-        /* 
-        RecompositionStep last_step = r_steps.get(r_steps.size() - 1);
-        AbstractDescription last_diag = last_step.to();
-        Iterator<AbstractBasicRegion> it = last_diag.getZoneIterator();
-                
-        while(it.hasNext())
-	        {
-	        AbstractBasicRegion abr  = it.next();
-	        
-	        ArrayList<CurveLabel> labels = new ArrayList<CurveLabel>();
-	        labels.add(null);
-	        labels.add(null);
-	        labels.add(null);
-	        labels.add(null);
-	        labels.add(null);
-	        labels.add(null);
-	        labels.add(null);
 
-            ArrayList<CircleContour> cs = findCircleContours(box, smallest_rad, 3,
-                    abr, last_diag, labels);
-
-            for(CircleContour cc : cs)
-	            {
-	    		cc.radius = 1;
-	    		circles.add(cc);
-		        }
-	        }
-		*/
+        circles = new ArrayList<>();
+        boolean ok = createCircles(size);
 		
         if (!ok) {
             circles = null;
@@ -108,10 +75,8 @@ public class DiagramCreator {
 
         CircleContour.fitCirclesToSize(circles, size);
 
-        ArrayList<ConcreteZone> shadedZones = createShadedZones();
-        ConcreteDiagram result = new ConcreteDiagram(new Rectangle2D.Double(0, 0, size, size),
-                circles, shadedZones);
-        return result;
+        List<ConcreteZone> shadedZones = createShadedZones();
+        return new ConcreteDiagram(new Rectangle2D.Double(0, 0, size, size), circles, shadedZones);
     }
 
     private void make_guide_sizes() {
@@ -158,7 +123,7 @@ public class DiagramCreator {
     }
 
     private ArrayList<ConcreteZone> createShadedZones() {
-        ArrayList<ConcreteZone> result = new ArrayList<ConcreteZone>();
+        ArrayList<ConcreteZone> result = new ArrayList<>();
         if (d_steps.size() == 0) {
             return result;
         }
@@ -193,8 +158,9 @@ public class DiagramCreator {
     }
 
     private ConcreteZone makeConcreteZone(AbstractBasicRegion z) {
-        ArrayList<CircleContour> includingCircles = new ArrayList<CircleContour>();
-        ArrayList<CircleContour> excludingCircles = new ArrayList<CircleContour>(circles);
+        List<CircleContour> includingCircles = new ArrayList<>();
+        List<CircleContour> excludingCircles = new ArrayList<>(circles);
+
         Iterator<AbstractCurve> acIt = z.getContourIterator();
         while (acIt.hasNext()) {
             AbstractCurve ac = acIt.next();
@@ -202,8 +168,8 @@ public class DiagramCreator {
             excludingCircles.remove(containingCC);
             includingCircles.add(containingCC);
         }
-        ConcreteZone cz = new ConcreteZone(z, includingCircles, excludingCircles);
-        return cz;
+
+        return new ConcreteZone(z, includingCircles, excludingCircles);
     }
 
     private boolean createCircles(int debug_size) throws CannotDrawException {
@@ -529,7 +495,7 @@ public class DiagramCreator {
                     CircleContour solution = null;
                     for (AngleIterator ai = new AngleIterator(); ai.hasNext(); )
                     	{
-                        double angle = ai.next_angle();
+                        double angle = ai.nextAngle();
                         double x = cc.cx + Math.cos(angle) * center_of_circle_lies_on_rad;
                         double y = cc.cy + Math.sin(angle) * center_of_circle_lies_on_rad;
                         if (a.contains(x, y)) {
