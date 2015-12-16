@@ -41,6 +41,7 @@ public class DEB {
     	viewingFrame.pack();
     	viewingFrame.setVisible(true);    	
     }
+
     public void clearFilmStrip()
     {
     	filmStripShots.clear();
@@ -60,7 +61,7 @@ public class DEB {
     }
 
     public static void show(int deb_level, Shape s, String desc) {
-    	if(deb_level > DEB.level)
+    	if (deb_level > DEB.level)
     		return;
     	
         JFrame jf = new JFrame(desc);

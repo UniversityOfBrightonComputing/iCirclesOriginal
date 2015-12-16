@@ -23,6 +23,9 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Shape;
 import javafx.stage.Stage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.Configurator;
 
 import java.awt.geom.Ellipse2D;
 import java.util.List;
@@ -31,6 +34,12 @@ import java.util.List;
  * @author Almas Baimagambetov (AlmasB) (almaslvl@gmail.com)
  */
 public class CirclesApp extends Application {
+
+    static {
+        Configurator.initialize("default", CirclesApp.class.getResource("/icircles/log4j2.xml").toExternalForm());
+    }
+
+    private static final Logger log = LogManager.getLogger(CirclesApp.class);
 
     private GraphicsContext g;
     private Pane root;
@@ -152,9 +161,13 @@ public class CirclesApp extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
+        log.entry();
+
         stage.setScene(new Scene(createContent()));
         stage.setTitle("iCircles FX");
         stage.show();
+
+        log.info("FX Started");
     }
 
     public static void main(String[] args) {
