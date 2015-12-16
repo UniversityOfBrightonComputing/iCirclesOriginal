@@ -1,16 +1,16 @@
 package icircles.concrete;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import icircles.recomposition.RecompData;
 
 public class BuildStep {
 
-    public ArrayList<RecompData> recomp_data;
+    public List<RecompData> recomp_data = new ArrayList<>();
     public BuildStep next = null;
 
     BuildStep(RecompData rd) {
-        recomp_data = new ArrayList<RecompData>();
         recomp_data.add(rd);
     }
 }

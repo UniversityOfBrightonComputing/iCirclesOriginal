@@ -79,7 +79,7 @@ public class DiagramCreator {
 
     private void make_guide_sizes() {
         guide_sizes = new HashMap<AbstractCurve, Double>();
-        if (r_steps.size() == 0) {
+        if (r_steps.isEmpty()) {
             return;
         }
 
@@ -171,19 +171,17 @@ public class DiagramCreator {
         return new ConcreteZone(z, includingCircles, excludingCircles);
     }
 
-    private boolean createCircles(int debug_size) throws CannotDrawException {
-        BuildStep bs = null;
+    private BuildStep makeBuildSteps() {
+        BuildStep head = null;
         BuildStep tail = null;
-        int debug_image_number = 0;
+
         for (RecompositionStep rs : r_steps) {
-            // we need to add the new curves with regard to their placement
-            // relative to the existing ones in the map
             Iterator<RecompData> it = rs.getRecompIterator();
             while (it.hasNext()) {
                 RecompData rd = it.next();
                 BuildStep newOne = new BuildStep(rd);
-                if (bs == null) {
-                    bs = newOne;
+                if (head == null) {
+                    head = newOne;
                     tail = newOne;
                 } else {
                     tail.next = newOne;
@@ -192,7 +190,15 @@ public class DiagramCreator {
             }
         }
 
+        return head;
+    }
+
+    private boolean createCircles(int debug_size) throws CannotDrawException {
+        BuildStep bs = makeBuildSteps();
+
         shuffle_and_combine(bs);
+
+        int debug_image_number = 0;
 
         BuildStep step = bs;
         stepLoop:
@@ -218,7 +224,7 @@ public class DiagramCreator {
                     AbstractCurve ac = rd.added_curve;
                     double suggested_rad = guide_sizes.get(ac);
 
-                    ArrayList<AbstractCurve> acs = new ArrayList<AbstractCurve>();
+                    ArrayList<AbstractCurve> acs = new ArrayList<>();
                     for (RecompData rd2 : step.recomp_data) {
                         ac = rd2.added_curve;
                         acs.add(ac);
@@ -367,6 +373,10 @@ public class DiagramCreator {
                     }
                 }
             }
+
+
+
+
             for (RecompData rd : step.recomp_data) {
                 AbstractCurve ac = rd.added_curve;
                 double suggested_rad = guide_sizes.get(ac);
@@ -597,82 +607,102 @@ public class DiagramCreator {
         return true;
     }
 
-    private void shuffle_and_combine(BuildStep steplist) {
-        // collect together additions which are
-        //  (i) nested in the same zone
-        //  (ii) single-piercings with the same zones
-        //  (iii) will have the same radius (have the same "score")
+    /**
+     * Collect together additions which are nested in the same zone.
+     *
+     * @param bs build steps
+     */
+    private void combineNestedContourSteps(BuildStep bs) {
+        RecompData rd = bs.recomp_data.get(0);
+        AbstractBasicRegion abr = rd.split_zones.get(0);
+        // look ahead - are there other similar nested additions?
+        // loop through futurebs's to see if we insert another
+        BuildStep beforefuturebs = bs;
+        while (beforefuturebs != null && beforefuturebs.next != null) {
+            RecompData rd2 = beforefuturebs.next.recomp_data.get(0);
+            if (rd2.split_zones.size() == 1) {
+                AbstractBasicRegion abr2 = rd2.split_zones.get(0);
+                if (abr.isLabelEquivalent(abr2)) {
+                    DEB.out(2, "found matching abrs " + abr.debug() + ", " + abr2.debug());
+                    // check scores match
 
+                    double abrScore = contScores.get(rd.added_curve);
+                    double abrScore2 = contScores.get(rd2.added_curve);
+                    DEB.assertCondition(abrScore > 0 && abrScore2 > 0, "zones must have score");
+                    DEB.out(2, "matched nestings " + abr.debug() + " and " + abr2.debug()
+                            + "\n with scores " + abrScore + " and " + abrScore2);
+                    if (abrScore == abrScore2) {
+                        // unhook futurebs and insert into list after bs
+                        BuildStep to_move = beforefuturebs.next;
+                        beforefuturebs.next = to_move.next;
+
+                        bs.recomp_data.add(to_move.recomp_data.get(0));
+                    }
+                }
+            }
+            beforefuturebs = beforefuturebs.next;
+        }
+    }
+
+    /**
+     * Collect together additions which are single-piercings with the same zones.
+     *
+     * @param bs build steps
+     */
+    private void combineSinglePiercingSteps(BuildStep bs) {
+        RecompData rd = bs.recomp_data.get(0);
+        AbstractBasicRegion abr1 = rd.split_zones.get(0);
+        AbstractBasicRegion abr2 = rd.split_zones.get(1);
+        // look ahead - are there other similar 1-piercings?
+        // loop through futurebs's to see if we insert another
+        BuildStep beforefuturebs = bs;
+        while (beforefuturebs != null && beforefuturebs.next != null) {
+            RecompData rd2 = beforefuturebs.next.recomp_data.get(0);
+            if (rd2.split_zones.size() == 2) {
+                AbstractBasicRegion abr3 = rd2.split_zones.get(0);
+                AbstractBasicRegion abr4 = rd2.split_zones.get(1);
+                if ((abr1.isLabelEquivalent(abr3) && abr2.isLabelEquivalent(abr4))
+                        || (abr1.isLabelEquivalent(abr4) && abr2.isLabelEquivalent(abr3))) {
+
+                    DEB.out(2, "found matching abrs " + abr1.debug() + ", " + abr2.debug());
+                    // check scores match
+                    double abrScore = contScores.get(rd.added_curve);
+                    double abrScore2 = contScores.get(rd2.added_curve);
+                    DEB.assertCondition(abrScore > 0 && abrScore2 > 0, "zones must have score");
+                    DEB.out(2, "matched piercings " + abr1.debug() + " and " + abr2.debug()
+                            + "\n with scores " + abrScore + " and " + abrScore2);
+                    if (abrScore == abrScore2) {
+                        // unhook futurebs and insert into list after bs
+                        BuildStep to_move = beforefuturebs.next;
+                        beforefuturebs.next = to_move.next;
+
+                        bs.recomp_data.add(to_move.recomp_data.get(0));
+                        continue;
+                    }
+                }
+            }
+            beforefuturebs = beforefuturebs.next;
+        }
+    }
+
+    private void shuffle_and_combine(BuildStep steplist) {
         BuildStep bs = steplist;
         while (bs != null) {
             DEB.assertCondition(bs.recomp_data.size() == 1, "not ready for multistep");
-            if (bs.recomp_data.get(0).split_zones.size() == 1) {
-                RecompData rd = bs.recomp_data.get(0);
-                AbstractBasicRegion abr = rd.split_zones.get(0);
-                // look ahead - are there other similar nested additions?
-                BuildStep beforefuturebs = bs;
-                while (beforefuturebs != null && beforefuturebs.next != null) {
-                    RecompData rd2 = beforefuturebs.next.recomp_data.get(0);
-                    if (rd2.split_zones.size() == 1) {
-                        AbstractBasicRegion abr2 = rd2.split_zones.get(0);
-                        if (abr.isLabelEquivalent(abr2)) {
-                            DEB.out(2, "found matching abrs " + abr.debug() + ", " + abr2.debug());
-                            // check scores match
 
-                            double abrScore = contScores.get(rd.added_curve);
-                            double abrScore2 = contScores.get(rd2.added_curve);
-                            DEB.assertCondition(abrScore > 0 && abrScore2 > 0, "zones must have score");
-                            DEB.out(2, "matched nestings " + abr.debug() + " and " + abr2.debug()
-                                    + "\n with scores " + abrScore + " and " + abrScore2);
-                            if (abrScore == abrScore2) {
-                                // unhook futurebs and insert into list after bs
-                                BuildStep to_move = beforefuturebs.next;
-                                beforefuturebs.next = to_move.next;
+            RecompData rd = bs.recomp_data.get(0);
 
-                                bs.recomp_data.add(to_move.recomp_data.get(0));
-                            }
-                        }
-                    }
-                    beforefuturebs = beforefuturebs.next;
-                }// loop through futurebs's to see if we insert another
-            }// check - are we adding a nested contour?
-            else if (bs.recomp_data.get(0).split_zones.size() == 2) {// we are adding a 1-piercing
-                RecompData rd = bs.recomp_data.get(0);
-                AbstractBasicRegion abr1 = rd.split_zones.get(0);
-                AbstractBasicRegion abr2 = rd.split_zones.get(1);
-                // look ahead - are there other similar 1-piercings?
-                BuildStep beforefuturebs = bs;
-                while (beforefuturebs != null && beforefuturebs.next != null) {
-                    RecompData rd2 = beforefuturebs.next.recomp_data.get(0);
-                    if (rd2.split_zones.size() == 2) {
-                        AbstractBasicRegion abr3 = rd2.split_zones.get(0);
-                        AbstractBasicRegion abr4 = rd2.split_zones.get(1);
-                        if ((abr1.isLabelEquivalent(abr3) && abr2.isLabelEquivalent(abr4))
-                                || (abr1.isLabelEquivalent(abr4) && abr2.isLabelEquivalent(abr3))) {
-
-                            DEB.out(2, "found matching abrs " + abr1.debug() + ", " + abr2.debug());
-                            // check scores match
-                            double abrScore = contScores.get(rd.added_curve);
-                            double abrScore2 = contScores.get(rd2.added_curve);
-                            DEB.assertCondition(abrScore > 0 && abrScore2 > 0, "zones must have score");
-                            DEB.out(2, "matched piercings " + abr1.debug() + " and " + abr2.debug()
-                                    + "\n with scores " + abrScore + " and " + abrScore2);
-                            if (abrScore == abrScore2) {
-                                // unhook futurebs and insert into list after bs
-                                BuildStep to_move = beforefuturebs.next;
-                                beforefuturebs.next = to_move.next;
-
-                                bs.recomp_data.add(to_move.recomp_data.get(0));
-                                continue;
-                            }
-                        }
-                    }
-                    beforefuturebs = beforefuturebs.next;
-                }// loop through futurebs's to see if we insert another
+            if (rd.split_zones.size() == 1) {
+                // we are adding a nested contour
+                combineNestedContourSteps(bs);
+            }
+            else if (rd.split_zones.size() == 2) {
+                // we are adding a 1-piercing
+                combineSinglePiercingSteps(bs);
             }
 
             bs = bs.next;
-        }// bsloop
+        }
     }
 
     void addCircle(CircleContour c) {
@@ -706,8 +736,8 @@ public class DiagramCreator {
         if (good_rad < 0.0) {
             return null;
         }
-        CircleContour sol = new CircleContour(cx, cy, good_rad, ac);
-        return sol;
+
+        return new CircleContour(cx, cy, good_rad, ac);
     }
 
     private CircleContour findCircleContour(Rectangle2D.Double outerBox,
@@ -1165,6 +1195,7 @@ public class DiagramCreator {
         test.subtract(a);
         return test.isEmpty();
     }
+
     private void DEB_show_frame(int deb_level,// only show if deb_level >= global debug level
     		int debug_frame_index,
     		int size)
