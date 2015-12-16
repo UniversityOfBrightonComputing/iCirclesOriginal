@@ -8,7 +8,6 @@ import icircles.decomposition.DecompositionStep;
 import icircles.decomposition.DecompositionStrategy;
 import icircles.recomposition.Recomposer;
 import icircles.recomposition.RecompositionStep;
-import icircles.recomposition.RecompositionStrategy;
 import icircles.recomposition.RecompositionType;
 import icircles.test.TestData;
 import icircles.util.CannotDrawException;
@@ -30,7 +29,7 @@ public class CirclesFrame extends JFrame {
 
     CirclesFrame() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        populate_frame();
+        populateFrame();
         pack();
         setVisible(true);
 
@@ -68,7 +67,7 @@ public class CirclesFrame extends JFrame {
         redraw();
     }
 
-    void populate_frame() {
+    void populateFrame() {
         getContentPane().add(inputPanel.getPanel(), BorderLayout.NORTH);
         getContentPane().add(resultPanel.getPanel(), BorderLayout.CENTER);
         getContentPane().add(settingsPanel.getPanel(), BorderLayout.SOUTH);
