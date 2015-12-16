@@ -131,7 +131,7 @@ public class Recomposer {
         TreeSet<AbstractCurve> new_cont_set = from.getCopyOfContours();
         // for each cluster, make a Contour with label
         for (Cluster cluster : clusters) {
-            AbstractCurve new_cont = was_removed.clone();
+            AbstractCurve new_cont = new AbstractCurve(was_removed);
             ArrayList<AbstractBasicRegion> split_zones = new ArrayList<>();
             ArrayList<AbstractBasicRegion> added_zones = new ArrayList<>();
             new_cont_set.add(new_cont);

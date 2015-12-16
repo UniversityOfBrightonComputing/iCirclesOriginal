@@ -33,15 +33,9 @@ public class CurveLabel implements Comparable<CurveLabel> {
     public String debug() {
         if (DEB.level == 0) {
             return "";
-        } else //if(Debug.level == 1)
-        {
+        } else {
             return label;
         }
-//		else
-//		{
-//			return label + "@"+ hashCode();
-//		}
-
     }
 
     public int compareTo(CurveLabel other) {
@@ -56,11 +50,6 @@ public class CurveLabel implements Comparable<CurveLabel> {
             scaling += 0.01;
         }
         return result;
-    }
-
-    public boolean isLabelled(String string) {
-        return string.equals(label);
-
     }
 
     public String getLabel() {

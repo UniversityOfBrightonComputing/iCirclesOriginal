@@ -120,11 +120,12 @@ public class DiagramCreator {
         return 1.0;
     }
 
-    private ArrayList<ConcreteZone> createShadedZones() {
-        ArrayList<ConcreteZone> result = new ArrayList<>();
-        if (d_steps.size() == 0) {
+    private List<ConcreteZone> createShadedZones() {
+        List<ConcreteZone> result = new ArrayList<>();
+        if (d_steps.isEmpty()) {
             return result;
         }
+
         AbstractDescription initial_diagram = d_steps.get(0).from();
         AbstractDescription final_diagram = r_steps.get(r_steps.size() - 1).to();
         // which zones in final_diagram were not in initial_diagram?

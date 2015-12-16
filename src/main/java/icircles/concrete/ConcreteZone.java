@@ -22,7 +22,6 @@ public class ConcreteZone {
         this.abr = abr;
         this.containingCircles = containingCircles;
         this.excludingCircles = excludingCircles;
-        shape = null;
     }
 
     public Area getShape(Rectangle2D.Double box) {

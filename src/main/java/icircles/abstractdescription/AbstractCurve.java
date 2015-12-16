@@ -14,12 +14,12 @@ public class AbstractCurve implements Comparable<AbstractCurve> {
         this.label = label;
     }
 
-    public CurveLabel getLabel() {
-        return label;
+    public AbstractCurve(AbstractCurve curve) {
+        this(curve.label);
     }
 
-    public AbstractCurve clone() {
-        return new AbstractCurve(label);
+    public CurveLabel getLabel() {
+        return label;
     }
 
     public int compareTo(AbstractCurve o) {

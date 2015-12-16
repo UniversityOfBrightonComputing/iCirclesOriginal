@@ -4,30 +4,26 @@ import icircles.abstractdescription.AbstractDescription;
 import icircles.concrete.CircleContour;
 import icircles.concrete.ConcreteDiagram;
 import icircles.concrete.ConcreteZone;
-import icircles.concrete.DiagramCreator;
-import icircles.decomposition.Decomposer;
-import icircles.decomposition.DecompositionStep;
-import icircles.decomposition.DecompositionStrategy;
 import icircles.decomposition.DecompositionType;
-import icircles.recomposition.Recomposer;
-import icircles.recomposition.RecompositionStep;
 import icircles.recomposition.RecompositionType;
 import icircles.util.CannotDrawException;
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Path;
 import javafx.scene.shape.Shape;
 import javafx.stage.Stage;
 
-import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.util.List;
 
@@ -51,25 +47,41 @@ public class CirclesApp extends Application {
         shadedZonesRoot.setPrefSize(800, 500);
 
         Canvas canvas = new Canvas(800, 600);
+        canvas.widthProperty().bind(root.widthProperty());
+        canvas.heightProperty().bind(root.heightProperty());
         g = canvas.getGraphicsContext2D();
         root.getChildren().addAll(shadedZonesRoot, canvas);
         pane.setCenter(root);
 
+        pane.setLeft(createContentLeft());
+
+        return pane;
+    }
+
+    private Parent createContentLeft() {
         TextField input = new TextField();
         input.setOnAction(e -> draw(input.getText()));
-        pane.setTop(input);
+
+        ChoiceBox<DecompositionType> decompBox = new ChoiceBox<>(FXCollections.observableArrayList(DecompositionType.values()));
+        ChoiceBox<RecompositionType> recompBox = new ChoiceBox<>(FXCollections.observableArrayList(RecompositionType.values()));
+
+        decompBox.getSelectionModel().selectLast();
+        recompBox.getSelectionModel().selectLast();
 
         Button btnDrawVenn = new Button("VENN3");
         btnDrawVenn.setOnAction(e -> drawVenn3());
-        pane.setBottom(btnDrawVenn);
 
-        return pane;
+        VBox vbox = new VBox(50, input, decompBox, recompBox, btnDrawVenn);
+        vbox.setAlignment(Pos.CENTER);
+
+        return vbox;
     }
 
     private void draw(String description) {
         try {
             ConcreteDiagram diagram = ConcreteDiagram.makeConcreteDiagram(DecompositionType.PIERCED_FIRST,
-                    RecompositionType.DOUBLY_PIERCED, AbstractDescription.makeForTesting(description), 550);
+                    RecompositionType.DOUBLY_PIERCED, AbstractDescription.makeForTesting(description),
+                    Math.min((int)root.getWidth(), (int)root.getHeight()));
             draw(diagram);
         } catch (CannotDrawException e) {
             e.printStackTrace();
@@ -77,7 +89,9 @@ public class CirclesApp extends Application {
     }
 
     private void draw(ConcreteDiagram diagram) {
-        g.clearRect(0, 0, 800, 600);
+        System.out.println(root.getWidth() + " " + root.getHeight());
+
+        g.clearRect(0, 0, root.getWidth(), root.getHeight());
 
         // draw shaded zones
         g.setFill(Color.LIGHTGREY);

@@ -38,6 +38,7 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
         }
     }
 
+    @Override
     public int compareTo(AbstractBasicRegion other) {
         if (other.theInSet.size() < theInSet.size()) {
             return 1;
