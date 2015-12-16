@@ -9,6 +9,7 @@ import icircles.decomposition.DecompositionStrategy;
 import icircles.recomposition.Recomposer;
 import icircles.recomposition.RecompositionStep;
 import icircles.recomposition.RecompositionStrategy;
+import icircles.recomposition.RecompositionType;
 import icircles.test.TestData;
 import icircles.util.CannotDrawException;
 
@@ -80,7 +81,7 @@ public class CirclesFrame extends JFrame {
         draw(TestData.test_data[test_num - 1].description);
     }
 
-    private void goDraw(String description, int decomp_strategy, int recomp_strategy) {
+    private void goDraw(String description, int decomp_strategy, RecompositionType recomp_strategy) {
         ConcreteDiagram cd = null;
         String failureMessage = null;
         try {
@@ -184,7 +185,7 @@ public class CirclesFrame extends JFrame {
 
         private int test_num = 0;
         String[] decompStrings = DecompositionStrategy.getDecompStrings();
-        String[] recompStrings = RecompositionStrategy.getRecompStrings();
+        String[] recompStrings = new String[] {"TYPE1", "TYPE2", "TYPE3"};
         final JComboBox decompList = new JComboBox(decompStrings);
         final JComboBox recompList = new JComboBox(recompStrings);
         final JTextField testJTF = new JTextField("");
@@ -192,6 +193,9 @@ public class CirclesFrame extends JFrame {
         final JPanel p = new JPanel();
 
         SettingsPanel() {
+
+
+
             //Construct a GridLayout with 1 columns and an unspecified number of rows.
             //p.setLayout(new GridLayout(0,1));
             p.setLayout(new BorderLayout());
@@ -287,20 +291,19 @@ public class CirclesFrame extends JFrame {
             return decompList.getSelectedIndex();
         }
 
-        String getDecompString() {
-            return decompStrings[getDecompStrategy()];
+        void setRecompStrategy(RecompositionType type) {
+            int i = 0;
+            for (RecompositionType t : RecompositionType.values()) {
+                if (t == type) {
+                    recompList.setSelectedIndex(i);
+                    break;
+                }
+                i++;
+            }
         }
 
-        void setRecompStrategy(int i) {
-            recompList.setSelectedIndex(i);
-        }
-
-        int getRecompStrategy() {
-            return recompList.getSelectedIndex();
-        }
-
-        String getRecompString() {
-            return recompStrings[getRecompStrategy()];
+        RecompositionType getRecompStrategy() {
+            return RecompositionType.values()[recompList.getSelectedIndex()];
         }
 
         JPanel getPanel() {

@@ -14,12 +14,12 @@ public class Recomposer {
 
     private RecompositionStrategy strategy;
 
-    public Recomposer(int recompStrategy) {
-        strategy = RecompositionStrategy.getStrategy(recompStrategy);
+    public Recomposer(RecompositionType type) {
+        strategy = type.strategy();
     }
 
     public List<RecompositionStep> recompose(List<DecompositionStep> decompSteps) {
-        Map<AbstractBasicRegion, AbstractBasicRegion> matchedZones = new TreeMap<>(new ABRComparator());
+        Map<AbstractBasicRegion, AbstractBasicRegion> matchedZones = new TreeMap<>(AbstractBasicRegion::compareTo);
 
         int numSteps = decompSteps.size();
 

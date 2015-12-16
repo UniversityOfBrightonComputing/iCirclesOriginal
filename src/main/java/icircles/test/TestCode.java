@@ -21,6 +21,7 @@ import icircles.recomposition.Recomposer;
 import icircles.recomposition.RecompositionStep;
 import icircles.recomposition.RecompositionStrategy;
 
+import icircles.recomposition.RecompositionType;
 import icircles.util.CannotDrawException;
 import icircles.util.DEB;
 
@@ -93,7 +94,7 @@ public class TestCode {
     	else if(TestData.TEST_EULER_THREE)
     	{
 	        testlist = new int[39];
-	        for (int i = 0; i < 39; i++) 
+	        for (int i = 0; i < 39; i++)
 	            testlist[i] = i * 3 + 2;
         }
 
@@ -184,13 +185,13 @@ public class TestCode {
         return result;
     }
 
-//	private static boolean sleep(int time) 
+//	private static boolean sleep(int time)
 //		{
-//		try 
+//		try
 //			{
 //			Thread.sleep(time);
-//			} 
-//		catch(Exception e) 
+//			}
+//		catch(Exception e)
 //			{
 //			System.out.println("Exception occurred in Thread.sleep() "+e);
 //			e.printStackTrace();
@@ -321,7 +322,7 @@ public class TestCode {
 //	int maxX = Integer.MIN_VALUE;
 //	int minY = Integer.MAX_VALUE;
 //	int maxY = Integer.MIN_VALUE;
-//	
+//
 //	for(ConcreteContour cc : ccd.getConcreteContours()){
 //		RegularPolygon rp = cc.getCircle();
 //		int lowX = rp.getCentreX() - rp.getRadius();
@@ -335,8 +336,8 @@ public class TestCode {
 //	}
 //	return new Rectangle(minX, minY, maxX - minX, maxY - minY);
 //	}
-//	static ConstructedConcreteDiagram 
-//			transform(ConstructedConcreteDiagram ccd, 
+//	static ConstructedConcreteDiagram
+//			transform(ConstructedConcreteDiagram ccd,
 //						double xstep, double ystep, double scale,
 //						String desc)
 //	{
@@ -347,11 +348,11 @@ public class TestCode {
 //					(int)((rp.getCentreX()+xstep)*scale),
 //					(int)((rp.getCentreY()+ystep)*scale),
 //					(int)(rp.getRadius()*scale),50);
-//			ConcreteContour newcc = 
+//			ConcreteContour newcc =
 //				new ConcreteContour(cc.getAbstractContour(), newrp);
 //			newConts.add(newcc);
 //		}
-//		ConstructedConcreteDiagram result = 
+//		ConstructedConcreteDiagram result =
 //			new ConstructedConcreteDiagram(desc, newConts);
 //		return result;
 //	}
@@ -361,7 +362,7 @@ public class TestCode {
             ArrayList<RecompositionStep> r_steps,
             int size) throws CannotDrawException {
         int decomp_strategy = TestData.test_data[test_num].decomp_strategy;
-        int recomp_strategy = TestData.test_data[test_num].recomp_strategy;
+        RecompositionType recomp_strategy = TestData.test_data[test_num].recomp_strategy;
         Decomposer d = new Decomposer(decomp_strategy);
         d_steps.addAll(d.decompose(AbstractDescription.makeForTesting(TestData.test_data[test_num].description)));
 
@@ -371,10 +372,10 @@ public class TestCode {
         ConcreteDiagram cd = dc.createDiagram(size);
         return cd;
     }
-    
+
     private static void printFreshTestData(int test_num, double checksum_found) {
         int decomp_strategy = TestData.test_data[test_num].decomp_strategy;
-        int recomp_strategy = TestData.test_data[test_num].recomp_strategy;
+        RecompositionType recomp_strategy = TestData.test_data[test_num].recomp_strategy;
         String desc = TestData.test_data[test_num].description;
 
         System.out.println("/*" + test_num
@@ -383,7 +384,7 @@ public class TestCode {
                 + "DecompositionStrategy."
                 + DecompositionStrategy.text_for(decomp_strategy) + ", "
                 + "RecompositionStrategy."
-                + RecompositionStrategy.text_for(recomp_strategy) + ", "
+                + recomp_strategy.toString() + ", "
                 + (isNaN(checksum_found) ? 111 : checksum_found) + "),");
 
     }

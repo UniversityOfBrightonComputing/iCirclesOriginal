@@ -8,6 +8,7 @@ import icircles.gui.CirclesPanel;
 import icircles.recomposition.Recomposer;
 import icircles.recomposition.RecompositionStep;
 import icircles.recomposition.RecompositionStrategy;
+import icircles.recomposition.RecompositionType;
 import icircles.util.CannotDrawException;
 
 import java.awt.geom.Rectangle2D;
@@ -71,7 +72,7 @@ public class ConcreteDiagram {
         Decomposer d = new Decomposer(DecompositionStrategy.PIERCEDFIRST);
         d_steps.addAll(d.decompose(ad));
 
-        Recomposer r = new Recomposer(RecompositionStrategy.RECOMPOSE_DOUBLY_PIERCED);
+        Recomposer r = new Recomposer(RecompositionType.DOUBLY_PIERCED);
         r_steps.addAll(r.recompose(d_steps));
         DiagramCreator dc = new DiagramCreator(d_steps, r_steps, size);
         return dc.createDiagram(size);

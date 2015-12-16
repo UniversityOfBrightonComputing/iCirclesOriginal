@@ -23,7 +23,7 @@ public class RecomposerTest {
 
     @Before
     public void setUp() {
-        recomposer = new Recomposer(RecompositionStrategy.RECOMPOSE_DOUBLY_PIERCED);
+        recomposer = new Recomposer(RecompositionType.DOUBLY_PIERCED);
     }
 
     @Test
