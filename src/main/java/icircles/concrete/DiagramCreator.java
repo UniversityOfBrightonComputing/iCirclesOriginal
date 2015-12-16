@@ -46,16 +46,16 @@ class AngleIterator {
 public class DiagramCreator {
 
     final static int smallest_rad = 3;
-    ArrayList<DecompositionStep> d_steps;
-    ArrayList<RecompositionStep> r_steps;
+    List<DecompositionStep> d_steps;
+    List<RecompositionStep> r_steps;
     HashMap<AbstractBasicRegion, Double> zoneScores;
     HashMap<AbstractCurve, Double> contScores;
     HashMap<AbstractCurve, Double> guide_sizes;
     HashMap<AbstractCurve, CircleContour> map;
     ArrayList<CircleContour> circles;
 
-    public DiagramCreator(ArrayList<DecompositionStep> d_steps,
-            ArrayList<RecompositionStep> r_steps,
+    public DiagramCreator(List<DecompositionStep> d_steps,
+            List<RecompositionStep> r_steps,
             int size) {
         this.d_steps = d_steps;
         this.r_steps = r_steps;

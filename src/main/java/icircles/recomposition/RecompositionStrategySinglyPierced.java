@@ -12,7 +12,7 @@ import icircles.abstractdual.AbstractDualNode;
 
 public class RecompositionStrategySinglyPierced extends RecompositionStrategy {
 
-    public ArrayList<Cluster> make_clusters(
+    public ArrayList<Cluster> makeClusters(
             ArrayList<AbstractBasicRegion> zonesToSplit) {
 
         if (DEB.level > 1) {

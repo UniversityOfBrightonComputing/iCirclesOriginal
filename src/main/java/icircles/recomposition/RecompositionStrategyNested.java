@@ -8,7 +8,7 @@ import icircles.abstractdescription.AbstractBasicRegion;
 
 public class RecompositionStrategyNested extends RecompositionStrategy {
 
-    public ArrayList<Cluster> make_clusters(
+    public ArrayList<Cluster> makeClusters(
             ArrayList<AbstractBasicRegion> zones_to_split) {
         if (DEB.level > 1) {
             System.out.println("recomposition stratgey is nested");

@@ -11,6 +11,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeSet;
 
 public class DecomposerTest {
@@ -31,7 +32,7 @@ public class DecomposerTest {
     // the data is then to be parsed and fed into this method for automated testing
     @Test
     public void decompose() {
-        ArrayList<DecompositionStep> steps = decomposer.decompose(AbstractDescription.makeForTesting("a b ab"));
+        List<DecompositionStep> steps = decomposer.decompose(AbstractDescription.makeForTesting("a b ab"));
 
         // a b ab -> b
         // b      -> 0

@@ -1,44 +1,26 @@
 package icircles.gui;
 
-import java.awt.BorderLayout;
-import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import java.util.ArrayList;
-
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.BorderFactory;
-import javax.swing.InputMap;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.KeyStroke;
-
 import icircles.abstractdescription.AbstractDescription;
-
-import icircles.recomposition.Recomposer;
-import icircles.recomposition.RecompositionStep;
-import icircles.recomposition.RecompositionStrategy;
-import icircles.test.TestData;
-import icircles.util.CannotDrawException;
 import icircles.concrete.ConcreteDiagram;
 import icircles.concrete.DiagramCreator;
 import icircles.decomposition.Decomposer;
 import icircles.decomposition.DecompositionStep;
 import icircles.decomposition.DecompositionStrategy;
+import icircles.recomposition.Recomposer;
+import icircles.recomposition.RecompositionStep;
+import icircles.recomposition.RecompositionStrategy;
+import icircles.test.TestData;
+import icircles.util.CannotDrawException;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.util.List;
 
 public class CirclesFrame extends JFrame {
 
-    private static final long serialVersionUID = 1L;
     final InputPanel inputPanel = new InputPanel();
     final ResultPanel resultPanel = new ResultPanel();
     final SettingsPanel settingsPanel = new SettingsPanel();
@@ -50,9 +32,7 @@ public class CirclesFrame extends JFrame {
         populate_frame();
         pack();
         setVisible(true);
-        //Debug.level = 4;
-        //draw("a b cd f eg st fes");
-        //draw("a b c d e f g h i j k l");
+
         drawTest(63);
         getContentPane().addComponentListener(new ComponentListener() {
 
@@ -73,10 +53,8 @@ public class CirclesFrame extends JFrame {
     }
 
     void respondToResize() {
-        SIZE = Math.min(getContentPane().getHeight()
-                - settingsPanel.getPanel().getHeight()
+        SIZE = Math.min(getContentPane().getHeight() - settingsPanel.getPanel().getHeight()
                 - inputPanel.getPanel().getHeight(), // allow for buttons etc
-
                 getContentPane().getWidth()) - 30;
 
         System.out.println("new size is " + getContentPane().getHeight() + "," + getContentPane().getWidth());
@@ -103,24 +81,28 @@ public class CirclesFrame extends JFrame {
     }
 
     private void goDraw(String description, int decomp_strategy, int recomp_strategy) {
-
-        ArrayList<DecompositionStep> d_steps = new ArrayList<DecompositionStep>();
-        ArrayList<RecompositionStep> r_steps = new ArrayList<RecompositionStep>();
         ConcreteDiagram cd = null;
         String failureMessage = null;
         try {
             Decomposer d = new Decomposer(decomp_strategy);
-            d_steps.addAll(d.decompose(
-                    AbstractDescription.makeForTesting(description)));
+            List<DecompositionStep> d_steps = d.decompose(AbstractDescription.makeForTesting(description));
 
             Recomposer r = new Recomposer(recomp_strategy);
-            r_steps.addAll(r.recompose(d_steps));
+            List<RecompositionStep> r_steps = r.recompose(d_steps);
+
             DiagramCreator dc = new DiagramCreator(d_steps, r_steps, SIZE);
             cd = dc.createDiagram(SIZE);
         } catch (CannotDrawException x) {
             failureMessage = x.message;
         }
+
         resultPanel.show(description, failureMessage, cd, SIZE, useColors);
+    }
+
+    void redraw() {
+        goDraw(inputPanel.getCurrentDescription(),
+                settingsPanel.getDecompStrategy(),
+                settingsPanel.getRecompStrategy());
     }
 
     class InputPanel {
@@ -161,11 +143,14 @@ public class CirclesFrame extends JFrame {
     }
 
     class EscapeAction extends AbstractAction {
-
-        private static final long serialVersionUID = 1L;
-
         public void actionPerformed(ActionEvent ev) {
             inputPanel.clear();
+        }
+    }
+
+    class RedrawListener extends AbstractAction {
+        public void actionPerformed(ActionEvent ev) {
+            redraw();
         }
     }
 
@@ -192,7 +177,6 @@ public class CirclesFrame extends JFrame {
             p.add(jp);
             p.revalidate();
             getContentPane().repaint();
-
         }
     }
 
@@ -218,12 +202,9 @@ public class CirclesFrame extends JFrame {
             p.add(topPanel, BorderLayout.NORTH);
 
             final JCheckBox jcb = new JCheckBox("Show contours with colours", true);
-            jcb.addActionListener(new ActionListener() {
-
-                public void actionPerformed(ActionEvent e) {
-                    useColors = jcb.isSelected();
-                    redraw();
-                }
+            jcb.addActionListener(e -> {
+                useColors = jcb.isSelected();
+                redraw();
             });
             topPanel.add(jcb);
 
@@ -241,12 +222,7 @@ public class CirclesFrame extends JFrame {
             p.add(examplePanel, BorderLayout.CENTER);
 
             JButton v3 = new JButton("draw Venn 3");
-            v3.addActionListener(new ActionListener() {
-
-                public void actionPerformed(ActionEvent e) {
-                    draw("a b c ab ac bc abc");
-                }
-            });
+            v3.addActionListener(e -> draw("a b c ab ac bc abc"));
             examplePanel.add(v3);
 
             final JLabel testLabel = new JLabel("draw test index:");
@@ -258,37 +234,32 @@ public class CirclesFrame extends JFrame {
             examplePanel.add(testJTF);
 
             JButton next = new JButton("draw next test case");
-            next.addActionListener(new ActionListener() {
-
-                public void actionPerformed(ActionEvent e) {
-                    if (testJTF.getText().length() == 0) {
-                        test_num = 2;
-                    } else {
-                        test_num += 3;
-                        if (test_num > TestData.test_data.length - 1) {
-                            test_num = test_num % 3;
-                        }
+            next.addActionListener(e -> {
+                if (testJTF.getText().length() == 0) {
+                    test_num = 2;
+                } else {
+                    test_num += 3;
+                    if (test_num > TestData.test_data.length - 1) {
+                        test_num = test_num % 3;
                     }
-                    testJTF.setText("" + (test_num + 1));
-                    drawTest(test_num + 1);
                 }
+                testJTF.setText("" + (test_num + 1));
+                drawTest(test_num + 1);
             });
             examplePanel.add(next);
-            JButton prev = new JButton("draw previous test case");
-            prev.addActionListener(new ActionListener() {
 
-                public void actionPerformed(ActionEvent e) {
-                    if (testJTF.getText().length() == 0) {
-                        test_num = getBiggestTestNum(TestData.test_data.length, 3);
-                    } else {
-                        test_num -= 3;
-                        if (test_num <= 0) {
-                            test_num = getBiggestTestNum(TestData.test_data.length, test_num);
-                        }
+            JButton prev = new JButton("draw previous test case");
+            prev.addActionListener(e -> {
+                if (testJTF.getText().length() == 0) {
+                    test_num = getBiggestTestNum(TestData.test_data.length, 3);
+                } else {
+                    test_num -= 3;
+                    if (test_num <= 0) {
+                        test_num = getBiggestTestNum(TestData.test_data.length, test_num);
                     }
-                    testJTF.setText("" + (test_num + 1));
-                    drawTest(test_num + 1);
                 }
+                testJTF.setText("" + (test_num + 1));
+                drawTest(test_num + 1);
             });
             examplePanel.add(prev);
         }
@@ -338,8 +309,6 @@ public class CirclesFrame extends JFrame {
 
         class TestListener extends AbstractAction {
 
-            private static final long serialVersionUID = 1L;
-
             public void actionPerformed(ActionEvent ev) {
                 try {
                     int i = Integer.parseInt(testJTF.getText());
@@ -351,24 +320,8 @@ public class CirclesFrame extends JFrame {
                     drawTest(test_num + 1);
                 } catch (NumberFormatException x) {
                     JOptionPane.showMessageDialog(null, "type an integer between 1 and " + TestData.test_data.length);
-                    return;
                 }
             }
-        }
-    }
-
-    void redraw() {
-        goDraw(inputPanel.getCurrentDescription(),
-                settingsPanel.getDecompStrategy(),
-                settingsPanel.getRecompStrategy());
-    }
-
-    class RedrawListener extends AbstractAction {
-
-        private static final long serialVersionUID = 1L;
-
-        public void actionPerformed(ActionEvent ev) {
-            redraw();
         }
     }
 }

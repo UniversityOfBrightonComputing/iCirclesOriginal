@@ -12,10 +12,6 @@ public abstract class RecompositionStrategy {
     public static final int RECOMPOSE_SINGLY_PIERCED = 1;
     public static final int RECOMPOSE_DOUBLY_PIERCED = 2;
 
-    public static RecompositionStrategy getStrategy() {
-        return new RecompositionStrategySinglyPierced();
-    }
-
     public static RecompositionStrategy getStrategy(int strategy) {
         if (strategy == RECOMPOSE_NESTED) {
             return new RecompositionStrategyNested();
@@ -37,8 +33,7 @@ public abstract class RecompositionStrategy {
     };
 
     public static String text_for(int recompStrategy) {
-        DEB.assertCondition(recompStrategy >= 0
-                && recompStrategy < names.length, "out of bounds");
+        DEB.assertCondition(recompStrategy >= 0 && recompStrategy < names.length, "out of bounds");
         return names[recompStrategy];
     }
 
@@ -46,6 +41,5 @@ public abstract class RecompositionStrategy {
         return nice_names;
     }
 
-    public abstract ArrayList<Cluster> make_clusters(
-            ArrayList<AbstractBasicRegion> zones_to_split);
+    public abstract ArrayList<Cluster> makeClusters(ArrayList<AbstractBasicRegion> zones_to_split);
 }

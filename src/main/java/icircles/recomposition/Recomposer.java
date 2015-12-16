@@ -18,7 +18,7 @@ public class Recomposer {
         strategy = RecompositionStrategy.getStrategy(recompStrategy);
     }
 
-    public List<RecompositionStep> recompose(ArrayList<DecompositionStep> decompSteps) {
+    public List<RecompositionStep> recompose(List<DecompositionStep> decompSteps) {
         Map<AbstractBasicRegion, AbstractBasicRegion> matchedZones = new TreeMap<>(new ABRComparator());
 
         int numSteps = decompSteps.size();
@@ -119,7 +119,7 @@ public class Recomposer {
             }
         }
         // Partition zones_to_split
-        ArrayList<Cluster> clusters = strategy.make_clusters(zones_to_split);
+        ArrayList<Cluster> clusters = strategy.makeClusters(zones_to_split);
 
         if (DEB.level > 1) {
             for (Cluster c : clusters) {

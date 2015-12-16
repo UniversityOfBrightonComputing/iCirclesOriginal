@@ -28,7 +28,7 @@ public class RecomposerTest {
 
     @Test
     public void recompose() {
-        ArrayList<DecompositionStep> decompositionSteps = new Decomposer().decompose(AbstractDescription.makeForTesting("a b ab"));
+        List<DecompositionStep> decompositionSteps = new Decomposer().decompose(AbstractDescription.makeForTesting("a b ab"));
         List<RecompositionStep> steps = recomposer.recompose(decompositionSteps);
 
         // 0 + b -> b

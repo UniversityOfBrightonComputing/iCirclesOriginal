@@ -1,9 +1,6 @@
 package icircles.decomposition;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 
 import icircles.abstractdescription.CurveLabel;
 import icircles.util.DEB;
@@ -51,7 +48,7 @@ public class Decomposer {
         return result;
     }
 
-    public ArrayList<DecompositionStep> decompose(AbstractDescription ad) {
+    public List<DecompositionStep> decompose(AbstractDescription ad) {
         if (!ad.getZoneIterator().hasNext()) {
             throw new Error("decompose empty description?");
         }
