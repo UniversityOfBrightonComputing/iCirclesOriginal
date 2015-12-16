@@ -90,6 +90,9 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
         return theInSet.iterator();
     }
 
+    /**
+     * @return number of contours within this zone
+     */
     public int getNumContours() {
         return theInSet.size();
     }
@@ -107,7 +110,7 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
             Iterator<AbstractCurve> it = getContourIterator();
             while (it.hasNext()) {
                 AbstractCurve ac = it.next();
-                if (!other.is_in(ac)) {
+                if (!other.contains(ac)) {
                     if (result != null) {
                         return null; // found two contours here absent from other
                     } else {
@@ -128,8 +131,14 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
         return AbstractBasicRegion.get(conts);
     }
 
-    public boolean is_in(AbstractCurve c) {
-        return theInSet.contains(c);
+    /**
+     * Returns true if this zone contains the curve.
+     *
+     * @param curve the curve
+     * @return true iff the curve in within this zone
+     */
+    public boolean contains(AbstractCurve curve) {
+        return theInSet.contains(curve);
     }
 
     public double checksum() {

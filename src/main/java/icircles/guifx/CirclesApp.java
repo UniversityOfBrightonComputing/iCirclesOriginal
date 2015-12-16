@@ -36,6 +36,9 @@ public class CirclesApp extends Application {
     private Pane root;
     private Pane shadedZonesRoot;
 
+    private ChoiceBox<DecompositionType> decompBox;
+    private ChoiceBox<RecompositionType> recompBox;
+
     private Parent createContent() {
         BorderPane pane = new BorderPane();
         pane.setPrefSize(800, 600);
@@ -62,8 +65,8 @@ public class CirclesApp extends Application {
         TextField input = new TextField();
         input.setOnAction(e -> draw(input.getText()));
 
-        ChoiceBox<DecompositionType> decompBox = new ChoiceBox<>(FXCollections.observableArrayList(DecompositionType.values()));
-        ChoiceBox<RecompositionType> recompBox = new ChoiceBox<>(FXCollections.observableArrayList(RecompositionType.values()));
+        decompBox = new ChoiceBox<>(FXCollections.observableArrayList(DecompositionType.values()));
+        recompBox = new ChoiceBox<>(FXCollections.observableArrayList(RecompositionType.values()));
 
         decompBox.getSelectionModel().selectLast();
         recompBox.getSelectionModel().selectLast();
@@ -77,15 +80,28 @@ public class CirclesApp extends Application {
         return vbox;
     }
 
+    private void findDuplicates(List<CircleContour> contours) {
+        for (int i = 0; i < contours.size(); i++) {
+            CircleContour contour = contours.get(i);
+            for (int j = i + 1; j < contours.size(); j++) {
+                CircleContour contour2 = contours.get(j);
+                if (contour.ac.getLabel().getLabel().equals(contour2.ac.getLabel().getLabel())) {
+                    System.out.println("Found duplicate curve label: " + contour.ac.getLabel().getLabel());
+                }
+            }
+        }
+    }
+
     private void draw(String description) {
         try {
             System.out.println(AbstractDescription.makeForTesting(description).toString());
 
-            ConcreteDiagram diagram = ConcreteDiagram.makeConcreteDiagram(DecompositionType.PIERCED_FIRST,
-                    RecompositionType.DOUBLY_PIERCED, AbstractDescription.makeForTesting(description),
+            ConcreteDiagram diagram = ConcreteDiagram.makeConcreteDiagram(decompBox.getValue(),
+                    recompBox.getValue(), AbstractDescription.makeForTesting(description),
                     Math.min((int)root.getWidth(), (int)root.getHeight()));
 
             System.out.println(diagram);
+            findDuplicates(diagram.getCircles());
 
             draw(diagram);
         } catch (CannotDrawException e) {

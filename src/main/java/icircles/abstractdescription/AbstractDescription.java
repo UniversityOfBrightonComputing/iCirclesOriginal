@@ -189,7 +189,7 @@ public class AbstractDescription {
             scaling += 0.07;
             scaling += 0.05;
             for (AbstractBasicRegion z : zones) {
-                if (z.is_in(c)) {
+                if (z.contains(c)) {
                     result += z.checksum() * scaling;
                     scaling += 0.09;
                 }
