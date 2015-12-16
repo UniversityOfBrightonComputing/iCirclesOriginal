@@ -174,4 +174,11 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
         }
         return false;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        theInSet.forEach(sb::append);
+        return sb.toString();
+    }
 }

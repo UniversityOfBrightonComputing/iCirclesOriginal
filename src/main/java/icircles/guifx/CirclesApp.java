@@ -79,9 +79,14 @@ public class CirclesApp extends Application {
 
     private void draw(String description) {
         try {
+            System.out.println(AbstractDescription.makeForTesting(description).toString());
+
             ConcreteDiagram diagram = ConcreteDiagram.makeConcreteDiagram(DecompositionType.PIERCED_FIRST,
                     RecompositionType.DOUBLY_PIERCED, AbstractDescription.makeForTesting(description),
                     Math.min((int)root.getWidth(), (int)root.getHeight()));
+
+            System.out.println(diagram);
+
             draw(diagram);
         } catch (CannotDrawException e) {
             e.printStackTrace();

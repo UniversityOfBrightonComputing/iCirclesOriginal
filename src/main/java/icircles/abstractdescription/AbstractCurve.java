@@ -22,6 +22,7 @@ public class AbstractCurve implements Comparable<AbstractCurve> {
         return label;
     }
 
+    @Override
     public int compareTo(AbstractCurve o) {
         int tmp = label.compareTo(o.label);
         if (tmp != 0) {
@@ -69,5 +70,10 @@ public class AbstractCurve implements Comparable<AbstractCurve> {
 
     public static void resetIdCounter() {
         uniqueId = 0;
+    }
+
+    @Override
+    public String toString() {
+        return label.getLabel();
     }
 }

@@ -56,4 +56,11 @@ public class ConcreteZone {
         shapeFX = a;
         return a;
     }
+
+    @Override
+    public String toString() {
+        return "ConcreteZone:[zone=" + abr + "\n"
+                + "containing: " + containingCircles.toString() + "\n"
+                + "excluding:  " + excludingCircles.toString() + "]";
+    }
 }

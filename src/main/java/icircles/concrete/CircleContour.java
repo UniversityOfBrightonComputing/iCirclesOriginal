@@ -111,6 +111,12 @@ public class CircleContour {
         }
     }
 
+    @Override
+    public String toString() {
+        return String.format("CircleCountour[center=(%.0f,%.0f),radius=%.0f,curve=%s]",
+                cx, cy, radius, ac);
+    }
+
     static void fitCirclesToSize(List<CircleContour> circles, int size) {
         // work out a suitable size
         int minX = Integer.MAX_VALUE;

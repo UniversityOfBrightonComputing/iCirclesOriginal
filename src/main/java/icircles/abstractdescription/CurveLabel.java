@@ -55,4 +55,9 @@ public class CurveLabel implements Comparable<CurveLabel> {
     public String getLabel() {
         return label;
     }
+
+    @Override
+    public String toString() {
+        return label;
+    }
 }

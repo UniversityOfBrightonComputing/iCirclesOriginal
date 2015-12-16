@@ -216,6 +216,14 @@ public class AbstractDescription {
         return false;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        zones.forEach(zone -> sb.append(zone).append(" "));
+
+        return sb.toString().trim();
+    }
+
     // TODO: replace ad-hoc check with a proper one
     public boolean hasSameAbstractDescription(AbstractDescription description) {
         DEB.level = 3;

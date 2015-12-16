@@ -54,6 +54,13 @@ public class ConcreteDiagram {
         return result;
     }
 
+    @Override
+    public String toString() {
+        return "ConcreteDiagram[box=" + box + "\n"
+                + "contours: " + circles.toString() + "\n"
+                + "shaded zones: " + shadedZones.toString() + "]";
+    }
+
     /**
      * This can be used to obtain a drawing of an abstract diagram.
      * @param dType decomposition type
