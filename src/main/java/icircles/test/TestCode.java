@@ -1,5 +1,6 @@
 package icircles.test;
 
+import icircles.decomposition.DecompositionType;
 import icircles.gui.CirclesPanel;
 
 import java.awt.BorderLayout;
@@ -361,7 +362,7 @@ public class TestCode {
             ArrayList<DecompositionStep> d_steps,
             ArrayList<RecompositionStep> r_steps,
             int size) throws CannotDrawException {
-        int decomp_strategy = TestData.test_data[test_num].decomp_strategy;
+        DecompositionType decomp_strategy = TestData.test_data[test_num].decomp_strategy;
         RecompositionType recomp_strategy = TestData.test_data[test_num].recomp_strategy;
         Decomposer d = new Decomposer(decomp_strategy);
         d_steps.addAll(d.decompose(AbstractDescription.makeForTesting(TestData.test_data[test_num].description)));
@@ -374,7 +375,7 @@ public class TestCode {
     }
 
     private static void printFreshTestData(int test_num, double checksum_found) {
-        int decomp_strategy = TestData.test_data[test_num].decomp_strategy;
+        DecompositionType decomp_strategy = TestData.test_data[test_num].decomp_strategy;
         RecompositionType recomp_strategy = TestData.test_data[test_num].recomp_strategy;
         String desc = TestData.test_data[test_num].description;
 
@@ -382,7 +383,7 @@ public class TestCode {
                 + "*/new TestDatum( \""
                 + desc + "\", "
                 + "DecompositionStrategy."
-                + DecompositionStrategy.text_for(decomp_strategy) + ", "
+                + decomp_strategy.toString() + ", "
                 + "RecompositionStrategy."
                 + recomp_strategy.toString() + ", "
                 + (isNaN(checksum_found) ? 111 : checksum_found) + "),");

@@ -4,6 +4,7 @@ import icircles.abstractdescription.AbstractDescription;
 import icircles.abstractdescription.CurveLabel;
 import icircles.decomposition.Decomposer;
 import icircles.decomposition.DecompositionStep;
+import icircles.decomposition.DecompositionType;
 import icircles.util.DEB;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,7 +29,7 @@ public class RecomposerTest {
 
     @Test
     public void recompose() {
-        List<DecompositionStep> decompositionSteps = new Decomposer().decompose(AbstractDescription.makeForTesting("a b ab"));
+        List<DecompositionStep> decompositionSteps = new Decomposer(DecompositionType.PIERCED_FIRST).decompose(AbstractDescription.makeForTesting("a b ab"));
         List<RecompositionStep> steps = recomposer.recompose(decompositionSteps);
 
         // 0 + b -> b

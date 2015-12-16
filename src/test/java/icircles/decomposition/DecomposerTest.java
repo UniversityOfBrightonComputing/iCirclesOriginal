@@ -20,7 +20,7 @@ public class DecomposerTest {
 
     @Before
     public void setUp() {
-        decomposer = new Decomposer();
+        decomposer = new Decomposer(DecompositionType.PIERCED_FIRST);
     }
 
     // TODO: create test data to check required methods (removed, from, to, etc)

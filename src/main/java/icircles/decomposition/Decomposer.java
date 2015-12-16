@@ -2,7 +2,6 @@ package icircles.decomposition;
 
 import java.util.*;
 
-import icircles.abstractdescription.CurveLabel;
 import icircles.util.DEB;
 
 import icircles.abstractdescription.AbstractDescription;
@@ -11,15 +10,11 @@ import icircles.abstractdescription.AbstractBasicRegion;
 
 public class Decomposer {
 
-    private DecompositionStrategy s;
-    private ArrayList<AbstractCurve> toRemove = new ArrayList<AbstractCurve>(); // some utility data
+    private DecompositionStrategy strategy;
+    private ArrayList<AbstractCurve> toRemove = new ArrayList<>(); // some utility data
 
-    public Decomposer(int decompStrategy) {
-        s = DecompositionStrategy.getDecompositionStrategy(decompStrategy);
-    }
-
-    public Decomposer() {
-        s = DecompositionStrategy.getDecompositionStrategy();
+    public Decomposer(DecompositionType type) {
+        strategy = type.strategy();
     }
 
     private DecompositionStep take_step(AbstractDescription ad, AbstractCurve c) {
@@ -56,7 +51,7 @@ public class Decomposer {
         ArrayList<DecompositionStep> result = new ArrayList<DecompositionStep>();
         while_loop:
         while (true) {
-            s.getContoursToRemove(ad, toRemove);
+            strategy.getContoursToRemove(ad, toRemove);
 
             if (toRemove.size() == 0) {
                 break while_loop;

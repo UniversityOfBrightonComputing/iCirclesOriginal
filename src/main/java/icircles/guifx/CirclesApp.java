@@ -8,6 +8,7 @@ import icircles.concrete.DiagramCreator;
 import icircles.decomposition.Decomposer;
 import icircles.decomposition.DecompositionStep;
 import icircles.decomposition.DecompositionStrategy;
+import icircles.decomposition.DecompositionType;
 import icircles.recomposition.Recomposer;
 import icircles.recomposition.RecompositionStep;
 import icircles.recomposition.RecompositionType;
@@ -55,7 +56,7 @@ public class CirclesApp extends Application {
         ConcreteDiagram diagram = null;
         String failureMessage = null;
         try {
-            Decomposer d = new Decomposer(DecompositionStrategy.PIERCEDFIRST);
+            Decomposer d = new Decomposer(DecompositionType.PIERCED_FIRST);
             List<DecompositionStep> d_steps = d.decompose(AbstractDescription.makeForTesting("a b c abc ab ac bc"));
 
             Recomposer r = new Recomposer(RecompositionType.DOUBLY_PIERCED);

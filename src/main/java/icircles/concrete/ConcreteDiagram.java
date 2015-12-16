@@ -3,7 +3,7 @@ package icircles.concrete;
 import icircles.abstractdescription.AbstractDescription;
 import icircles.decomposition.Decomposer;
 import icircles.decomposition.DecompositionStep;
-import icircles.decomposition.DecompositionStrategy;
+import icircles.decomposition.DecompositionType;
 import icircles.gui.CirclesPanel;
 import icircles.recomposition.Recomposer;
 import icircles.recomposition.RecompositionStep;
@@ -69,7 +69,7 @@ public class ConcreteDiagram {
     public static ConcreteDiagram makeConcreteDiagram(AbstractDescription ad, int size) throws CannotDrawException {
         ArrayList<DecompositionStep> d_steps = new ArrayList<>();
         ArrayList<RecompositionStep> r_steps = new ArrayList<>();
-        Decomposer d = new Decomposer(DecompositionStrategy.PIERCEDFIRST);
+        Decomposer d = new Decomposer(DecompositionType.PIERCED_FIRST);
         d_steps.addAll(d.decompose(ad));
 
         Recomposer r = new Recomposer(RecompositionType.DOUBLY_PIERCED);

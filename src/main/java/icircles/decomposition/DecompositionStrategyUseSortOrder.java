@@ -8,19 +8,20 @@ import icircles.abstractdescription.AbstractCurve;
 
 public class DecompositionStrategyUseSortOrder extends DecompositionStrategy {
 
-    boolean m_natural_order;
+    // TODO: add param
+    boolean m_natural_order = true;
 
-    DecompositionStrategyUseSortOrder(boolean natural_order) {
+    DecompositionStrategyUseSortOrder() {
 
         if (DEB.level > 1) {
-            System.out.println("recomposition stratgey is alphabetic");
+            System.out.println("decomposition strategy is alphabetic");
             if (m_natural_order) {
                 System.out.println("natural order");
             } else {
                 System.out.println("reversed order");
             }
         }
-        m_natural_order = natural_order;
+        //m_natural_order = natural_order;
     }
 
     void getContoursToRemove(AbstractDescription ad, ArrayList<AbstractCurve> toRemove) {

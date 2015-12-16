@@ -6,6 +6,7 @@ import icircles.concrete.DiagramCreator;
 import icircles.decomposition.Decomposer;
 import icircles.decomposition.DecompositionStep;
 import icircles.decomposition.DecompositionStrategy;
+import icircles.decomposition.DecompositionType;
 import icircles.recomposition.Recomposer;
 import icircles.recomposition.RecompositionStep;
 import icircles.recomposition.RecompositionType;
@@ -80,7 +81,7 @@ public class CirclesFrame extends JFrame {
         draw(TestData.test_data[test_num - 1].description);
     }
 
-    private void goDraw(String description, int decomp_strategy, RecompositionType recomp_strategy) {
+    private void goDraw(String description, DecompositionType decomp_strategy, RecompositionType recomp_strategy) {
         ConcreteDiagram cd = null;
         String failureMessage = null;
         try {
@@ -183,7 +184,7 @@ public class CirclesFrame extends JFrame {
     class SettingsPanel {
 
         private int test_num = 0;
-        String[] decompStrings = DecompositionStrategy.getDecompStrings();
+        String[] decompStrings = new String[] {"TYPE1", "TYPE2", "TYPE3", "TYPE4"};
         String[] recompStrings = new String[] {"TYPE1", "TYPE2", "TYPE3"};
         final JComboBox decompList = new JComboBox(decompStrings);
         final JComboBox recompList = new JComboBox(recompStrings);
@@ -282,12 +283,19 @@ public class CirclesFrame extends JFrame {
             return result;
         }
 
-        void setDecompStrategy(int i) {
-            decompList.setSelectedIndex(i);
+        void setDecompStrategy(DecompositionType type) {
+            int i = 0;
+            for (DecompositionType t : DecompositionType.values()) {
+                if (t == type) {
+                    decompList.setSelectedIndex(i);
+                    break;
+                }
+                i++;
+            }
         }
 
-        int getDecompStrategy() {
-            return decompList.getSelectedIndex();
+        DecompositionType getDecompStrategy() {
+            return DecompositionType.values()[decompList.getSelectedIndex()];
         }
 
         void setRecompStrategy(RecompositionType type) {
