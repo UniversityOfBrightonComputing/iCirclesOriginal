@@ -54,9 +54,7 @@ public class DiagramCreator {
     HashMap<AbstractCurve, CircleContour> map;
     ArrayList<CircleContour> circles;
 
-    public DiagramCreator(List<DecompositionStep> d_steps,
-            List<RecompositionStep> r_steps,
-            int size) {
+    public DiagramCreator(List<DecompositionStep> d_steps, List<RecompositionStep> r_steps) {
         this.d_steps = d_steps;
         this.r_steps = r_steps;
         map = new HashMap<AbstractCurve, CircleContour>();

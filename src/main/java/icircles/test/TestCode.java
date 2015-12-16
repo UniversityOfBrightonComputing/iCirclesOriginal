@@ -369,9 +369,9 @@ public class TestCode {
 
         Recomposer r = new Recomposer(recomp_strategy);
         r_steps.addAll(r.recompose(d_steps));
-        DiagramCreator dc = new DiagramCreator(d_steps, r_steps, size);
-        ConcreteDiagram cd = dc.createDiagram(size);
-        return cd;
+        DiagramCreator dc = new DiagramCreator(d_steps, r_steps);
+
+        return dc.createDiagram(size);
     }
 
     private static void printFreshTestData(int test_num, double checksum_found) {

@@ -9,6 +9,7 @@ import java.util.List;
 import icircles.util.DEB;
 
 import icircles.abstractdescription.AbstractCurve;
+import javafx.scene.shape.Circle;
 
 public class CircleContour {
 
@@ -62,8 +63,16 @@ public class CircleContour {
         return new Area(makeEllipse(cx, cy, radius + nudge));
     }
 
+    public javafx.scene.shape.Shape getBigInteriorFX() {
+        return new Circle(cx, cy, radius + nudge);
+    }
+
     public Area getSmallInterior() {
         return new Area(makeEllipse(cx, cy, radius - nudge));
+    }
+
+    public javafx.scene.shape.Shape getSmallInteriorFX() {
+        return new Circle(cx, cy, radius - nudge);
     }
 
     public Shape getFatInterior(double fatter) {

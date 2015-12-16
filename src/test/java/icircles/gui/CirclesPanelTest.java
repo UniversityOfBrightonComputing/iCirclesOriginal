@@ -2,6 +2,8 @@ package icircles.gui;
 
 import icircles.abstractdescription.AbstractDescription;
 import icircles.concrete.ConcreteDiagram;
+import icircles.decomposition.DecompositionType;
+import icircles.recomposition.RecompositionType;
 import icircles.util.CannotDrawException;
 import icircles.util.DEB;
 
@@ -26,7 +28,8 @@ public class CirclesPanelTest {
         ConcreteDiagram cd = null;
         try
         {
-            cd = ConcreteDiagram.makeConcreteDiagram(ad, size);
+            cd = ConcreteDiagram.makeConcreteDiagram(DecompositionType.PIERCED_FIRST, RecompositionType.DOUBLY_PIERCED,
+                    ad, size);
         }
         catch(CannotDrawException ex)
         {

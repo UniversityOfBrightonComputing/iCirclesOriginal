@@ -4,19 +4,14 @@ import icircles.abstractdescription.AbstractDescription;
 import icircles.decomposition.Decomposer;
 import icircles.decomposition.DecompositionStep;
 import icircles.decomposition.DecompositionType;
-import icircles.gui.CirclesPanel;
 import icircles.recomposition.Recomposer;
 import icircles.recomposition.RecompositionStep;
-import icircles.recomposition.RecompositionStrategy;
 import icircles.recomposition.RecompositionType;
 import icircles.util.CannotDrawException;
 
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
-import javax.swing.JFrame;
 
 public class ConcreteDiagram {
 
@@ -61,20 +56,23 @@ public class ConcreteDiagram {
 
     /**
      * This can be used to obtain a drawing of an abstract diagram.
+     * @param dType decomposition type
+     * @param rType recomposition type
      * @param ad the description to be drawn
      * @param size the size of the drawing panel
      * @return concrete diagram
      * @throws CannotDrawException
      */
-    public static ConcreteDiagram makeConcreteDiagram(AbstractDescription ad, int size) throws CannotDrawException {
-        ArrayList<DecompositionStep> d_steps = new ArrayList<>();
-        ArrayList<RecompositionStep> r_steps = new ArrayList<>();
-        Decomposer d = new Decomposer(DecompositionType.PIERCED_FIRST);
-        d_steps.addAll(d.decompose(ad));
+    public static ConcreteDiagram makeConcreteDiagram(DecompositionType dType,
+                                                      RecompositionType rType,
+                                                      AbstractDescription ad, int size) throws CannotDrawException {
+        Decomposer d = new Decomposer(dType);
+        List<DecompositionStep> d_steps = d.decompose(ad);
 
-        Recomposer r = new Recomposer(RecompositionType.DOUBLY_PIERCED);
-        r_steps.addAll(r.recompose(d_steps));
-        DiagramCreator dc = new DiagramCreator(d_steps, r_steps, size);
+        Recomposer r = new Recomposer(rType);
+        List<RecompositionStep> r_steps = r.recompose(d_steps);
+
+        DiagramCreator dc = new DiagramCreator(d_steps, r_steps);
         return dc.createDiagram(size);
     }
 }

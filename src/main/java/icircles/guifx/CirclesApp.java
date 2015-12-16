@@ -21,9 +21,13 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Path;
+import javafx.scene.shape.Shape;
 import javafx.stage.Stage;
 
+import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.util.List;
 
@@ -33,16 +37,26 @@ import java.util.List;
 public class CirclesApp extends Application {
 
     private GraphicsContext g;
+    private Pane root;
+    private Pane shadedZonesRoot;
 
     private Parent createContent() {
         BorderPane pane = new BorderPane();
         pane.setPrefSize(800, 600);
 
+        root = new Pane();
+        root.setPrefSize(800, 500);
+
+        shadedZonesRoot = new Pane();
+        shadedZonesRoot.setPrefSize(800, 500);
+
         Canvas canvas = new Canvas(800, 600);
         g = canvas.getGraphicsContext2D();
-        pane.setCenter(canvas);
+        root.getChildren().addAll(shadedZonesRoot, canvas);
+        pane.setCenter(root);
 
         TextField input = new TextField();
+        input.setOnAction(e -> draw(input.getText()));
         pane.setTop(input);
 
         Button btnDrawVenn = new Button("VENN3");
@@ -52,41 +66,30 @@ public class CirclesApp extends Application {
         return pane;
     }
 
-    private void drawVenn3() {
-        ConcreteDiagram diagram = null;
-        String failureMessage = null;
+    private void draw(String description) {
         try {
-            Decomposer d = new Decomposer(DecompositionType.PIERCED_FIRST);
-            List<DecompositionStep> d_steps = d.decompose(AbstractDescription.makeForTesting("a b c abc ab ac bc"));
-
-            Recomposer r = new Recomposer(RecompositionType.DOUBLY_PIERCED);
-            List<RecompositionStep> r_steps = r.recompose(d_steps);
-
-            DiagramCreator dc = new DiagramCreator(d_steps, r_steps, 400);
-            diagram = dc.createDiagram(400);
-        } catch (CannotDrawException x) {
-            failureMessage = x.message;
-            System.out.println(failureMessage);
-            return;
+            ConcreteDiagram diagram = ConcreteDiagram.makeConcreteDiagram(DecompositionType.PIERCED_FIRST,
+                    RecompositionType.DOUBLY_PIERCED, AbstractDescription.makeForTesting(description), 550);
+            draw(diagram);
+        } catch (CannotDrawException e) {
+            e.printStackTrace();
         }
+    }
 
-        /////////////////////////// DRAW
-
-
-
-
+    private void draw(ConcreteDiagram diagram) {
+        g.clearRect(0, 0, 800, 600);
 
         // draw shaded zones
+        g.setFill(Color.LIGHTGREY);
+        shadedZonesRoot.getChildren().clear();
+        List<ConcreteZone> zones = diagram.getShadedZones();
+        for (ConcreteZone zone : zones) {
+            Shape area = zone.getShapeFX(diagram.getBox());
+            area.setFill(Color.LIGHTGREY);
 
-//        g.setFill(Color.LIGHTGREY);
-//        List<ConcreteZone> zones = diagram.getShadedZones();
-//        for (ConcreteZone z : zones) {
-//            g.fi
-//
-//            (g).fill(z.getShape(diagram.getBox()));
-//        }
-//
-//        ((Graphics2D) g).setStroke(new BasicStroke(2));
+            shadedZonesRoot.getChildren().addAll(area);
+        }
+
         List<CircleContour> circles = diagram.getCircles();
 
         // draw curve contours
@@ -100,20 +103,22 @@ public class CirclesApp extends Application {
         }
 
         // draw labels
-
         for (CircleContour cc : circles) {
             if (cc.ac.getLabel() == null)
                 continue;
 
-            g.fillText(cc.ac.getLabel().getLabel(),
-                    (int) cc.getLabelXPosition(),
-                    (int) cc.getLabelYPosition());
+            g.fillText(cc.ac.getLabel().getLabel(), cc.getLabelXPosition(), cc.getLabelYPosition());
         }
+    }
+
+    private void drawVenn3() {
+        draw("a b c abc ab ac bc");
     }
 
     @Override
     public void start(Stage stage) throws Exception {
         stage.setScene(new Scene(createContent()));
+        stage.setTitle("iCircles FX");
         stage.show();
     }
 

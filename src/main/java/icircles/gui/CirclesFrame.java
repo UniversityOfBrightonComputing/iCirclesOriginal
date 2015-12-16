@@ -91,7 +91,7 @@ public class CirclesFrame extends JFrame {
             Recomposer r = new Recomposer(recomp_strategy);
             List<RecompositionStep> r_steps = r.recompose(d_steps);
 
-            DiagramCreator dc = new DiagramCreator(d_steps, r_steps, SIZE);
+            DiagramCreator dc = new DiagramCreator(d_steps, r_steps);
             cd = dc.createDiagram(SIZE);
         } catch (CannotDrawException x) {
             failureMessage = x.message;
@@ -193,9 +193,6 @@ public class CirclesFrame extends JFrame {
         final JPanel p = new JPanel();
 
         SettingsPanel() {
-
-
-
             //Construct a GridLayout with 1 columns and an unspecified number of rows.
             //p.setLayout(new GridLayout(0,1));
             p.setLayout(new BorderLayout());

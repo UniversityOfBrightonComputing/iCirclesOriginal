@@ -5,6 +5,8 @@ import java.awt.geom.Rectangle2D;
 import java.util.List;
 
 import icircles.abstractdescription.AbstractBasicRegion;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
 
 public class ConcreteZone {
 
@@ -12,6 +14,7 @@ public class ConcreteZone {
     private List<CircleContour> containingCircles;
     private List<CircleContour> excludingCircles;
     private Area shape;
+    private Shape shapeFX;
 
     public ConcreteZone(AbstractBasicRegion abr,
             List<CircleContour> containingCircles,
@@ -35,6 +38,23 @@ public class ConcreteZone {
             a.subtract(c.getSmallInterior());
         }
         shape = a;
+        return a;
+    }
+
+    public Shape getShapeFX(Rectangle2D.Double box) {
+        if (shapeFX != null)
+            return shapeFX;
+
+        Shape a = new Rectangle(box.getX(), box.getY(), box.getWidth(), box.getHeight());
+        for (CircleContour c : containingCircles) {
+            a = Shape.intersect(a, c.getBigInteriorFX());
+        }
+
+        for (CircleContour c : excludingCircles) {
+            a = Shape.subtract(a, c.getSmallInteriorFX());
+        }
+
+        shapeFX = a;
         return a;
     }
 }
