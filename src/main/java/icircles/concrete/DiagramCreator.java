@@ -16,60 +16,39 @@ import icircles.recomposition.RecompositionStep;
 import icircles.util.CannotDrawException;
 import icircles.util.DEB;
 
-/**
- * A class which will provide an angle between 0 and 2pi. For example, when
- * fitting a single-piercing around part of an already-drawn circle, we could
- * get an angle from this iterator and try putting the center of the piercing
- * circle at that position. To try more positions, add more potential angles to
- * this iterator. The order in which positions are attempted is determined by
- * the order in which this iterator generates possible angles.
- */
-class AngleIterator {
-
-    private int[] ints = { 0, 8, 4, 12, 2, 6, 10, 14, 1, 3, 5, 7, 9, 11, 13, 15 };
-    private int index = -1;
-
-    public AngleIterator() {
-    }
-
-    public boolean hasNext() {
-        return index < ints.length - 1;
-    }
-
-    public double nextAngle() {
-        index++;
-        int modIndex = (index % ints.length);
-        return Math.PI * 2 * ints[modIndex] / (1.0 * ints.length);
-    }
-}
-
 public class DiagramCreator {
 
-    final static int smallest_rad = 3;
-    List<DecompositionStep> d_steps;
-    List<RecompositionStep> r_steps;
-    HashMap<AbstractBasicRegion, Double> zoneScores;
-    HashMap<AbstractCurve, Double> contScores;
-    HashMap<AbstractCurve, Double> guide_sizes;
-    HashMap<AbstractCurve, CircleContour> map;
-    ArrayList<CircleContour> circles;
+    private static final int SMALLEST_RADIUS = 3;
+
+    private List<DecompositionStep> d_steps;
+    private List<RecompositionStep> r_steps;
+
+    private Map<AbstractBasicRegion, Double> zoneScores;
+    private Map<AbstractCurve, Double> contScores;
+    private Map<AbstractCurve, Double> guide_sizes;
+
+    /**
+     * Holds the results so far.
+     * K - AbstractCurve
+     * V - CircleCountour representing AbstractCurve
+     */
+    private Map<AbstractCurve, CircleContour> map = new HashMap<>();
+
+    /**
+     * Contours for the drawn concrete diagram.
+     */
+    private List<CircleContour> circles;
 
     public DiagramCreator(List<DecompositionStep> d_steps, List<RecompositionStep> r_steps) {
         this.d_steps = d_steps;
         this.r_steps = r_steps;
-        map = new HashMap<AbstractCurve, CircleContour>();
     }
 
     public ConcreteDiagram createDiagram(int size) throws CannotDrawException {
         make_guide_sizes(); // scores zones too
 
         circles = new ArrayList<>();
-        boolean ok = createCircles(size);
-		
-        if (!ok) {
-            circles = null;
-            return null;
-        }
+        createCircles(size);
 
         CircleContour.fitCirclesToSize(circles, size);
 
@@ -193,7 +172,7 @@ public class DiagramCreator {
         return head;
     }
 
-    private boolean createCircles(int debug_size) throws CannotDrawException {
+    private void createCircles(int debug_size) throws CannotDrawException {
         BuildStep bs = makeBuildSteps();
 
         shuffle_and_combine(bs);
@@ -231,7 +210,7 @@ public class DiagramCreator {
                     }
 
                     // put contours into a zone
-                    ArrayList<CircleContour> cs = findCircleContours(outerBox, smallest_rad, suggested_rad,
+                    ArrayList<CircleContour> cs = findCircleContours(outerBox, SMALLEST_RADIUS, suggested_rad,
                             zone, last_diag, acs, debug_image_number);
                     
                     if (cs != null && cs.size() > 0) {
@@ -239,8 +218,7 @@ public class DiagramCreator {
                         for (int i = 0; i < cs.size(); i++) {
                             CircleContour c = cs.get(i);
                             ac = step.recomp_data.get(i).added_curve;
-                            DEB.assertCondition(
-                                    c.ac.getLabel() == ac.getLabel(), "mismatched labels");
+                            DEB.assertCondition(c.ac.getLabel() == ac.getLabel(), "mismatched labels");
                             map.put(ac, c);
                             addCircle(c);
                         }
@@ -278,16 +256,14 @@ public class DiagramCreator {
                 	// iterate through zoneScores, looking for zones inside c,
                 	// then ask whether they are inside or outside cc.  If we
                 	// get a big score outside, then try to move c outwards.
-                	
-                	//  HashMap<AbstractBasicRegion, Double> zoneScores;
+
                 	double score_in_c = 0.0;
                 	double score_out_of_c = 0.0;
                 	
                 	double center_of_circle_lies_on_rad = pierced_cc.radius;
                 	                	
                 	Set<AbstractBasicRegion> allZones = zoneScores.keySet();
-                	for(AbstractBasicRegion abr : allZones)
-                	{
+                	for (AbstractBasicRegion abr : allZones) {
                 		DEB.out(1, "compare "+abr.debug()+" against "+piercingCurve.debug());
                 		if(!abr.is_in(piercingCurve))
                 			continue;
@@ -299,13 +275,10 @@ public class DiagramCreator {
                 	}
             		DEB.out(3, "scores for "+piercingCurve+" are inside="+score_in_c+" and outside="+score_out_of_c);
             		
-            		if(score_out_of_c > score_in_c)
-            		{
+            		if (score_out_of_c > score_in_c) {
             			double nudge = suggested_rad * 0.3;
             			center_of_circle_lies_on_rad += nudge;
-            		}
-            		else if(score_out_of_c < score_in_c)
-            		{
+            		} else if (score_out_of_c < score_in_c) {
             			double nudge = Math.min(suggested_rad * 0.3, (pierced_cc.radius * 2 - suggested_rad) * 0.5) ;
             			center_of_circle_lies_on_rad -= nudge;
             		}
@@ -413,7 +386,7 @@ public class DiagramCreator {
                     AbstractDescription last_diag = last_step.to();
 
                     // put contour into a zone
-                    CircleContour c = findCircleContour(outerBox, smallest_rad, suggested_rad,
+                    CircleContour c = findCircleContour(outerBox, SMALLEST_RADIUS, suggested_rad,
                             zone, last_diag, ac, debug_image_number);
 
                     if (c == null) {
@@ -471,7 +444,7 @@ public class DiagramCreator {
                 	double score_out_of_c = 0.0;
                 	
                 	double center_of_circle_lies_on_rad = cc.radius;
-                	double smallest_allowed_rad = smallest_rad;
+                	double smallest_allowed_rad = SMALLEST_RADIUS;
                 	
                 	Set<AbstractBasicRegion> allZones = zoneScores.keySet();
                 	for(AbstractBasicRegion abr : allZones)
@@ -511,9 +484,9 @@ public class DiagramCreator {
                             // how big a circle can we make?
                             double start_rad;
                             if (solution != null) {
-                                start_rad = solution.radius + smallest_rad;
+                                start_rad = solution.radius + SMALLEST_RADIUS;
                             } else {
-                                start_rad = smallest_rad;
+                                start_rad = SMALLEST_RADIUS;
                             }
                             CircleContour attempt = growCircleContour(a, rd.added_curve, 
                             		x, y, suggested_rad, 
@@ -553,7 +526,7 @@ public class DiagramCreator {
                             cc2.cx, cc2.cy, cc2.radius);
                     if (intn_coords == null) {
                         System.out.println("double piercing on non-intersecting circles");
-                        return false;
+                        throw new CannotDrawException("double piercing on non-intersecting circles");
                     }
 
                     ConcreteZone cz0 = makeConcreteZone(abr0);
@@ -588,7 +561,7 @@ public class DiagramCreator {
                     }
 
                     CircleContour solution = growCircleContour(a, rd.added_curve, cx, cy,
-                            suggested_rad, smallest_rad, smallest_rad);
+                            suggested_rad, SMALLEST_RADIUS, SMALLEST_RADIUS);
                     if (solution == null) // no double piercing found which was OK
                     {
                         throw new CannotDrawException("2peircing no fit");
@@ -600,11 +573,11 @@ public class DiagramCreator {
                 }// if/else/else about piercing type
             }// next RecompData in the BuildStep
             step = step.next;
+
+            System.out.println("Step complete: " + circles.toString());
         }// go to next BuildStep
         
         DEB.showFilmStrip();
-        
-        return true;
     }
 
     /**
@@ -1191,7 +1164,7 @@ public class DiagramCreator {
     }
 
     private boolean containedIn(CircleContour c, Area a) {
-        Area test = new Area(c.getFatInterior(smallest_rad));
+        Area test = new Area(c.getFatInterior(SMALLEST_RADIUS));
         test.subtract(a);
         return test.isEmpty();
     }
@@ -1217,6 +1190,33 @@ public class DiagramCreator {
 	    CirclesPanel cp = new CirclesPanel("debug frame "+debug_frame_index, "no failure",
 	    		cd, size, true);
 	    DEB.addFilmStripShot(cp);
+    }
+}
+
+/**
+ * A class which will provide an angle between 0 and 2pi. For example, when
+ * fitting a single-piercing around part of an already-drawn circle, we could
+ * get an angle from this iterator and try putting the center of the piercing
+ * circle at that position. To try more positions, add more potential angles to
+ * this iterator. The order in which positions are attempted is determined by
+ * the order in which this iterator generates possible angles.
+ */
+class AngleIterator {
+
+    private int[] ints = { 0, 8, 4, 12, 2, 6, 10, 14, 1, 3, 5, 7, 9, 11, 13, 15 };
+    private int index = -1;
+
+    public AngleIterator() {
+    }
+
+    public boolean hasNext() {
+        return index < ints.length - 1;
+    }
+
+    public double nextAngle() {
+        index++;
+        int modIndex = (index % ints.length);
+        return Math.PI * 2 * ints[modIndex] / (1.0 * ints.length);
     }
 }
 
