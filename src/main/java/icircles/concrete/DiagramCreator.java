@@ -182,6 +182,218 @@ public class DiagramCreator {
         return head;
     }
 
+    private void addNestedContour(BuildStep bs, AbstractCurve ac, RecompData rd, double suggested_radius,
+                                  Rectangle2D.Double outerBox, int debug_image_number) throws CannotDrawException {
+
+        log.trace("make a nested contour");
+
+        // look ahead - are we going to add a piercing to this?
+        // if so, push it to one side to make space
+        boolean will_pierce = false;
+        BuildStep future_bs = bs.next;
+        while (future_bs != null) {
+            if (future_bs.recomp_data.get(0).split_zones.size() == 2) {
+                AbstractBasicRegion abr0 = future_bs.recomp_data.get(0).split_zones.get(0);
+                AbstractBasicRegion abr1 = future_bs.recomp_data.get(0).split_zones.get(1);
+                AbstractCurve ac_future = abr0.getStraddledContour(abr1);
+                if (ac_future == ac) {
+                    will_pierce = true;
+                    break;
+                }
+            }
+            future_bs = future_bs.next;
+        }
+
+        // make a circle inside containingCircles, outside excludingCirles.
+
+        AbstractBasicRegion zone = rd.split_zones.get(0);
+
+        RecompositionStep last_step = r_steps.get(r_steps.size() - 1);
+        AbstractDescription last_diag = last_step.to();
+
+        // put contour into a zone
+        CircleContour c = findCircleContour(outerBox, SMALLEST_RADIUS, suggested_radius,
+                zone, last_diag, ac, debug_image_number);
+
+        if (c == null) {
+            throw new CannotDrawException("cannot place nested contour");
+        }
+
+        if (will_pierce && rd.split_zones.get(0).getNumContours() > 0) {
+            // nudge to the left
+            c.cx -= c.radius * 0.5;
+
+            ConcreteZone cz = makeConcreteZone(rd.split_zones.get(0));
+            Area a = new Area(cz.getShape(outerBox));
+            if (!containedIn(c, a)) {
+                c.cx += c.radius * 0.25;
+                c.radius *= 0.75;
+            }
+        }
+        map.put(ac, c);
+        addCircle(c);
+    }
+
+    private void addSinglePiercingContour(AbstractCurve ac, RecompData rd, double suggested_radius,
+                                          Rectangle2D.Double outerBox) throws CannotDrawException {
+        log.trace("make a single-piercing contour");
+
+        AbstractBasicRegion abr0 = rd.split_zones.get(0);
+        AbstractBasicRegion abr1 = rd.split_zones.get(1);
+        AbstractCurve c = abr0.getStraddledContour(abr1);
+        CircleContour cc = map.get(c);
+        ConcreteZone cz0 = makeConcreteZone(abr0);
+        ConcreteZone cz1 = makeConcreteZone(abr1);
+        Area a = new Area(cz0.getShape(outerBox));
+
+        //DEB.show(4, a, "for single piercing first half "+debug_image_number);
+        //DEB.show(4, new Area(cz1.getShape(outerBox)), "for single piercing second half "+debug_image_number);
+        a.add(cz1.getShape(outerBox));
+
+        //DEB.show(4, a, "for single piercing "+debug_image_number);
+
+        // We have made a piercing which is centred on the circumference of circle c.
+        // but if the contents of rd.addedCurve are not equally balanced between
+        // things inside c and things outside, we may end up squashing lots
+        // into half of rd.addedCurve, leaving the other half looking empty.
+        // See if we can nudge c outwards or inwards to accommodate
+        // its contents.
+
+        // iterate through zoneScores, looking for zones inside c,
+        // then ask whether they are inside or outside cc.  If we
+        // get a big score outside, then try to move c outwards.
+
+        double score_in_c = 0.0;
+        double score_out_of_c = 0.0;
+
+        Set<AbstractBasicRegion> allZones = zoneScores.keySet();
+        for (AbstractBasicRegion abr : allZones) {
+            log.info("compare " + abr.debug() + " against " + c.debug());
+
+            if (!abr.contains(rd.added_curve))
+                continue;
+
+            log.info("OK " + abr.debug() + " is in " + c.debug() + ", so compare against " + cc.debug());
+
+            double zoneScore = zoneScores.get(abr);
+
+            if (abr.contains(c))
+                score_in_c += zoneScore;
+            else
+                score_out_of_c += zoneScore;
+        }
+
+        log.trace("scores for " + c + " are inside=" + score_in_c + " and outside=" + score_out_of_c);
+
+        double center_of_circle_lies_on_rad = cc.radius;
+        double smallest_allowed_radius = SMALLEST_RADIUS;
+
+        if (score_out_of_c > score_in_c) {
+            double nudge = suggested_radius * 0.3;
+            smallest_allowed_radius += nudge;
+            center_of_circle_lies_on_rad += nudge;
+        } else if(score_out_of_c < score_in_c) {
+            double nudge = Math.min(suggested_radius * 0.3, (cc.radius * 2 - suggested_radius) * 0.5) ;
+            smallest_allowed_radius += nudge;
+            center_of_circle_lies_on_rad -= nudge;
+        }
+
+        // now place circles around cc, checking whether they fit into a
+        CircleContour solution = null;
+        // loop for different centre placement
+        for (AngleIterator ai = new AngleIterator(); ai.hasNext(); ) {
+            double angle = ai.nextAngle();
+            double x = cc.cx + Math.cos(angle) * center_of_circle_lies_on_rad;
+            double y = cc.cy + Math.sin(angle) * center_of_circle_lies_on_rad;
+
+            //check that the centre is ok
+            if (a.contains(x, y)) {
+                // how big a circle can we make?
+                double start_radius = SMALLEST_RADIUS + (solution != null ? solution.radius : 0);
+
+                CircleContour attempt = growCircleContour(a, rd.added_curve,
+                        x, y,
+                        suggested_radius,
+                        start_radius,
+                        smallest_allowed_radius);
+
+                if (attempt != null) {
+                    solution = attempt;
+                    if (solution.radius == guide_sizes.get(ac)) {
+                        break; // no need to try any more
+                    }
+                }
+
+            }
+        }
+
+        // no single piercing found which was OK
+        if (solution == null) {
+            throw new CannotDrawException("1-piercing no fit");
+        } else {
+            log.trace("added a single piercing labelled " + solution.ac.getLabel());
+            map.put(rd.added_curve, solution);
+            addCircle(solution);
+        }
+    }
+
+    private void addDoublePiercingContour(RecompData rd, double suggested_radius,
+                                          Rectangle2D.Double outerBox) throws CannotDrawException {
+        AbstractBasicRegion abr0 = rd.split_zones.get(0);
+        AbstractBasicRegion abr1 = rd.split_zones.get(1);
+        AbstractBasicRegion abr2 = rd.split_zones.get(2);
+        AbstractBasicRegion abr3 = rd.split_zones.get(3);
+        AbstractCurve c1 = abr0.getStraddledContour(abr1);
+        AbstractCurve c2 = abr0.getStraddledContour(abr2);
+        CircleContour cc1 = map.get(c1);
+        CircleContour cc2 = map.get(c2);
+
+        double[][] intn_coords = intersect(cc1.cx, cc1.cy, cc1.radius,
+                cc2.cx, cc2.cy, cc2.radius);
+        if (intn_coords == null) {
+            throw new CannotDrawException("double piercing on non-intersecting circles");
+        }
+
+        ConcreteZone cz0 = makeConcreteZone(abr0);
+        ConcreteZone cz1 = makeConcreteZone(abr1);
+        ConcreteZone cz2 = makeConcreteZone(abr2);
+        ConcreteZone cz3 = makeConcreteZone(abr3);
+        Area a = new Area(cz0.getShape(outerBox));
+        a.add(cz1.getShape(outerBox));
+        a.add(cz2.getShape(outerBox));
+        a.add(cz3.getShape(outerBox));
+
+        //DEB.show(4, a, "for double piercing "+debug_image_number);
+
+        double cx, cy;
+        if (a.contains(intn_coords[0][0], intn_coords[0][1])) {
+            log.trace("intn at (" + intn_coords[0][0] + "," + intn_coords[0][1] + ")");
+
+            cx = intn_coords[0][0];
+            cy = intn_coords[0][1];
+        } else if (a.contains(intn_coords[1][0], intn_coords[1][1])) {
+            log.trace("intn at (" + intn_coords[1][0] + "," + intn_coords[1][1] + ")");
+
+            cx = intn_coords[1][0];
+            cy = intn_coords[1][1];
+        } else {
+            log.trace("no suitable intn for double piercing");
+            throw new CannotDrawException("2peircing + disjoint");
+        }
+
+        CircleContour solution = growCircleContour(a, rd.added_curve, cx, cy,
+                suggested_radius, SMALLEST_RADIUS, SMALLEST_RADIUS);
+
+        // no double piercing found which was OK
+        if (solution == null) {
+            throw new CannotDrawException("2peircing no fit");
+        } else {
+            log.trace("added a double piercing labelled " + solution.ac.getLabel());
+            map.put(rd.added_curve, solution);
+            addCircle(solution);
+        }
+    }
+
     private void createCircles(int debug_size) throws CannotDrawException {
         BuildStep bs = makeBuildSteps();
 
@@ -213,7 +425,7 @@ public class DiagramCreator {
                     AbstractCurve curve = rd.added_curve;
                     double suggested_radius = guide_sizes.get(curve);
 
-                    ArrayList<AbstractCurve> curves = new ArrayList<>();
+                    List<AbstractCurve> curves = new ArrayList<>();
                     for (RecompData rd2 : step.recomp_data) {
                         curve = rd2.added_curve;
                         curves.add(curve);
@@ -221,7 +433,7 @@ public class DiagramCreator {
 
                     // put contours into a zone
                     List<CircleContour> cs = findCircleContours(outerBox, SMALLEST_RADIUS, suggested_radius,
-                            zone, last_diagram, curves, debug_image_number);
+                            zone, last_diagram, curves);
                     
                     if (cs != null && cs.size() > 0) {
                         //DEB.assertCondition(cs.size() == step.recomp_data.size(), "not enough circles for rds");
@@ -284,10 +496,12 @@ public class DiagramCreator {
 
                 		log.info("OK " + abr.debug() + " is in " + piercingCurve.debug() + ", so compare against " + pierced_ac.debug());
 
+                        double zoneScore = zoneScores.get(abr);
+
                 		if (abr.contains(pierced_ac))
-                			score_in_c += zoneScores.get(abr).doubleValue();
+                			score_in_c += zoneScore;
                 		else
-                			score_out_of_c += zoneScores.get(abr).doubleValue();                    		
+                			score_out_of_c += zoneScore;
                 	}
 
                     log.trace("scores for " + piercingCurve + " are inside=" + score_in_c + " and outside=" + score_out_of_c);
@@ -364,227 +578,22 @@ public class DiagramCreator {
                 }
             }
 
-
-
-
+            // next RecompData in the BuildStep
             for (RecompData rd : step.recomp_data) {
                 AbstractCurve ac = rd.added_curve;
                 double suggested_radius = guide_sizes.get(ac);
                 if (rd.split_zones.size() == 1) {
-                    // add a nested contour---------------------------------------------------
-                    // add a nested contour---------------------------------------------------
-                    // add a nested contour---------------------------------------------------
-
-                    // look ahead - are we going to add a piercing to this?
-                    // if so, push it to one side to make space
-                    boolean will_pierce = false;
-                    BuildStep future_bs = bs.next;
-                    while (future_bs != null) {
-                        if (future_bs.recomp_data.get(0).split_zones.size() == 2) {
-                            AbstractBasicRegion abr0 = future_bs.recomp_data.get(0).split_zones.get(0);
-                            AbstractBasicRegion abr1 = future_bs.recomp_data.get(0).split_zones.get(1);
-                            AbstractCurve ac_future = abr0.getStraddledContour(abr1);
-                            if (ac_future == ac) {
-                                will_pierce = true;
-                                break;
-                            }
-                        }
-                        future_bs = future_bs.next;
-                    }
-
-                    log.trace("make a nested contour");
-
-                    // make a circle inside containingCircles, outside excludingCirles.
-
-                    AbstractBasicRegion zone = rd.split_zones.get(0);
-
-                    RecompositionStep last_step = r_steps.get(r_steps.size() - 1);
-                    AbstractDescription last_diag = last_step.to();
-
-                    // put contour into a zone
-                    CircleContour c = findCircleContour(outerBox, SMALLEST_RADIUS, suggested_radius,
-                            zone, last_diag, ac, debug_image_number);
-
-                    if (c == null) {
-                        throw new CannotDrawException("cannot place nested contour");
-                    }
-
-                    if (will_pierce && rd.split_zones.get(0).getNumContours() > 0) {
-                        // nudge to the left
-                        c.cx -= c.radius * 0.5;
-
-                        ConcreteZone cz = makeConcreteZone(rd.split_zones.get(0));
-                        Area a = new Area(cz.getShape(outerBox));
-                        if (!containedIn(c, a)) {
-                            c.cx += c.radius * 0.25;
-                            c.radius *= 0.75;
-                        }
-                    }
-                    map.put(ac, c);
-                    addCircle(c);
+                    addNestedContour(bs, ac, rd, suggested_radius, outerBox, debug_image_number);
                 } else if (rd.split_zones.size() == 2) {
-                    // add a single piercing---------------------------------------------------
-                    // add a single piercing---------------------------------------------------
-                    // add a single piercing---------------------------------------------------
-                    log.trace("make a single-piercing contour");
-
-                    AbstractBasicRegion abr0 = rd.split_zones.get(0);
-                    AbstractBasicRegion abr1 = rd.split_zones.get(1);
-                    AbstractCurve c = abr0.getStraddledContour(abr1);
-                    CircleContour cc = map.get(c);
-                    ConcreteZone cz0 = makeConcreteZone(abr0);
-                    ConcreteZone cz1 = makeConcreteZone(abr1);
-                    Area a = new Area(cz0.getShape(outerBox));
-
-                    //DEB.show(4, a, "for single piercing first half "+debug_image_number);
-                    //DEB.show(4, new Area(cz1.getShape(outerBox)), "for single piercing second half "+debug_image_number);
-                    a.add(cz1.getShape(outerBox));
-                    
-                    //DEB.show(4, a, "for single piercing "+debug_image_number);
-
-                	// We have made a piercing which is centred on the circumference of circle c.
-                	// but if the contents of rd.addedCurve are not equally balanced between
-                	// things inside c and things outside, we may end up squashing lots
-                	// into half of rd.addedCurve, leaving the other half looking empty.
-                	// See if we can nudge c outwards or inwards to accommodate
-                	// its contents.
-                	
-                	// iterate through zoneScores, looking for zones inside c,
-                	// then ask whether they are inside or outside cc.  If we
-                	// get a big score outside, then try to move c outwards.
-                	
-                	//  HashMap<AbstractBasicRegion, Double> zoneScores;
-                	double score_in_c = 0.0;
-                	double score_out_of_c = 0.0;
-                	
-                	double center_of_circle_lies_on_rad = cc.radius;
-                	double smallest_allowed_radius = SMALLEST_RADIUS;
-                	
-                	Set<AbstractBasicRegion> allZones = zoneScores.keySet();
-                	for(AbstractBasicRegion abr : allZones) {
-                		log.info("compare " + abr.debug() + " against " + c.debug());
-
-                		if(!abr.contains(rd.added_curve))
-                			continue;
-
-                		log.info("OK " + abr.debug() + " is in " + c.debug() + ", so compare against " + cc.debug());
-
-                		if (abr.contains(c))
-                			score_in_c += zoneScores.get(abr).doubleValue();
-                		else
-                			score_out_of_c += zoneScores.get(abr).doubleValue();                    		
-                	}
-
-                    log.trace("scores for " + c + " are inside=" + score_in_c + " and outside=" + score_out_of_c);
-            		
-            		if(score_out_of_c > score_in_c) {
-            			double nudge = suggested_radius * 0.3;
-            			smallest_allowed_radius += nudge;
-            			center_of_circle_lies_on_rad += nudge;
-            		} else if(score_out_of_c < score_in_c) {
-            			double nudge = Math.min(suggested_radius * 0.3, (cc.radius * 2 - suggested_radius) * 0.5) ;
-            			smallest_allowed_radius += nudge;
-            			center_of_circle_lies_on_rad -= nudge;
-            		}
-                    
-                    // now place circles around cc, checking whether they fit into a
-                    CircleContour solution = null;
-                    for (AngleIterator ai = new AngleIterator(); ai.hasNext(); ) {
-                        double angle = ai.nextAngle();
-                        double x = cc.cx + Math.cos(angle) * center_of_circle_lies_on_rad;
-                        double y = cc.cy + Math.sin(angle) * center_of_circle_lies_on_rad;
-                        if (a.contains(x, y)) {
-                            // how big a circle can we make?
-                            double start_radius;
-                            if (solution != null) {
-                                start_radius = solution.radius + SMALLEST_RADIUS;
-                            } else {
-                                start_radius = SMALLEST_RADIUS;
-                            }
-
-                            CircleContour attempt = growCircleContour(a, rd.added_curve, 
-                            		x, y,
-                                    suggested_radius,
-                            		start_radius,
-                            		smallest_allowed_radius);
-                            if (attempt != null) {
-                                solution = attempt;
-                                if (solution.radius == guide_sizes.get(ac)) {
-                                    break; // no need to try any more
-                                }
-                            }
-
-                        }//check that the centre is ok
-                    }// loop for different centre placement
-
-                    // no single piercing found which was OK
-                    if (solution == null) {
-                        throw new CannotDrawException("1-piercing no fit");
-                    } else {
-                        log.trace("added a single piercing labelled " + solution.ac.getLabel());
-                        map.put(rd.added_curve, solution);
-                        addCircle(solution);
-                    }
+                    addSinglePiercingContour(ac, rd, suggested_radius, outerBox);
                 } else {
-                    //double piercing
-                    AbstractBasicRegion abr0 = rd.split_zones.get(0);
-                    AbstractBasicRegion abr1 = rd.split_zones.get(1);
-                    AbstractBasicRegion abr2 = rd.split_zones.get(2);
-                    AbstractBasicRegion abr3 = rd.split_zones.get(3);
-                    AbstractCurve c1 = abr0.getStraddledContour(abr1);
-                    AbstractCurve c2 = abr0.getStraddledContour(abr2);
-                    CircleContour cc1 = map.get(c1);
-                    CircleContour cc2 = map.get(c2);
+                    addDoublePiercingContour(rd, suggested_radius, outerBox);
+                }
+            }
 
-                    double[][] intn_coords = intersect(cc1.cx, cc1.cy, cc1.radius,
-                            cc2.cx, cc2.cy, cc2.radius);
-                    if (intn_coords == null) {
-                        System.out.println("double piercing on non-intersecting circles");
-                        throw new CannotDrawException("double piercing on non-intersecting circles");
-                    }
-
-                    ConcreteZone cz0 = makeConcreteZone(abr0);
-                    ConcreteZone cz1 = makeConcreteZone(abr1);
-                    ConcreteZone cz2 = makeConcreteZone(abr2);
-                    ConcreteZone cz3 = makeConcreteZone(abr3);
-                    Area a = new Area(cz0.getShape(outerBox));
-                    a.add(cz1.getShape(outerBox));
-                    a.add(cz2.getShape(outerBox));
-                    a.add(cz3.getShape(outerBox));
-
-                    //DEB.show(4, a, "for double piercing "+debug_image_number);
-                    
-                    double cx, cy;
-                    if (a.contains(intn_coords[0][0], intn_coords[0][1])) {
-                        log.trace("intn at (" + intn_coords[0][0] + "," + intn_coords[0][1] + ")");
-                        cx = intn_coords[0][0];
-                        cy = intn_coords[0][1];
-                    } else if (a.contains(intn_coords[1][0], intn_coords[1][1])) {
-                        log.trace("intn at (" + intn_coords[1][0] + "," + intn_coords[1][1] + ")");
-
-                        cx = intn_coords[1][0];
-                        cy = intn_coords[1][1];
-                    } else {
-                        log.trace("no suitable intn for double piercing");
-                        throw new CannotDrawException("2peircing + disjoint");
-                    }
-
-                    CircleContour solution = growCircleContour(a, rd.added_curve, cx, cy,
-                            suggested_radius, SMALLEST_RADIUS, SMALLEST_RADIUS);
-
-                    // no double piercing found which was OK
-                    if (solution == null) {
-                        throw new CannotDrawException("2peircing no fit");
-                    } else {
-                        log.trace("added a double piercing labelled " + solution.ac.getLabel());
-                        map.put(rd.added_curve, solution);
-                        addCircle(solution);
-                    }
-                }// if/else/else about piercing type
-            }// next RecompData in the BuildStep
             step = step.next;
 
-            System.out.println("Step complete: " + circles.toString());
+            log.info("Step complete: " + circles);
         }// go to next BuildStep
         
         //DEB.showFilmStrip();
@@ -694,7 +703,7 @@ public class DiagramCreator {
         }
     }
 
-    void addCircle(CircleContour c) {
+    private void addCircle(CircleContour c) {
         log.info("adding " + c.debug());
 
         circles.add(c);
@@ -702,30 +711,34 @@ public class DiagramCreator {
 
     private CircleContour growCircleContour(Area a, AbstractCurve ac,
             double cx, double cy,
-            double suggested_rad, double start_rad,
-            double smallest_rad) {
-        CircleContour attempt = new CircleContour(cx, cy, suggested_rad, ac);
+            double suggested_radius,
+            double start_radius,
+            double smallest_radius) {
+
+        CircleContour attempt = new CircleContour(cx, cy, suggested_radius, ac);
         if (containedIn(attempt, a)) {
-            return new CircleContour(cx, cy, suggested_rad, ac);
+            return new CircleContour(cx, cy, suggested_radius, ac);
         }
 
-        boolean ok = true;
-        double good_rad = -1.0;
-        double rad = start_rad;
-        while (ok) {
-            attempt = new CircleContour(cx, cy, rad, ac);
+        double good_radius = -1.0;
+        double radius = start_radius;
+
+        // loop for increasing radii
+        while (true) {
+            attempt = new CircleContour(cx, cy, radius, ac);
             if (containedIn(attempt, a)) {
-                good_rad = rad;
-                rad *= 1.5;
+                good_radius = radius;
+                radius *= 1.5;
             } else {
                 break;
             }
-        }// loop for increasing radii
-        if (good_rad < 0.0) {
+        }
+
+        if (good_radius < 0.0) {
             return null;
         }
 
-        return new CircleContour(cx, cy, good_rad, ac);
+        return new CircleContour(cx, cy, good_radius, ac);
     }
 
     private CircleContour findCircleContour(Rectangle2D.Double outerBox,
@@ -736,29 +749,16 @@ public class DiagramCreator {
             AbstractCurve ac,
             int debug_index) throws CannotDrawException {
 
-        ArrayList<AbstractCurve> acs = new ArrayList<>();
+        List<AbstractCurve> acs = new ArrayList<>();
         acs.add(ac);
         List<CircleContour> result = findCircleContours(outerBox,
-                smallest_rad, guide_rad, zone, last_diag, acs,
-                debug_index);
-        if (result == null || result.size() == 0) {
+                smallest_rad, guide_rad, zone, last_diag, acs);
+
+        if (result == null || result.isEmpty()) {
             return null;
         } else {
             return result.get(0);
         }
-    }
-
-    private boolean all_ok_in(int lowi, int highi, int lowj, int highj,
-            PotentialCentre[][] ok_array, int Ni, int Nj) {
-        boolean all_ok = true;
-        for (int i = lowi; all_ok && i < highi + 1; i++) {
-            for (int j = lowj; all_ok && j < highj + 1; j++) {
-                if (i >= Ni || j >= Nj || !ok_array[i][j].ok) {
-                    all_ok = false;
-                }
-            }
-        }
-        return all_ok;
     }
 
     private List<CircleContour> findCircleContours(Rectangle2D.Double outerBox,
@@ -766,8 +766,7 @@ public class DiagramCreator {
             double guide_rad,
             AbstractBasicRegion zone,
             AbstractDescription last_diag,
-            List<AbstractCurve> acs,
-            int debug_index) throws CannotDrawException {
+            List<AbstractCurve> acs) throws CannotDrawException {
 
         List<CircleContour> result = new ArrayList<>();
 
@@ -918,13 +917,11 @@ public class DiagramCreator {
                     double rad = Math.min(guide_rad, ccOutside.radius - smallest_radius);
                     if (rad > 0.99 * smallest_radius) {
                         // build a co-centric contour
-                        CircleContour attempt = new CircleContour(
-                                ccOutside.cx, ccOutside.cy, rad, acs.get(0));
+                        CircleContour attempt = new CircleContour(ccOutside.cx, ccOutside.cy, rad, acs.get(0));
                         if (containedIn(attempt, a)) {
-                            if (rad > 2 * smallest_radius) // shrink the co-centric contour a bit
-                            {
-                                attempt = new CircleContour(
-                                        ccOutside.cx, ccOutside.cy, rad - smallest_radius, acs.get(0));
+                            // shrink the co-centric contour a bit
+                            if (rad > 2 * smallest_radius) {
+                                attempt = new CircleContour(ccOutside.cx, ccOutside.cy, rad - smallest_radius, acs.get(0));
                             }
                             result.add(attempt);
                             return result;
@@ -1089,6 +1086,7 @@ public class DiagramCreator {
 
             double bx = bounds.getCenterX();
             double by = bounds.getCenterY();
+
             if (isTall) {
                 by -= radius * (acs.size() - 1);
             } else {
@@ -1099,6 +1097,7 @@ public class DiagramCreator {
                 AbstractCurve ac = acs.get(labelIndex);
                 double x = bx;
                 double y = by;
+
                 if (isTall) {
                     y += 2 * radius * labelIndex;
                 } else {
@@ -1122,6 +1121,7 @@ public class DiagramCreator {
                 AbstractCurve ac = acs.get(labelIndex);
                 double x = pc.x + radius;
                 double y = pc.y + radius;
+
                 if (isTall) {
                     y += 2 * radius * labelIndex;
                 } else {
@@ -1139,6 +1139,19 @@ public class DiagramCreator {
         } else {
             throw new CannotDrawException("cannot fit nested contour into region");
         }
+    }
+
+    private boolean all_ok_in(int lowi, int highi, int lowj, int highj,
+                              PotentialCentre[][] ok_array, int Ni, int Nj) {
+        boolean all_ok = true;
+        for (int i = lowi; all_ok && i < highi + 1; i++) {
+            for (int j = lowj; all_ok && j < highj + 1; j++) {
+                if (i >= Ni || j >= Nj || !ok_array[i][j].ok) {
+                    all_ok = false;
+                }
+            }
+        }
+        return all_ok;
     }
 
     private double[][] intersect(double c1x, double c1y, double rad1,
@@ -1179,10 +1192,7 @@ public class DiagramCreator {
         return test.isEmpty();
     }
 
-    private void DEB_show_frame(int deb_level,// only show if deb_level >= global debug level
-    		int debug_frame_index,
-    		int size)
-    {
+    private void DEB_show_frame(int deb_level, int debug_frame_index, int size) {
 //		if(DEB.level<deb_level)
 //			return;
 		
@@ -1190,8 +1200,7 @@ public class DiagramCreator {
 		ArrayList<ConcreteZone> shadedZones = new ArrayList<ConcreteZone>();
 		
 		ArrayList<CircleContour> circles_copy = new ArrayList<CircleContour>();
-		for(CircleContour c : circles)
-		{
+		for(CircleContour c : circles) {
 			circles_copy.add(new CircleContour(c));
 		}
         CircleContour.fitCirclesToSize(circles_copy, size);
