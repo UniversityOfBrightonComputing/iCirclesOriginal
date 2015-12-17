@@ -21,6 +21,7 @@ import icircles.util.DEB;
  */
 public class AbstractDescription {
 
+    // TODO: immutable data structure?
     private TreeSet<AbstractCurve> contours;
     private TreeSet<AbstractBasicRegion> zones;
 
@@ -54,12 +55,10 @@ public class AbstractDescription {
     public Iterator<AbstractBasicRegion> getZoneIterator() {
         return zones.iterator();
     }
-    // expensive - do not use just for querying
 
     public TreeSet<AbstractCurve> getCopyOfContours() {
         return new TreeSet<>(contours);
     }
-    // expensive - do not use just for querying
 
     public TreeSet<AbstractBasicRegion> getCopyOfZones() {
         return new TreeSet<>(zones);

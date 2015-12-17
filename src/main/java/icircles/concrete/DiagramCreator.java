@@ -57,7 +57,7 @@ public class DiagramCreator {
         make_guide_sizes(); // scores zones too
 
         circles = new ArrayList<>();
-        createCircles(size);
+        createCircles();
 
         CircleContour.fitCirclesToSize(circles, size);
 
@@ -103,7 +103,7 @@ public class DiagramCreator {
             guide_sizes.put(ac, guide_size);
         }
 
-        System.out.println("Guide sizes: " + guide_sizes.toString());
+        log.trace("Guide sizes: " + guide_sizes.toString());
     }
 
     private double scoreZone(AbstractBasicRegion abr, AbstractDescription context) {
@@ -118,25 +118,17 @@ public class DiagramCreator {
 
         AbstractDescription initial_diagram = d_steps.get(0).from();
         AbstractDescription final_diagram = r_steps.get(r_steps.size() - 1).to();
-        // which zones in final_diagram were not in initial_diagram?
 
-        {
-            Iterator<AbstractBasicRegion> it = initial_diagram.getZoneIterator();
-            while (it.hasNext()) {
-                log.trace("initial zone " + it.next().debug());
-            }
-            it = final_diagram.getZoneIterator();
-            while (it.hasNext()) {
-                log.trace("final zone " + it.next().debug());
-            }
-        }
+        // which zones in final_diagram were not in initial_diagram?
+        log.trace("Initial diagram zones: " + initial_diagram);
+        log.trace("Final diagram zones:   " + final_diagram);
 
         Iterator<AbstractBasicRegion> it = final_diagram.getZoneIterator();
         while (it.hasNext()) {
             AbstractBasicRegion z = it.next();
             if (!initial_diagram.hasLabelEquivalentZone(z)) {
                 // we have an extra zone
-                log.trace("extra zone " + z.debug());
+                log.trace("Extra zone: " + z.toString());
 
                 ConcreteZone cz = makeConcreteZone(z);
                 result.add(cz);
@@ -213,7 +205,7 @@ public class DiagramCreator {
 
         // put contour into a zone
         CircleContour c = findCircleContour(outerBox, SMALLEST_RADIUS, suggested_radius,
-                zone, last_diag, ac, debug_image_number);
+                zone, last_diag, ac);
 
         if (c == null) {
             throw new CannotDrawException("cannot place nested contour");
@@ -394,7 +386,7 @@ public class DiagramCreator {
         }
     }
 
-    private void createCircles(int debug_size) throws CannotDrawException {
+    private void createCircles() throws CannotDrawException {
         BuildStep bs = makeBuildSteps();
 
         shuffle_and_combine(bs);
@@ -746,8 +738,7 @@ public class DiagramCreator {
             double guide_rad,
             AbstractBasicRegion zone,
             AbstractDescription last_diag,
-            AbstractCurve ac,
-            int debug_index) throws CannotDrawException {
+            AbstractCurve ac) throws CannotDrawException {
 
         List<AbstractCurve> acs = new ArrayList<>();
         acs.add(ac);
