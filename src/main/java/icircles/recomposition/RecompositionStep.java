@@ -30,28 +30,6 @@ public class RecompositionStep {
         DEB.assertCondition(to.includesLabel(cl), "added curve wasn't added");
     }
 
-    public String debug() {
-        if (DEB.level == 0) {
-            return "";
-        }
-        StringBuilder sb = new StringBuilder();
-        if (DEB.level > 1) {
-            sb.append("\n");
-        }
-        sb.append(" from ");
-        sb.append(from.toDebugString());
-        if (DEB.level > 1) {
-            sb.append("\n");
-        }
-        sb.append(" to ");
-        sb.append(to.toDebugString());
-        if (DEB.level > 1) {
-            sb.append("\n");
-        }
-
-        return sb.toString();
-    }
-
     public AbstractDescription to() {
         return to;
     }
@@ -72,5 +50,10 @@ public class RecompositionStep {
 
     public Iterator<RecompData> getRecompIterator() {
         return addedContourData.iterator();
+    }
+
+    @Override
+    public String toString() {
+        return "R_Step[From=" + from + " To=" + to + "]";
     }
 }

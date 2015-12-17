@@ -1,22 +1,15 @@
 package icircles.recomposition;
 
-import java.util.ArrayList;
-
-import icircles.util.DEB;
-
 import icircles.abstractdescription.AbstractBasicRegion;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class RecompositionStrategyNested extends RecompositionStrategy {
 
-    public ArrayList<Cluster> makeClusters(
-            ArrayList<AbstractBasicRegion> zones_to_split) {
-        if (DEB.level > 1) {
-            System.out.println("recomposition stratgey is nested");
-        }
-        ArrayList<Cluster> result = new ArrayList<Cluster>();
-        for (AbstractBasicRegion z : zones_to_split) {
-            result.add(new Cluster(z));
-        }
-        return result;
+    public List<Cluster> makeClusters(List<AbstractBasicRegion> zones_to_split) {
+        return zones_to_split.stream()
+                .map(Cluster::new)
+                .collect(Collectors.toList());
     }
 }

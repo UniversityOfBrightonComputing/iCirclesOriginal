@@ -1,6 +1,7 @@
 package icircles.recomposition;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import icircles.util.DEB;
 
@@ -8,5 +9,5 @@ import icircles.abstractdescription.AbstractBasicRegion;
 
 public abstract class RecompositionStrategy {
 
-    public abstract ArrayList<Cluster> makeClusters(ArrayList<AbstractBasicRegion> zones_to_split);
+    public abstract List<Cluster> makeClusters(List<AbstractBasicRegion> zones_to_split);
 }

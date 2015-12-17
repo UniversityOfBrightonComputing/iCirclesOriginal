@@ -2,6 +2,7 @@ package icircles.abstractdual;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import icircles.util.DEB;
 
@@ -10,10 +11,10 @@ import icircles.abstractdescription.AbstractCurve;
 
 public class AbstractDualGraph {
 
-    ArrayList<AbstractDualNode> nodes;
-    ArrayList<AbstractDualEdge> edges;
+    List<AbstractDualNode> nodes;
+    List<AbstractDualEdge> edges;
 
-    public AbstractDualGraph(ArrayList<AbstractBasicRegion> abrs) {
+    public AbstractDualGraph(List<AbstractBasicRegion> abrs) {
         nodes = new ArrayList<AbstractDualNode>();
         edges = new ArrayList<AbstractDualEdge>();
         // Each abr becomes a node.

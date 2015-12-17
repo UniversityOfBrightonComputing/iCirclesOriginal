@@ -1,6 +1,7 @@
 package icircles.recomposition;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import icircles.util.DEB;
 
@@ -8,7 +9,7 @@ import icircles.abstractdescription.AbstractBasicRegion;
 
 public class Cluster {
 
-    private ArrayList<AbstractBasicRegion> zones;
+    private List<AbstractBasicRegion> zones;
 
     public Cluster(AbstractBasicRegion z) {
         zones = new ArrayList<>();
@@ -38,21 +39,12 @@ public class Cluster {
         zones.add(z4);
     }
 
-    public ArrayList<AbstractBasicRegion> zones() {
+    public List<AbstractBasicRegion> zones() {
         return zones;
     }
 
-    public String debug() {
-        String result = "{";
-        boolean firstOne = true;
-        for (AbstractBasicRegion abr : zones) {
-            if (!firstOne) {
-                result += ",";
-            }
-            result = result + abr.toString();
-            firstOne = false;
-        }
-        result += "}";
-        return result;
+    @Override
+    public String toString() {
+        return zones.toString();
     }
 }
