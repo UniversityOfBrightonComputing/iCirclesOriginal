@@ -1,9 +1,6 @@
 package icircles.decomposition;
 
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 import icircles.util.DEB;
 import icircles.abstractdescription.AbstractDescription;
@@ -94,7 +91,7 @@ public class DecompositionStep {
         return 1.1 * from.checksum() + 1.3 * to.checksum();
     }
 
-    public static double checksum(ArrayList<DecompositionStep> d_steps) {
+    public static double checksum(List<DecompositionStep> d_steps) {
         double scaling = 1.11;
         double result = 0.0;
         for (DecompositionStep step : d_steps) {

@@ -1,4 +1,4 @@
-package icircles.test;
+package icircles;
 
 import icircles.decomposition.DecompositionType;
 import icircles.recomposition.RecompositionType;
@@ -8,7 +8,7 @@ public class TestDatum {
     public String description;
     public DecompositionType decomp_strategy;
     public RecompositionType recomp_strategy;
-    public double expected_checksum;
+    public double expectedChecksum;
 
     public TestDatum(String string,
                      DecompositionType decomp_strategy,
@@ -17,6 +17,6 @@ public class TestDatum {
         description = string;
         this.decomp_strategy = decomp_strategy;
         this.recomp_strategy = recomp_strategy;
-        expected_checksum = checksum;
+        expectedChecksum = checksum;
     }
 }

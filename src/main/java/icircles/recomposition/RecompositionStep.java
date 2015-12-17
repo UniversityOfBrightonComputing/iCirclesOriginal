@@ -57,7 +57,7 @@ public class RecompositionStep {
         return to;
     }
 
-    public static double checksum(ArrayList<RecompositionStep> rSteps) {
+    public static double checksum(List<RecompositionStep> rSteps) {
         double scaling = 11.23;
         double result = 0.0;
         for (RecompositionStep step : rSteps) {

@@ -5,12 +5,10 @@ import icircles.concrete.ConcreteDiagram;
 import icircles.concrete.DiagramCreator;
 import icircles.decomposition.Decomposer;
 import icircles.decomposition.DecompositionStep;
-import icircles.decomposition.DecompositionStrategy;
 import icircles.decomposition.DecompositionType;
 import icircles.recomposition.Recomposer;
 import icircles.recomposition.RecompositionStep;
 import icircles.recomposition.RecompositionType;
-import icircles.test.TestData;
 import icircles.util.CannotDrawException;
 
 import javax.swing.*;
@@ -34,7 +32,7 @@ public class CirclesFrame extends JFrame {
         pack();
         setVisible(true);
 
-        drawTest(63);
+        //drawTest(63);
         getContentPane().addComponentListener(new ComponentListener() {
 
             public void componentHidden(ComponentEvent e) {
@@ -75,11 +73,11 @@ public class CirclesFrame extends JFrame {
         draw("");
     }
 
-    void drawTest(int test_num) {
-        settingsPanel.setDecompStrategy(TestData.test_data[test_num - 1].decomp_strategy);
-        settingsPanel.setRecompStrategy(TestData.test_data[test_num - 1].recomp_strategy);
-        draw(TestData.test_data[test_num - 1].description);
-    }
+//    void drawTest(int test_num) {
+//        settingsPanel.setDecompStrategy(TestData.test_data[test_num - 1].decomp_strategy);
+//        settingsPanel.setRecompStrategy(TestData.test_data[test_num - 1].recomp_strategy);
+//        draw(TestData.test_data[test_num - 1].description);
+//    }
 
     private void goDraw(String description, DecompositionType decomp_strategy, RecompositionType recomp_strategy) {
         ConcreteDiagram cd = null;
@@ -231,37 +229,37 @@ public class CirclesFrame extends JFrame {
             InputMap im = testJTF.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
             ActionMap am = testJTF.getActionMap();
             im.put(KeyStroke.getKeyStroke("ENTER"), ENTER_ACTION);
-            am.put(ENTER_ACTION, new TestListener());
+            //am.put(ENTER_ACTION, new TestListener());
             examplePanel.add(testJTF);
 
             JButton next = new JButton("draw next test case");
-            next.addActionListener(e -> {
-                if (testJTF.getText().length() == 0) {
-                    test_num = 2;
-                } else {
-                    test_num += 3;
-                    if (test_num > TestData.test_data.length - 1) {
-                        test_num = test_num % 3;
-                    }
-                }
-                testJTF.setText("" + (test_num + 1));
-                drawTest(test_num + 1);
-            });
+//            next.addActionListener(e -> {
+//                if (testJTF.getText().length() == 0) {
+//                    test_num = 2;
+//                } else {
+//                    test_num += 3;
+//                    if (test_num > TestData.test_data.length - 1) {
+//                        test_num = test_num % 3;
+//                    }
+//                }
+//                testJTF.setText("" + (test_num + 1));
+//                drawTest(test_num + 1);
+//            });
             examplePanel.add(next);
 
             JButton prev = new JButton("draw previous test case");
-            prev.addActionListener(e -> {
-                if (testJTF.getText().length() == 0) {
-                    test_num = getBiggestTestNum(TestData.test_data.length, 3);
-                } else {
-                    test_num -= 3;
-                    if (test_num <= 0) {
-                        test_num = getBiggestTestNum(TestData.test_data.length, test_num);
-                    }
-                }
-                testJTF.setText("" + (test_num + 1));
-                drawTest(test_num + 1);
-            });
+//            prev.addActionListener(e -> {
+//                if (testJTF.getText().length() == 0) {
+//                    test_num = getBiggestTestNum(TestData.test_data.length, 3);
+//                } else {
+//                    test_num -= 3;
+//                    if (test_num <= 0) {
+//                        test_num = getBiggestTestNum(TestData.test_data.length, test_num);
+//                    }
+//                }
+//                testJTF.setText("" + (test_num + 1));
+//                drawTest(test_num + 1);
+//            });
             examplePanel.add(prev);
         }
 
@@ -314,21 +312,21 @@ public class CirclesFrame extends JFrame {
             return p;
         }
 
-        class TestListener extends AbstractAction {
-
-            public void actionPerformed(ActionEvent ev) {
-                try {
-                    int i = Integer.parseInt(testJTF.getText());
-                    if (i < 1 || i > TestData.test_data.length) {
-                        JOptionPane.showMessageDialog(null, "test number should be between 1 and " + TestData.test_data.length);
-                        return;
-                    }
-                    test_num = i - 1;
-                    drawTest(test_num + 1);
-                } catch (NumberFormatException x) {
-                    JOptionPane.showMessageDialog(null, "type an integer between 1 and " + TestData.test_data.length);
-                }
-            }
-        }
+//        class TestListener extends AbstractAction {
+//
+//            public void actionPerformed(ActionEvent ev) {
+//                try {
+//                    int i = Integer.parseInt(testJTF.getText());
+//                    if (i < 1 || i > TestData.test_data.length) {
+//                        JOptionPane.showMessageDialog(null, "test number should be between 1 and " + TestData.test_data.length);
+//                        return;
+//                    }
+//                    test_num = i - 1;
+//                    drawTest(test_num + 1);
+//                } catch (NumberFormatException x) {
+//                    JOptionPane.showMessageDialog(null, "type an integer between 1 and " + TestData.test_data.length);
+//                }
+//            }
+//        }
     }
 }
