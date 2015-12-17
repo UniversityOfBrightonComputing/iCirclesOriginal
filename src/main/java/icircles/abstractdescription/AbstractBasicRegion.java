@@ -61,31 +61,6 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
         return 0;
     }
 
-    public String debug() {
-        if (DEB.level == 0) {
-            return "";
-        }
-        StringBuilder b = new StringBuilder();
-        if (DEB.level > 1) {
-            b.append("(");
-        }
-        boolean first = true;
-        for (AbstractCurve curve : theInSet) {
-            if (!first && DEB.level > 1) {
-                b.append(",");
-            }
-            b.append(curve);
-            first = false;
-        }
-        if (DEB.level > 1) {
-            b.append(")");
-        }
-        if (DEB.level > 3) {
-            b.append(hashCode());
-        }
-        return b.toString();
-    }
-
     public Iterator<AbstractCurve> getContourIterator() {
         return theInSet.iterator();
     }
@@ -119,7 +94,7 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
                 }
             }
             if (DEB.level > 2) {
-                System.out.println("straddle : " + debug() + "->" + other.debug() + "=" + result);
+                System.out.println("straddle : " + toDebugString() + "->" + other.toDebugString() + "=" + result);
             }
             return result;
         }
@@ -160,7 +135,7 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
             if (z.getNumContours() == 0) {
                 return true;
             } else {
-                //System.out.println(" compare zones "+debug()+" and "+z.debug());
+                //System.out.println(" compare zones "+toDebugString()+" and "+z.toDebugString());
                 Iterator<AbstractCurve> acIt = getContourIterator();
                 AcItLoop:
                 while (acIt.hasNext()) {
@@ -169,19 +144,44 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
                     Iterator<AbstractCurve> acIt2 = z.getContourIterator();
                     while (acIt2.hasNext()) {
                         AbstractCurve thatAC = acIt2.next();
-                        //System.out.println(" compare abstract contours "+thisAC.debug()+" and "+thatAC.debug());
+                        //System.out.println(" compare abstract contours "+thisAC.toDebugString()+" and "+thatAC.toDebugString());
                         if (thisAC.matches_label(thatAC)) {
                             //System.out.println(" got match ");
                             continue AcItLoop;
                         }
                     }
-                    //System.out.println(" no match for "+thisAC.debug());
+                    //System.out.println(" no match for "+thisAC.toDebugString());
                     return false;
                 }
                 return true;
             }
         }
         return false;
+    }
+
+    public String toDebugString() {
+        if (DEB.level == 0) {
+            return "";
+        }
+        StringBuilder b = new StringBuilder();
+        if (DEB.level > 1) {
+            b.append("(");
+        }
+        boolean first = true;
+        for (AbstractCurve curve : theInSet) {
+            if (!first && DEB.level > 1) {
+                b.append(",");
+            }
+            b.append(curve);
+            first = false;
+        }
+        if (DEB.level > 1) {
+            b.append(")");
+        }
+        if (DEB.level > 3) {
+            b.append(hashCode());
+        }
+        return b.toString();
     }
 
     @Override

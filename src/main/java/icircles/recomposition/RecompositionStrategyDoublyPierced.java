@@ -26,7 +26,7 @@ public class RecompositionStrategyDoublyPierced extends RecompositionStrategy {
         if (DEB.level > 2) {
             System.out.println("zonesToSplit is ");
             for (AbstractBasicRegion abr : zonesToSplit) {
-                System.out.println("abr:" + abr.debug());
+                System.out.println("abr:" + abr.toDebugString());
             }
         }
         for (ArrayList<AbstractDualNode> nodes = adg.getFourTuple();

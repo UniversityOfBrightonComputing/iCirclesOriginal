@@ -1,10 +1,6 @@
 package icircles.abstractdescription;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.StringTokenizer;
-import java.util.TreeSet;
+import java.util.*;
 
 import icircles.util.DEB;
 
@@ -30,6 +26,44 @@ public class AbstractDescription {
         this.zones = new TreeSet<>(zones);
     }
 
+    /**
+     * Constructs abstract description from informal description in the string form.
+     * Empty set (the outside zone) is always implicitly present.
+     * <p>
+     *     Example:
+     *     "a b c ab ac bc abc" is Venn3
+     * </p>
+     *
+     * @param informalDescription abstract description in informal form
+     */
+    public AbstractDescription(String informalDescription) {
+        TreeSet<AbstractBasicRegion> ad_zones = new TreeSet<>();
+
+        // add the outside zone
+        ad_zones.add(AbstractBasicRegion.get(new TreeSet<>()));
+
+        StringTokenizer st = new StringTokenizer(informalDescription);
+        Map<CurveLabel, AbstractCurve> contours = new HashMap<>();
+
+        while (st.hasMoreTokens()) {
+            String word = st.nextToken();
+            TreeSet<AbstractCurve> zoneContours = new TreeSet<>();
+
+            for (int i = 0; i < word.length(); i++) {
+                String character = "" + word.charAt(i);
+                CurveLabel cl = CurveLabel.get(character);
+                if (!contours.containsKey(cl)) {
+                    contours.put(cl, new AbstractCurve(cl));
+                }
+                zoneContours.add(contours.get(cl));
+            }
+            ad_zones.add(AbstractBasicRegion.get(zoneContours));
+        }
+
+        this.contours = new TreeSet<>(contours.values());
+        this.zones = new TreeSet<>(ad_zones);
+    }
+
     public AbstractCurve getFirstContour() {
         if (contours.size() == 0) {
             return null;
@@ -48,10 +82,6 @@ public class AbstractDescription {
         return contours.iterator();
     }
 
-    public int getNumContours() {
-        return contours.size();
-    }
-
     public Iterator<AbstractBasicRegion> getZoneIterator() {
         return zones.iterator();
     }
@@ -64,29 +94,16 @@ public class AbstractDescription {
         return new TreeSet<>(zones);
     }
 
+    public int getNumContours() {
+        return contours.size();
+    }
+
+    public int getNumZones() {
+        return zones.size();
+    }
+
     public static AbstractDescription makeForTesting(String s) {
-        TreeSet<AbstractBasicRegion> ad_zones = new TreeSet<>();
-        ad_zones.add(AbstractBasicRegion.get(new TreeSet<>()));
-
-        StringTokenizer st = new StringTokenizer(s);
-        HashMap<CurveLabel, AbstractCurve> contours = new HashMap<>();
-
-        while (st.hasMoreTokens()) {
-            String word = st.nextToken();
-            TreeSet<AbstractCurve> zoneContours = new TreeSet<>();
-            for (int i = 0; i < word.length(); i++) {
-                String character = "" + word.charAt(i);
-                CurveLabel cl = CurveLabel.get(character);
-                if (!contours.containsKey(cl)) {
-                    contours.put(cl, new AbstractCurve(cl));
-                }
-                zoneContours.add(contours.get(cl));
-            }
-            ad_zones.add(AbstractBasicRegion.get(zoneContours));
-        }
-
-        TreeSet<AbstractCurve> ad_contours = new TreeSet<>(contours.values());
-        return new AbstractDescription(ad_contours, ad_zones);
+        return new AbstractDescription(s);
     }
 
     public String debug() {
@@ -122,7 +139,7 @@ public class AbstractDescription {
             if (DEB.level > 1) {
                 b.append("\n");
             }
-            b.append(z.debug());
+            b.append(z.toDebugString());
             first = false;
         }
         if (DEB.level > 1) {
@@ -174,10 +191,6 @@ public class AbstractDescription {
             }
         }
         return false;
-    }
-
-    public int getNumZones() {
-        return zones.size();
     }
 
     public double checksum() {

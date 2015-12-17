@@ -63,9 +63,9 @@ public class DecompositionStep {
         Set<Map.Entry<AbstractBasicRegion, AbstractBasicRegion>> entries = zonesMoved.entrySet();
         for (Map.Entry<AbstractBasicRegion, AbstractBasicRegion> z_map : entries) {
             sb.append("[");
-            sb.append(z_map.getKey().debug());
+            sb.append(z_map.getKey().toDebugString());
             sb.append("->");
-            sb.append(z_map.getValue().debug());
+            sb.append(z_map.getValue().toDebugString());
             sb.append("]");
         }
         return sb.toString();

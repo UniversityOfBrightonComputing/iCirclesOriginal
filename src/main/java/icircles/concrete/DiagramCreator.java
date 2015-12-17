@@ -261,12 +261,12 @@ public class DiagramCreator {
 
         Set<AbstractBasicRegion> allZones = zoneScores.keySet();
         for (AbstractBasicRegion abr : allZones) {
-            log.info("compare " + abr.debug() + " against " + piercingCurve);
+            log.info("compare " + abr.toDebugString() + " against " + piercingCurve);
 
             if (!abr.contains(piercingCurve))
                 continue;
 
-            log.info("OK " + abr.debug() + " is in " + piercingCurve + ", so compare against " + pierced_ac);
+            log.info("OK " + abr.toDebugString() + " is in " + piercingCurve + ", so compare against " + pierced_ac);
 
             double zoneScore = zoneScores.get(abr);
 
@@ -436,17 +436,17 @@ public class DiagramCreator {
         double score_out_of_c = 0.0;
 
         Set<AbstractBasicRegion> allZones = zoneScores.keySet();
-        for (AbstractBasicRegion abr : allZones) {
-            log.info("compare " + abr.debug() + " against " + c);
+        for (AbstractBasicRegion zone : allZones) {
+            log.info("compare " + zone + " against " + c);
 
-            if (!abr.contains(rd.added_curve))
+            if (!zone.contains(rd.added_curve))
                 continue;
 
-            log.info("OK " + abr.debug() + " is in " + c + ", so compare against " + cc.debug());
+            log.info("OK " + zone + " is in " + c + ", so compare against " + cc.toDebugString());
 
-            double zoneScore = zoneScores.get(abr);
+            double zoneScore = zoneScores.get(zone);
 
-            if (abr.contains(c))
+            if (zone.contains(c))
                 score_in_c += zoneScore;
             else
                 score_out_of_c += zoneScore;
@@ -630,7 +630,7 @@ public class DiagramCreator {
             if (rd2.split_zones.size() == 1) {
                 AbstractBasicRegion abr2 = rd2.split_zones.get(0);
                 if (abr.isLabelEquivalent(abr2)) {
-                    log.info("found matching abrs " + abr.debug() + ", " + abr2.debug());
+                    log.info("found matching abrs " + abr.toDebugString() + ", " + abr2.toDebugString());
                     // check scores match
 
                     double abrScore = contScores.get(rd.added_curve);
@@ -638,7 +638,7 @@ public class DiagramCreator {
 
                     //DEB.assertCondition(abrScore > 0 && abrScore2 > 0, "zones must have score");
 
-                    log.trace("matched nestings " + abr.debug() + " and " + abr2.debug()
+                    log.trace("matched nestings " + abr.toDebugString() + " and " + abr2.toDebugString()
                             + "\n with scores " + abrScore + " and " + abrScore2);
 
                     if (abrScore == abrScore2) {
@@ -674,14 +674,14 @@ public class DiagramCreator {
                 if ((abr1.isLabelEquivalent(abr3) && abr2.isLabelEquivalent(abr4))
                         || (abr1.isLabelEquivalent(abr4) && abr2.isLabelEquivalent(abr3))) {
 
-                    log.info("found matching abrs " + abr1.debug() + ", " + abr2.debug());
+                    log.info("found matching abrs " + abr1.toDebugString() + ", " + abr2.toDebugString());
                     // check scores match
                     double abrScore = contScores.get(rd.added_curve);
                     double abrScore2 = contScores.get(rd2.added_curve);
 
                     //DEB.assertCondition(abrScore > 0 && abrScore2 > 0, "zones must have score");
 
-                    log.trace("matched piercings " + abr1.debug() + " and " + abr2.debug()
+                    log.trace("matched piercings " + abr1.toDebugString() + " and " + abr2.toDebugString()
                             + "\n with scores " + abrScore + " and " + abrScore2);
 
                     if (abrScore == abrScore2) {
@@ -719,7 +719,7 @@ public class DiagramCreator {
     }
 
     private void addCircle(CircleContour c) {
-        log.info("adding " + c.debug());
+        log.info("adding " + c.toDebugString());
 
         circles.add(c);
     }
@@ -890,7 +890,7 @@ public class DiagramCreator {
         // look at the final diagram - find the corresponding zone
         //DEB.out(2, "");
         if (zone.getNumContours() > 0 && acs.size() == 1) {
-            //System.out.println("look for "+zone.debug()+" in "+last_diag.debug());
+            //System.out.println("look for "+zone.toDebugString()+" in "+last_diag.toDebugString());
             // not the outside zone - locate the zone in the last diag
             AbstractBasicRegion zoneInLast = null;
             Iterator<AbstractBasicRegion> abrIt = last_diag.getZoneIterator();
@@ -1220,7 +1220,7 @@ public class DiagramCreator {
         CircleContour.fitCirclesToSize(circles_copy, size);
 		ConcreteDiagram cd = new ConcreteDiagram(new Rectangle2D.Double(0, 0, size, size),
 	            circles_copy, shadedZones);
-	    CirclesPanel cp = new CirclesPanel("debug frame "+debug_frame_index, "no failure",
+	    CirclesPanel cp = new CirclesPanel("toDebugString frame "+debug_frame_index, "no failure",
 	    		cd, size, true);
 	    //DEB.addFilmStripShot(cp);
     }

@@ -56,7 +56,7 @@ public class RecompositionStrategySinglyPierced extends RecompositionStrategy {
             AbstractDualNode n = nIt.next();
             result.add(new Cluster(n.abr));
             if (DEB.level > 2) {
-                System.out.println("adding nested cluster " + n.abr.debug());
+                System.out.println("adding nested cluster " + n.abr.toDebugString());
             }
         }
         return result;

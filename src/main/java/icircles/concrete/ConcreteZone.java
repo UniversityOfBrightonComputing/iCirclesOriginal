@@ -8,6 +8,9 @@ import icircles.abstractdescription.AbstractBasicRegion;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 
+/**
+ * Concrete form of AbstractBasicRegion.
+ */
 public class ConcreteZone {
 
     private AbstractBasicRegion abr;
@@ -57,10 +60,14 @@ public class ConcreteZone {
         return a;
     }
 
-    @Override
-    public String toString() {
+    public String toDebugString() {
         return "ConcreteZone:[zone=" + abr + "\n"
                 + "containing: " + containingCircles.toString() + "\n"
                 + "excluding:  " + excludingCircles.toString() + "]";
+    }
+
+    @Override
+    public String toString() {
+        return abr.toString();
     }
 }

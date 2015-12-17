@@ -110,7 +110,7 @@ public class Recomposer {
         while (moved_it.hasNext()) {
             AbstractBasicRegion moved = moved_it.next();
             AbstractBasicRegion to_split = matchedZones.get(moved);
-            //System.out.println("split this zone : "+to_split.debug());
+            //System.out.println("split this zone : "+to_split.toDebugString());
             matched_inverse.put(to_split, moved);
             if (to_split != null) {
                 zones_to_split.add(to_split);
@@ -142,7 +142,7 @@ public class Recomposer {
                 new_zone_set.add(new_zone);
                 added_zones.add(new_zone);
                 AbstractBasicRegion decomp_z = matched_inverse.get(z);
-                //System.out.println("zone "+z.debug()+" has matched inverse "+decomp_z.debug());
+                //System.out.println("zone "+z.toDebugString()+" has matched inverse "+decomp_z.toDebugString());
                 matchedZones.put(decomp_z.moved_in(was_removed), new_zone);
             }
             added_contour_data.add(new RecompData(new_cont, split_zones, added_zones));

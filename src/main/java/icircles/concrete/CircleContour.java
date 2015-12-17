@@ -103,18 +103,14 @@ public class CircleContour {
         return (int) (cy + radius) + 1;
     }
 
-    public String debug() {
-        if (DEB.level > 2) {
-            return "circle " + ac.getLabel() + " at (" + cx + "," + cy + ") rad " + radius;
-        } else {
-            return "";
-        }
+    public String toDebugString() {
+        return String.format("CircleCountour[center=(%.0f,%.0f),radius=%.0f,curve=%s]",
+                cx, cy, radius, ac);
     }
 
     @Override
     public String toString() {
-        return String.format("CircleCountour[center=(%.0f,%.0f),radius=%.0f,curve=%s]",
-                cx, cy, radius, ac);
+        return ac.toString();
     }
 
     static void fitCirclesToSize(List<CircleContour> circles, int size) {

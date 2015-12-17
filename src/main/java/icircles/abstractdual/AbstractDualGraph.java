@@ -119,7 +119,7 @@ public class AbstractDualGraph {
             } else {
                 isFirst = false;
             }
-            result += n.abr.debug();
+            result += n.abr.toDebugString();
         }
         result += " edges : ";
         isFirst = true;
@@ -129,9 +129,9 @@ public class AbstractDualGraph {
             } else {
                 isFirst = false;
             }
-            result += e.from.abr.debug();
+            result += e.from.abr.toDebugString();
             result += "->";
-            result += e.to.abr.debug();
+            result += e.to.abr.toDebugString();
         }
         return result;
     }
@@ -151,8 +151,8 @@ public class AbstractDualGraph {
 
                     if (DEB.level > 2) {
                         // we have edges e and e2 - are these part of a square?
-                        System.out.println("edges are " + e.from.abr.debug() + "->" + e.to.abr.debug() + "\n and "
-                                + e2.from.abr.debug() + "->" + e2.to.abr.debug());
+                        System.out.println("edges are " + e.from.abr.toDebugString() + "->" + e.to.abr.toDebugString() + "\n and "
+                                + e2.from.abr.toDebugString() + "->" + e2.to.abr.toDebugString());
                     }
 
                     // look for an edge from n with the same label as e2

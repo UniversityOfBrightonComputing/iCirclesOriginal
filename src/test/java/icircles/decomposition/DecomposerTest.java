@@ -54,7 +54,7 @@ public class DecomposerTest {
 //        steplist = decomposer.decompose(
 //                AbstractDescription.makeForTesting("a b ab ac ad de"));
 //        for(DecompositionStep step : steplist)
-//            System.out.println("step : "+step.debug());
+//            System.out.println("step : "+step.toDebugString());
 //
 //        System.out.println("example 1: ____________ a(1) b a(2)b");
 //        // an example with multiple curves with the same label
@@ -78,6 +78,6 @@ public class DecomposerTest {
 //        AbstractDescription ad = new AbstractDescription(tsc, tsz);
 //        steplist = decomposer.decompose(ad);
 //        for(DecompositionStep step : steplist)
-//            System.out.println("step : "+step.debug());
+//            System.out.println("step : "+step.toDebugString());
     }
 }

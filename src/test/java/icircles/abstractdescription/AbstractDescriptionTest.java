@@ -28,18 +28,18 @@ public class AbstractDescriptionTest {
     CurveLabel a2 = CurveLabel.get("a");
 
     Debug.level = 2;
-    System.out.println("contour labels equal? "+a.debug()+","+a2.debug());
+    System.out.println("contour labels equal? "+a.toDebugString()+","+a2.toDebugString());
     System.out.println("contour labels equal? "+(a==a2));
 
     AbstractCurve ca1 = new AbstractCurve(a);
     AbstractCurve ca2 = new AbstractCurve(a);
 
-    System.out.println("contours equal? "+a.debug()+","+a2.debug());
+    System.out.println("contours equal? "+a.toDebugString()+","+a2.toDebugString());
     System.out.println("contours equal? "+(a==a2));
 
     TreeSet<AbstractCurve> ts = new TreeSet<AbstractCurve>();
     AbstractBasicRegion z0 = AbstractBasicRegion.get(ts);
-    System.out.println("outside zone "+z0.debug());
+    System.out.println("outside zone "+z0.toDebugString());
 
     ts.add(ca1);
     AbstractBasicRegion za = AbstractBasicRegion.get(ts);
@@ -52,23 +52,23 @@ public class AbstractDescriptionTest {
     System.out.println("za==za2 ?" + (za == za2));
     }
 
-    System.out.println("zone in a "+za.debug());
-    System.out.println("zone in a "+za2.debug());
+    System.out.println("zone in a "+za.toDebugString());
+    System.out.println("zone in a "+za2.toDebugString());
 
 
     CurveLabel b = CurveLabel.get("b");
     AbstractCurve cb = new AbstractCurve(b);
     ts.add(cb);
     AbstractBasicRegion zab = AbstractBasicRegion.get(ts);
-    System.out.println("zone in ab "+zab.debug());
+    System.out.println("zone in ab "+zab.toDebugString());
 
     ts.remove(ca1);
     AbstractBasicRegion zb = AbstractBasicRegion.get(ts);
-    System.out.println("zone in b "+zb.debug());
+    System.out.println("zone in b "+zb.toDebugString());
 
     ts.add(ca1);
     AbstractBasicRegion zab2 = AbstractBasicRegion.get(ts);
-    System.out.println("zone2 in ab "+zab2.debug());
+    System.out.println("zone2 in ab "+zab2.toDebugString());
 
     System.out.println("zab==zab2 ?" + (zab == zab2));
 
@@ -105,17 +105,17 @@ public class AbstractDescriptionTest {
     //ContourLabel d = ContourLabel.get("d");
     //ContourLabel e = ContourLabel.get("e");
 
-    System.out.println("\"\" is " + makeForTesting("").debug());
-    System.out.println("\"a\" is " + makeForTesting("a").debug());
-    System.out.println("\"a a\" is " + makeForTesting("a a").debug());
-    System.out.println("\"a ab\" is " + makeForTesting("a ab").debug());
+    System.out.println("\"\" is " + makeForTesting("").toDebugString());
+    System.out.println("\"a\" is " + makeForTesting("a").toDebugString());
+    System.out.println("\"a a\" is " + makeForTesting("a a").toDebugString());
+    System.out.println("\"a ab\" is " + makeForTesting("a ab").toDebugString());
 
     }
     private static void debug_abstract_description(
     TreeSet<AbstractCurve> ts, TreeSet<AbstractBasicRegion> tsz)
     {
     AbstractDescription ad = new AbstractDescription(ts, tsz);
-    System.out.println("ad is " + ad.debug());
+    System.out.println("ad is " + ad.toDebugString());
     }
      */
 }

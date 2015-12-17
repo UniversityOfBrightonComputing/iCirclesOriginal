@@ -13,6 +13,10 @@ import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Represents a diagram at the concrete level.
+ * Technically, this is a concrete form of AbstractDescription.
+ */
 public class ConcreteDiagram {
 
     private Rectangle2D.Double box;
@@ -54,11 +58,15 @@ public class ConcreteDiagram {
         return result;
     }
 
+    public String toDebugString() {
+        return "ConcreteDiagram[box=" + box + "\n"
+                + "contours: " + circles + "\n"
+                + "shaded zones: " + shadedZones + "]";
+    }
+
     @Override
     public String toString() {
-        return "ConcreteDiagram[box=" + box + "\n"
-                + "contours: " + circles.toString() + "\n"
-                + "shaded zones: " + shadedZones.toString() + "]";
+        return toDebugString();
     }
 
     /**
