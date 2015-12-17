@@ -174,8 +174,185 @@ public class DiagramCreator {
         return head;
     }
 
+    /**
+     *
+     * @param step
+     * @param outerBox
+     * @return true if need to skip step loop
+     * @throws CannotDrawException
+     */
+    private boolean addSymmetricalNestedContours(BuildStep step, Rectangle2D.Double outerBox) throws CannotDrawException {
+        RecompData rd = step.recomp_data.get(0);
+        AbstractBasicRegion zone = rd.split_zones.get(0);
+
+        RecompositionStep last_step = r_steps.get(r_steps.size() - 1);
+        AbstractDescription last_diagram = last_step.to();
+
+        AbstractCurve curve = rd.added_curve;
+        double suggested_radius = guide_sizes.get(curve);
+
+        List<AbstractCurve> curves = new ArrayList<>();
+        for (RecompData rd2 : step.recomp_data) {
+            curve = rd2.added_curve;
+            curves.add(curve);
+        }
+
+        // put contours into a zone
+        List<CircleContour> cs = findCircleContours(outerBox, SMALLEST_RADIUS, suggested_radius,
+                zone, last_diagram, curves);
+
+        if (cs != null && cs.size() > 0) {
+            //DEB.assertCondition(cs.size() == step.recomp_data.size(), "not enough circles for rds");
+
+            for (int i = 0; i < cs.size(); i++) {
+                CircleContour c = cs.get(i);
+                curve = step.recomp_data.get(i).added_curve;
+
+                //DEB.assertCondition(c.ac.getLabel() == curve.getLabel(), "mismatched labels");
+
+                map.put(curve, c);
+                addCircle(c);
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     *
+     * @param step
+     * @param outerBox
+     * @return true if skip step loop
+     */
+    private boolean addSymmetricalSinglePiercingContours(BuildStep step, Rectangle2D.Double outerBox) {
+        // Look at the 1st 1-piercing
+        RecompData rd0 = step.recomp_data.get(0);
+        AbstractBasicRegion abr0 = rd0.split_zones.get(0);
+        AbstractBasicRegion abr1 = rd0.split_zones.get(1);
+        AbstractCurve piercingCurve = rd0.added_curve;
+
+        AbstractCurve pierced_ac = abr0.getStraddledContour(abr1);
+        CircleContour pierced_cc = map.get(pierced_ac);
+        ConcreteZone cz0 = makeConcreteZone(abr0);
+        ConcreteZone cz1 = makeConcreteZone(abr1);
+        Area a = new Area(cz0.getShape(outerBox));
+        a.add(cz1.getShape(outerBox));
+
+        double suggested_radius = guide_sizes.get(piercingCurve);
+
+        //DEB.show(4, a, "a for 1-piercings "+debug_image_number);
+
+        // We have made a piercing which is centred on the circumference of circle c.
+        // but if the contents of rd.addedCurve are not equally balanced between
+        // things inside c and things outside, we may end up squashing lots
+        // into half of rd.addedCurve, leaving the other half looking empty.
+        // See if we can nudge c outwards or inwards to accommodate
+        // its contents.
+
+        // iterate through zoneScores, looking for zones inside c,
+        // then ask whether they are inside or outside cc.  If we
+        // get a big score outside, then try to move c outwards.
+
+        double score_in_c = 0.0;
+        double score_out_of_c = 0.0;
+
+        double center_of_circle_lies_on_rad = pierced_cc.radius;
+
+        Set<AbstractBasicRegion> allZones = zoneScores.keySet();
+        for (AbstractBasicRegion abr : allZones) {
+            log.info("compare " + abr.debug() + " against " + piercingCurve.debug());
+
+            if (!abr.contains(piercingCurve))
+                continue;
+
+            log.info("OK " + abr.debug() + " is in " + piercingCurve.debug() + ", so compare against " + pierced_ac.debug());
+
+            double zoneScore = zoneScores.get(abr);
+
+            if (abr.contains(pierced_ac))
+                score_in_c += zoneScore;
+            else
+                score_out_of_c += zoneScore;
+        }
+
+        log.trace("scores for " + piercingCurve + " are inside=" + score_in_c + " and outside=" + score_out_of_c);
+
+        if (score_out_of_c > score_in_c) {
+            double nudge = suggested_radius * 0.3;
+            center_of_circle_lies_on_rad += nudge;
+        } else if (score_out_of_c < score_in_c) {
+            double nudge = Math.min(suggested_radius * 0.3, (pierced_cc.radius * 2 - suggested_radius) * 0.5) ;
+            center_of_circle_lies_on_rad -= nudge;
+        }
+
+        double guide_radius = guide_sizes.get(step.recomp_data.get(0).added_curve);
+        int sampleSize = (int) (Math.PI / Math.asin(guide_radius / pierced_cc.radius));
+        if (sampleSize >= step.recomp_data.size()) {
+            int num_ok = 0;
+            for (int i = 0; i < sampleSize; i++) {
+                double angle = i * Math.PI * 2.0 / sampleSize;
+                double x = pierced_cc.cx + Math.cos(angle) * center_of_circle_lies_on_rad;
+                double y = pierced_cc.cy + Math.sin(angle) * center_of_circle_lies_on_rad;
+                if (a.contains(x, y)) {
+                    CircleContour sample = new CircleContour(x, y, guide_radius, step.recomp_data.get(0).added_curve);
+                    if (containedIn(sample, a)) {
+                        num_ok++;
+                    }
+                }
+            }
+
+            if (num_ok >= step.recomp_data.size()) {
+                if (num_ok == sampleSize) {
+                    // all OK.
+                    for (int i = 0; i < step.recomp_data.size(); i++) {
+                        double angle = 0.0 + i * Math.PI * 2.0 / step.recomp_data.size();
+                        double x = pierced_cc.cx + Math.cos(angle) * center_of_circle_lies_on_rad;
+                        double y = pierced_cc.cy + Math.sin(angle) * center_of_circle_lies_on_rad;
+                        if (a.contains(x, y)) {
+                            AbstractCurve added_curve = step.recomp_data.get(i).added_curve;
+                            CircleContour c = new CircleContour(x, y, guide_radius, added_curve);
+                            abr0 = step.recomp_data.get(i).split_zones.get(0);
+                            abr1 = step.recomp_data.get(i).split_zones.get(1);
+
+                            map.put(added_curve, c);
+                            addCircle(c);
+                        }
+                    }
+
+                    return true;
+                } else if (num_ok > sampleSize) {  // BUG?  Doesn't make sense
+                    num_ok = 0;
+                    for (int i = 0; i < sampleSize; i++) {
+                        double angle = 0.0 + i * Math.PI * 2.0 / sampleSize;
+                        double x = pierced_cc.cx + Math.cos(angle) * center_of_circle_lies_on_rad;
+                        double y = pierced_cc.cy + Math.sin(angle) * center_of_circle_lies_on_rad;
+                        if (a.contains(x, y)) {
+                            AbstractCurve added_curve = step.recomp_data.get(i).added_curve;
+                            CircleContour c = new CircleContour(x, y, guide_radius, added_curve);
+                            if (containedIn(c, a)) {
+                                abr0 = step.recomp_data.get(num_ok).split_zones.get(0);
+                                abr1 = step.recomp_data.get(num_ok).split_zones.get(1);
+                                map.put(added_curve, c);
+                                addCircle(c);
+                                num_ok++;
+                                if (num_ok == step.recomp_data.size()) {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     private void addNestedContour(BuildStep bs, AbstractCurve ac, RecompData rd, double suggested_radius,
-                                  Rectangle2D.Double outerBox, int debug_image_number) throws CannotDrawException {
+                                  Rectangle2D.Double outerBox) throws CannotDrawException {
 
         log.trace("make a nested contour");
 
@@ -391,16 +568,10 @@ public class DiagramCreator {
 
         shuffle_and_combine(bs);
 
-        int debug_image_number = 0;
-
         BuildStep step = bs;
-        stepLoop:
         while (step != null) {
             log.trace("new build step");
             Rectangle2D.Double outerBox = CircleContour.makeBigOuterBox(circles);
-            
-            //DEB_show_frame(3, debug_image_number, debug_size);
-            debug_image_number++;
             
             // we need to add the new curves with regard to their placement
             // relative to the existing ones in the map
@@ -408,164 +579,18 @@ public class DiagramCreator {
                 if (step.recomp_data.get(0).split_zones.size() == 1) {
                     // we have a symmetry of nested contours.
                     // try to add them together
-                    RecompData rd = step.recomp_data.get(0);
-                    AbstractBasicRegion zone = rd.split_zones.get(0);
-
-                    RecompositionStep last_step = r_steps.get(r_steps.size() - 1);
-                    AbstractDescription last_diagram = last_step.to();
-
-                    AbstractCurve curve = rd.added_curve;
-                    double suggested_radius = guide_sizes.get(curve);
-
-                    List<AbstractCurve> curves = new ArrayList<>();
-                    for (RecompData rd2 : step.recomp_data) {
-                        curve = rd2.added_curve;
-                        curves.add(curve);
-                    }
-
-                    // put contours into a zone
-                    List<CircleContour> cs = findCircleContours(outerBox, SMALLEST_RADIUS, suggested_radius,
-                            zone, last_diagram, curves);
-                    
-                    if (cs != null && cs.size() > 0) {
-                        //DEB.assertCondition(cs.size() == step.recomp_data.size(), "not enough circles for rds");
-
-                        for (int i = 0; i < cs.size(); i++) {
-                            CircleContour c = cs.get(i);
-                            curve = step.recomp_data.get(i).added_curve;
-
-                            //DEB.assertCondition(c.ac.getLabel() == curve.getLabel(), "mismatched labels");
-
-                            map.put(curve, c);
-                            addCircle(c);
-                        }
+                    boolean skip = addSymmetricalNestedContours(step, outerBox);
+                    if (skip) {
                         step = step.next;
-                        continue stepLoop;
+                        continue;
                     }
                 } else if (step.recomp_data.get(0).split_zones.size() == 2) {
                     // we have a symmetry of 1-piercings.
                     // try to add them together
-                	
-                	// Look at the 1st 1-piercing
-                	RecompData rd0 = step.recomp_data.get(0);
-                    AbstractBasicRegion abr0 = rd0.split_zones.get(0);
-                    AbstractBasicRegion abr1 = rd0.split_zones.get(1);
-                    AbstractCurve piercingCurve = rd0.added_curve;
-                    
-                    AbstractCurve pierced_ac = abr0.getStraddledContour(abr1);
-                    CircleContour pierced_cc = map.get(pierced_ac);
-                    ConcreteZone cz0 = makeConcreteZone(abr0);
-                    ConcreteZone cz1 = makeConcreteZone(abr1);
-                    Area a = new Area(cz0.getShape(outerBox));
-                    a.add(cz1.getShape(outerBox));
-
-                    double suggested_radius = guide_sizes.get(piercingCurve);
-
-                    //DEB.show(4, a, "a for 1-piercings "+debug_image_number);
-                    
-                	// We have made a piercing which is centred on the circumference of circle c.
-                	// but if the contents of rd.addedCurve are not equally balanced between
-                	// things inside c and things outside, we may end up squashing lots
-                	// into half of rd.addedCurve, leaving the other half looking empty.
-                	// See if we can nudge c outwards or inwards to accommodate
-                	// its contents.
-                	
-                	// iterate through zoneScores, looking for zones inside c,
-                	// then ask whether they are inside or outside cc.  If we
-                	// get a big score outside, then try to move c outwards.
-
-                	double score_in_c = 0.0;
-                	double score_out_of_c = 0.0;
-                	
-                	double center_of_circle_lies_on_rad = pierced_cc.radius;
-                	                	
-                	Set<AbstractBasicRegion> allZones = zoneScores.keySet();
-                	for (AbstractBasicRegion abr : allZones) {
-                        log.info("compare " + abr.debug() + " against " + piercingCurve.debug());
-
-                		if (!abr.contains(piercingCurve))
-                			continue;
-
-                		log.info("OK " + abr.debug() + " is in " + piercingCurve.debug() + ", so compare against " + pierced_ac.debug());
-
-                        double zoneScore = zoneScores.get(abr);
-
-                		if (abr.contains(pierced_ac))
-                			score_in_c += zoneScore;
-                		else
-                			score_out_of_c += zoneScore;
-                	}
-
-                    log.trace("scores for " + piercingCurve + " are inside=" + score_in_c + " and outside=" + score_out_of_c);
-            		
-            		if (score_out_of_c > score_in_c) {
-            			double nudge = suggested_radius * 0.3;
-            			center_of_circle_lies_on_rad += nudge;
-            		} else if (score_out_of_c < score_in_c) {
-            			double nudge = Math.min(suggested_radius * 0.3, (pierced_cc.radius * 2 - suggested_radius) * 0.5) ;
-            			center_of_circle_lies_on_rad -= nudge;
-            		}
-                    
-                    double guide_radius = guide_sizes.get(step.recomp_data.get(0).added_curve);
-                    int sampleSize = (int) (Math.PI / Math.asin(guide_radius / pierced_cc.radius));
-                    if (sampleSize >= step.recomp_data.size()) {
-                        int num_ok = 0;
-                        for (int i = 0; i < sampleSize; i++) {
-                            double angle = i * Math.PI * 2.0 / sampleSize;
-                            double x = pierced_cc.cx + Math.cos(angle) * center_of_circle_lies_on_rad;
-                            double y = pierced_cc.cy + Math.sin(angle) * center_of_circle_lies_on_rad;
-                            if (a.contains(x, y)) {
-                                CircleContour sample = new CircleContour(x, y, guide_radius, step.recomp_data.get(0).added_curve);
-                                if (containedIn(sample, a)) {
-                                    num_ok++;
-                                }
-                            }
-                        }
-
-                        if (num_ok >= step.recomp_data.size()) {
-                            if (num_ok == sampleSize) {
-                                // all OK.
-                                for (int i = 0; i < step.recomp_data.size(); i++) {
-                                    double angle = 0.0 + i * Math.PI * 2.0 / step.recomp_data.size();
-                                    double x = pierced_cc.cx + Math.cos(angle) * center_of_circle_lies_on_rad;
-                                    double y = pierced_cc.cy + Math.sin(angle) * center_of_circle_lies_on_rad;
-                                    if (a.contains(x, y)) {
-                                        AbstractCurve added_curve = step.recomp_data.get(i).added_curve;
-                                        CircleContour c = new CircleContour(x, y, guide_radius, added_curve);
-                                        abr0 = step.recomp_data.get(i).split_zones.get(0);
-                                        abr1 = step.recomp_data.get(i).split_zones.get(1);
-                                        
-                                        map.put(added_curve, c);
-                                        addCircle(c);
-                                    }
-                                }
-                                step = step.next;
-                                continue stepLoop;
-                            } else if (num_ok > sampleSize) {  // BUG?  Doesn't make sense
-                                num_ok = 0;
-                                for (int i = 0; i < sampleSize; i++) {
-                                    double angle = 0.0 + i * Math.PI * 2.0 / sampleSize;
-                                    double x = pierced_cc.cx + Math.cos(angle) * center_of_circle_lies_on_rad;
-                                    double y = pierced_cc.cy + Math.sin(angle) * center_of_circle_lies_on_rad;
-                                    if (a.contains(x, y)) {
-                                        AbstractCurve added_curve = step.recomp_data.get(i).added_curve;
-                                        CircleContour c = new CircleContour(x, y, guide_radius, added_curve);
-                                        if (containedIn(c, a)) {
-                                            abr0 = step.recomp_data.get(num_ok).split_zones.get(0);
-                                            abr1 = step.recomp_data.get(num_ok).split_zones.get(1);
-                                            map.put(added_curve, c);
-                                            addCircle(c);
-                                            num_ok++;
-                                            if (num_ok == step.recomp_data.size()) {
-                                                break;
-                                            }
-                                        }
-                                    }
-                                }
-                                step = step.next;
-                                continue stepLoop;
-                            }
-                        }
+                    boolean skip = addSymmetricalSinglePiercingContours(step, outerBox);
+                    if (skip) {
+                        step = step.next;
+                        continue;
                     }
                 }
             }
@@ -575,7 +600,7 @@ public class DiagramCreator {
                 AbstractCurve ac = rd.added_curve;
                 double suggested_radius = guide_sizes.get(ac);
                 if (rd.split_zones.size() == 1) {
-                    addNestedContour(bs, ac, rd, suggested_radius, outerBox, debug_image_number);
+                    addNestedContour(bs, ac, rd, suggested_radius, outerBox);
                 } else if (rd.split_zones.size() == 2) {
                     addSinglePiercingContour(ac, rd, suggested_radius, outerBox);
                 } else {
@@ -586,9 +611,7 @@ public class DiagramCreator {
             step = step.next;
 
             log.info("Step complete: " + circles);
-        }// go to next BuildStep
-        
-        //DEB.showFilmStrip();
+        }
     }
 
     /**
