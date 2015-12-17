@@ -6,8 +6,6 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
 
-import icircles.util.DEB;
-
 import icircles.abstractdescription.AbstractCurve;
 import javafx.scene.shape.Circle;
 

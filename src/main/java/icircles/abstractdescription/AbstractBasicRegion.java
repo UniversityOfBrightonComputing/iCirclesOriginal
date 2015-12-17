@@ -1,18 +1,29 @@
 package icircles.abstractdescription;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
 
-import icircles.util.DEB;
-
+/**
+ * Represents a zone (basic region) at an abstract level.
+ * Holds curves that pass through or are inside this zone.
+ */
 public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
+
+    private static final Logger log = LogManager.getLogger(AbstractBasicRegion.class);
 
     private Set<AbstractCurve> theInSet;
     private static Set<AbstractBasicRegion> library = new TreeSet<>();
 
     private AbstractBasicRegion(Set<AbstractCurve> in_set) {
         theInSet = in_set;
+    }
+
+    public static void clearLibrary() {
+        library.clear();
     }
 
     public static AbstractBasicRegion get(Set<AbstractCurve> in_set) {
@@ -75,6 +86,7 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
     public AbstractCurve getStraddledContour(AbstractBasicRegion other) {
         int nc = getNumContours();
         int othernc = other.getNumContours();
+
         if (Math.abs(nc - othernc) != 1) {
             return null;
         } else if (nc < othernc) {
@@ -93,9 +105,9 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
                     }
                 }
             }
-            if (DEB.level > 2) {
-                System.out.println("straddle : " + toDebugString() + "->" + other.toDebugString() + "=" + result);
-            }
+
+            log.trace("straddle: " + this + "->" + other + "=" + result);
+
             return result;
         }
     }
@@ -126,10 +138,6 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
         return result;
     }
 
-    public static void clearLibrary() {
-        library.clear();
-    }
-
     public boolean isLabelEquivalent(AbstractBasicRegion z) {
         if (getNumContours() == z.getNumContours()) {
             if (z.getNumContours() == 0) {
@@ -157,31 +165,6 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
             }
         }
         return false;
-    }
-
-    public String toDebugString() {
-        if (DEB.level == 0) {
-            return "";
-        }
-        StringBuilder b = new StringBuilder();
-        if (DEB.level > 1) {
-            b.append("(");
-        }
-        boolean first = true;
-        for (AbstractCurve curve : theInSet) {
-            if (!first && DEB.level > 1) {
-                b.append(",");
-            }
-            b.append(curve);
-            first = false;
-        }
-        if (DEB.level > 1) {
-            b.append(")");
-        }
-        if (DEB.level > 3) {
-            b.append(hashCode());
-        }
-        return b.toString();
     }
 
     @Override

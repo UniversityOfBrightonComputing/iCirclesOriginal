@@ -2,8 +2,6 @@ package icircles.abstractdescription;
 
 import java.util.*;
 
-import icircles.util.DEB;
-
 /**
  * An AbstractDescription encapsulates the elements of a diagram, with no drawn information.
  * A diagram comprises a set of AbstractCurves (the contours).
@@ -21,6 +19,12 @@ public class AbstractDescription {
     private TreeSet<AbstractCurve> contours;
     private TreeSet<AbstractBasicRegion> zones;
 
+    /**
+     * Constructs abstract description from the set of contours and set of zones.
+     *
+     * @param contours the contours
+     * @param zones the zones
+     */
     public AbstractDescription(Set<AbstractCurve> contours, Set<AbstractBasicRegion> zones) {
         this.contours = new TreeSet<>(contours);
         this.zones = new TreeSet<>(zones);
@@ -102,93 +106,6 @@ public class AbstractDescription {
         return zones.size();
     }
 
-    public String debug() {
-        if (DEB.level == 0) {
-            return "";
-        }
-        StringBuilder b = new StringBuilder();
-        b.append("labels:");
-        boolean first = true;
-        if (DEB.level > 1) {
-            b.append("{");
-        }
-        for (AbstractCurve c : contours) {
-            if (!first) {
-                b.append(",");
-            }
-            b.append(c);
-            first = false;
-        }
-        if (DEB.level > 1) {
-            b.append("}");
-        }
-        b.append("\n");
-        b.append("zones:");
-        if (DEB.level > 1) {
-            b.append("{");
-        }
-        first = true;
-        for (AbstractBasicRegion z : zones) {
-            if (!first) {
-                b.append(",");
-            }
-            if (DEB.level > 1) {
-                b.append("\n");
-            }
-            b.append(z.toDebugString());
-            first = false;
-        }
-        if (DEB.level > 1) {
-            b.append("}");
-        }
-        b.append("\n");
-
-        return b.toString();
-    }
-
-    public String debugAsSentence() {
-        HashMap<AbstractCurve, String> printable = new HashMap<AbstractCurve, String>();
-        for (AbstractCurve c : contours) {
-            printable.put(c, print_contour(c));
-        }
-        StringBuilder b = new StringBuilder();
-        boolean first = true;
-        for (AbstractBasicRegion z : zones) {
-            if (!first) {
-                b.append(",");
-            }
-            Iterator<AbstractCurve> c_it = z.getContourIterator();
-            boolean printed_something = false;
-            while (c_it.hasNext()) {
-                AbstractCurve c = c_it.next();
-                b.append(printable.get(c));
-                printed_something = true;
-            }
-            if (!printed_something) {
-                b.append("0");
-            }
-            first = false;
-        }
-        return b.toString();
-    }
-
-    public String print_contour(AbstractCurve c) {
-        if (one_of_multiple_instances(c)) {
-            return c.toString();
-        } else {
-            return c.toString();
-        }
-    }
-
-    boolean one_of_multiple_instances(AbstractCurve c) {
-        for (AbstractCurve cc : contours) {
-            if (cc != c && cc.matches_label(c)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public double checksum() {
         double scaling = 2.1;
         double result = 0.0;
@@ -222,6 +139,18 @@ public class AbstractDescription {
             }
         }
         return false;
+    }
+
+    public String toDebugString() {
+        StringBuilder sb = new StringBuilder("AD[curves=");
+        contours.forEach(curve -> sb.append(curve.toDebugString()).append(","));
+
+        int lastIndex = sb.lastIndexOf(",");
+        if (lastIndex != -1) {
+            sb.deleteCharAt(lastIndex);
+        }
+
+        return sb.append(",zones=").append(zones).append("]").toString();
     }
 
     @Override

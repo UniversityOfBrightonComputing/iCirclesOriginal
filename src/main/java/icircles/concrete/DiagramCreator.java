@@ -261,12 +261,12 @@ public class DiagramCreator {
 
         Set<AbstractBasicRegion> allZones = zoneScores.keySet();
         for (AbstractBasicRegion abr : allZones) {
-            log.info("compare " + abr.toDebugString() + " against " + piercingCurve);
+            log.info("compare " + abr + " against " + piercingCurve);
 
             if (!abr.contains(piercingCurve))
                 continue;
 
-            log.info("OK " + abr.toDebugString() + " is in " + piercingCurve + ", so compare against " + pierced_ac);
+            log.info("OK " + abr + " is in " + piercingCurve + ", so compare against " + pierced_ac);
 
             double zoneScore = zoneScores.get(abr);
 
@@ -630,7 +630,7 @@ public class DiagramCreator {
             if (rd2.split_zones.size() == 1) {
                 AbstractBasicRegion abr2 = rd2.split_zones.get(0);
                 if (abr.isLabelEquivalent(abr2)) {
-                    log.info("found matching abrs " + abr.toDebugString() + ", " + abr2.toDebugString());
+                    log.info("found matching abrs " + abr + ", " + abr2);
                     // check scores match
 
                     double abrScore = contScores.get(rd.added_curve);
@@ -638,8 +638,7 @@ public class DiagramCreator {
 
                     //DEB.assertCondition(abrScore > 0 && abrScore2 > 0, "zones must have score");
 
-                    log.trace("matched nestings " + abr.toDebugString() + " and " + abr2.toDebugString()
-                            + "\n with scores " + abrScore + " and " + abrScore2);
+                    log.trace("matched nestings " + abr + " and " + abr2 + "\n with scores " + abrScore + " and " + abrScore2);
 
                     if (abrScore == abrScore2) {
                         // unhook futurebs and insert into list after bs
@@ -674,15 +673,14 @@ public class DiagramCreator {
                 if ((abr1.isLabelEquivalent(abr3) && abr2.isLabelEquivalent(abr4))
                         || (abr1.isLabelEquivalent(abr4) && abr2.isLabelEquivalent(abr3))) {
 
-                    log.info("found matching abrs " + abr1.toDebugString() + ", " + abr2.toDebugString());
+                    log.info("found matching abrs " + abr1 + ", " + abr2);
                     // check scores match
                     double abrScore = contScores.get(rd.added_curve);
                     double abrScore2 = contScores.get(rd2.added_curve);
 
                     //DEB.assertCondition(abrScore > 0 && abrScore2 > 0, "zones must have score");
 
-                    log.trace("matched piercings " + abr1.toDebugString() + " and " + abr2.toDebugString()
-                            + "\n with scores " + abrScore + " and " + abrScore2);
+                    log.trace("matched piercings " + abr1 + " and " + abr2 + "\n with scores " + abrScore + " and " + abrScore2);
 
                     if (abrScore == abrScore2) {
                         // unhook futurebs and insert into list after bs

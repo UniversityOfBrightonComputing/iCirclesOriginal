@@ -49,7 +49,7 @@ public class Cluster {
             if (!firstOne) {
                 result += ",";
             }
-            result = result + abr.toDebugString();
+            result = result + abr.toString();
             firstOne = false;
         }
         result += "}";

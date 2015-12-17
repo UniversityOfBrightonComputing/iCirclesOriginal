@@ -45,17 +45,17 @@ public class DecompositionStep {
         }
         StringBuilder sb = new StringBuilder();
         sb.append("remove ");
-        sb.append(from.print_contour(removed));
+        sb.append(removed.toDebugString());
         if (DEB.level > 1) {
             sb.append("\n");
         }
         sb.append(" from ");
-        sb.append(from.debugAsSentence());
+        sb.append(from.toDebugString());
         if (DEB.level > 1) {
             sb.append("\n");
         }
         sb.append(" to ");
-        sb.append(to.debugAsSentence());
+        sb.append(to.toDebugString());
         if (DEB.level > 1) {
             sb.append("\n");
         }
@@ -63,9 +63,9 @@ public class DecompositionStep {
         Set<Map.Entry<AbstractBasicRegion, AbstractBasicRegion>> entries = zonesMoved.entrySet();
         for (Map.Entry<AbstractBasicRegion, AbstractBasicRegion> z_map : entries) {
             sb.append("[");
-            sb.append(z_map.getKey().toDebugString());
+            sb.append(z_map.getKey().toString());
             sb.append("->");
-            sb.append(z_map.getValue().toDebugString());
+            sb.append(z_map.getValue().toString());
             sb.append("]");
         }
         return sb.toString();

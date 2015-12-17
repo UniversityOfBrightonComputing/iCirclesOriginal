@@ -1,6 +1,5 @@
 package icircles.recomposition;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -40,12 +39,12 @@ public class RecompositionStep {
             sb.append("\n");
         }
         sb.append(" from ");
-        sb.append(from.debugAsSentence());
+        sb.append(from.toDebugString());
         if (DEB.level > 1) {
             sb.append("\n");
         }
         sb.append(" to ");
-        sb.append(to.debugAsSentence());
+        sb.append(to.toDebugString());
         if (DEB.level > 1) {
             sb.append("\n");
         }
