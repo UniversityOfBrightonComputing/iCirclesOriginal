@@ -84,7 +84,7 @@ public class CirclesFrame extends JFrame {
         String failureMessage = null;
         try {
             Decomposer d = new Decomposer(decomp_strategy);
-            List<DecompositionStep> d_steps = d.decompose(AbstractDescription.makeForTesting(description));
+            List<DecompositionStep> d_steps = d.decompose(new AbstractDescription(description));
 
             Recomposer r = new Recomposer(recomp_strategy);
             List<RecompositionStep> r_steps = r.recompose(d_steps);

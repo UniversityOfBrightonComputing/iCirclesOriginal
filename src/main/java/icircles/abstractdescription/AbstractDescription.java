@@ -102,10 +102,6 @@ public class AbstractDescription {
         return zones.size();
     }
 
-    public static AbstractDescription makeForTesting(String s) {
-        return new AbstractDescription(s);
-    }
-
     public String debug() {
         if (DEB.level == 0) {
             return "";

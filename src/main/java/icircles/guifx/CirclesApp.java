@@ -103,10 +103,10 @@ public class CirclesApp extends Application {
 
     private void draw(String description) {
         try {
-            System.out.println(AbstractDescription.makeForTesting(description).toString());
+            System.out.println(new AbstractDescription(description).toString());
 
             ConcreteDiagram diagram = ConcreteDiagram.makeConcreteDiagram(decompBox.getValue(),
-                    recompBox.getValue(), AbstractDescription.makeForTesting(description),
+                    recompBox.getValue(), new AbstractDescription(description),
                     Math.min((int)root.getWidth(), (int)root.getHeight()));
 
             System.out.println(diagram);

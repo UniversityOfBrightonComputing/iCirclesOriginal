@@ -45,7 +45,7 @@ public class CirclesPanelTest {
     public static void main(String[] args) {
         // See the implementation of makeForTesting to see how to make an
         // AbstractDescription from scratch.
-        AbstractDescription ad = AbstractDescription.makeForTesting(
+        AbstractDescription ad = new AbstractDescription(
                 //"qh h fh ih ik kh b ab ac de bd  abc bfg fc bj l lc al m mn nc bc bco bo boj bp bop cq cqb rs ra s t");
                 "qh h fh ih ik kh b ab ac de bd  abc bfg fc bj l lc al m mn nc bc bco bo boj bp bop cq cqb rs ra s");
         //"a ab b c");

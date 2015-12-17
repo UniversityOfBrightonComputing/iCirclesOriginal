@@ -10,9 +10,9 @@ public class AbstractDescriptionTest {
 
     @Test
     public void testToString() {
-        AbstractDescription ad1 = AbstractDescription.makeForTesting("a ab abc bc ac");
-        AbstractDescription ad2 = AbstractDescription.makeForTesting("abc bc ab ac a");
-        AbstractDescription ad3 = AbstractDescription.makeForTesting("a ad abc bc ac");
+        AbstractDescription ad1 = new AbstractDescription("a ab abc bc ac");
+        AbstractDescription ad2 = new AbstractDescription("abc bc ab ac a");
+        AbstractDescription ad3 = new AbstractDescription("a ad abc bc ac");
 
         assertEquals(ad1.toString(), ad2.toString());
         assertNotEquals(ad1.toString(), ad3.toString());

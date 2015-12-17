@@ -29,7 +29,7 @@ public class RecomposerTest {
 
     @Test
     public void recompose() {
-        List<DecompositionStep> decompositionSteps = new Decomposer(DecompositionType.PIERCED_FIRST).decompose(AbstractDescription.makeForTesting("a b ab"));
+        List<DecompositionStep> decompositionSteps = new Decomposer(DecompositionType.PIERCED_FIRST).decompose(new AbstractDescription("a b ab"));
         List<RecompositionStep> steps = recomposer.recompose(decompositionSteps);
 
         // 0 + b -> b
@@ -37,9 +37,9 @@ public class RecomposerTest {
         assertEquals(2, steps.size());
 
         RecompositionStep step1 = steps.get(0);
-        assertTrue(step1.to().hasSameAbstractDescription(AbstractDescription.makeForTesting("b")));
+        assertTrue(step1.to().hasSameAbstractDescription(new AbstractDescription("b")));
 
         RecompositionStep step2 = steps.get(1);
-        assertTrue(step2.to().hasSameAbstractDescription(AbstractDescription.makeForTesting("a b ab")));
+        assertTrue(step2.to().hasSameAbstractDescription(new AbstractDescription("a b ab")));
     }
 }

@@ -32,7 +32,7 @@ public class DecomposerTest {
     // the data is then to be parsed and fed into this method for automated testing
     @Test
     public void decompose() {
-        List<DecompositionStep> steps = decomposer.decompose(AbstractDescription.makeForTesting("a b ab"));
+        List<DecompositionStep> steps = decomposer.decompose(new AbstractDescription("a b ab"));
 
         // a b ab -> b
         // b      -> 0
@@ -40,13 +40,13 @@ public class DecomposerTest {
 
         DecompositionStep step1 = steps.get(0);
         assertTrue(step1.removed().getLabel().getLabel().equals(CurveLabel.get("a").getLabel()));
-        assertTrue(step1.from().hasSameAbstractDescription(AbstractDescription.makeForTesting("a b ab")));
-        assertTrue(step1.to().hasSameAbstractDescription(AbstractDescription.makeForTesting("b")));
+        assertTrue(step1.from().hasSameAbstractDescription(new AbstractDescription("a b ab")));
+        assertTrue(step1.to().hasSameAbstractDescription(new AbstractDescription("b")));
 
         DecompositionStep step2 = steps.get(1);
         assertTrue(step2.removed().getLabel().getLabel().equals(CurveLabel.get("b").getLabel()));
-        assertTrue(step2.from().hasSameAbstractDescription(AbstractDescription.makeForTesting("b")));
-        assertTrue(step2.to().hasSameAbstractDescription(AbstractDescription.makeForTesting(" ")));
+        assertTrue(step2.from().hasSameAbstractDescription(new AbstractDescription("b")));
+        assertTrue(step2.to().hasSameAbstractDescription(new AbstractDescription(" ")));
 
         // the following bit was in the original "manual" test, so need to refactor as above
 
