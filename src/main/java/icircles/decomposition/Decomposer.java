@@ -12,11 +12,10 @@ public class Decomposer {
 
     private static final Logger log = LogManager.getLogger(Decomposer.class);
 
-    private DecompositionStrategy strategy;
-    private ArrayList<AbstractCurve> toRemove = new ArrayList<>();
+    private DecompositionType type;
 
     public Decomposer(DecompositionType type) {
-        strategy = type.strategy();
+        this.type = type;
     }
 
     public List<DecompositionStep> decompose(AbstractDescription ad) {
@@ -24,20 +23,21 @@ public class Decomposer {
             throw new IllegalArgumentException("Abstraction description is empty: " + ad.toDebugString());
         }
 
-        List<DecompositionStep> result = new ArrayList<>();
-        while_loop:
-        while (true) {
-            strategy.getContoursToRemove(ad, toRemove);
+        log.info("Using strategy: " + type.getUiName());
+        DecompositionStrategy strategy = type.strategy();
 
-            if (toRemove.isEmpty()) {
-                break while_loop;
+        List<DecompositionStep> result = new ArrayList<>();
+
+        while (true) {
+            List<AbstractCurve> toRemove = strategy.getContoursToRemove(ad);
+
+            // TODO: do we know that it doesn't contain null?
+            if (toRemove.isEmpty() || toRemove.contains(null)) {
+                break;
             }
 
             for (AbstractCurve curveToRemove : toRemove) {
                 DecompositionStep step = takeStep(ad, curveToRemove);
-                if (step == null) {
-                    break while_loop;
-                }
                 result.add(step);
                 ad = step.to();
             }
@@ -51,11 +51,6 @@ public class Decomposer {
     }
 
     private DecompositionStep takeStep(AbstractDescription ad, AbstractCurve curve) {
-        if (curve == null) {
-            return null;
-        }
-
-        // otherwise, make a new AbstractDescription
         Set<AbstractCurve> contours = ad.getCopyOfContours();
         contours.remove(curve);
 
