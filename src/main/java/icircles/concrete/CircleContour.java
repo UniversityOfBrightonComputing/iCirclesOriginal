@@ -105,7 +105,7 @@ public class CircleContour {
 
     public String debug() {
         if (DEB.level > 2) {
-            return "circle " + ac.getLabel().debug() + " at (" + cx + "," + cy + ") rad " + radius;
+            return "circle " + ac.getLabel() + " at (" + cx + "," + cy + ") rad " + radius;
         } else {
             return "";
         }

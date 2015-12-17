@@ -261,12 +261,12 @@ public class DiagramCreator {
 
         Set<AbstractBasicRegion> allZones = zoneScores.keySet();
         for (AbstractBasicRegion abr : allZones) {
-            log.info("compare " + abr.debug() + " against " + piercingCurve.debug());
+            log.info("compare " + abr.debug() + " against " + piercingCurve);
 
             if (!abr.contains(piercingCurve))
                 continue;
 
-            log.info("OK " + abr.debug() + " is in " + piercingCurve.debug() + ", so compare against " + pierced_ac.debug());
+            log.info("OK " + abr.debug() + " is in " + piercingCurve + ", so compare against " + pierced_ac);
 
             double zoneScore = zoneScores.get(abr);
 
@@ -437,12 +437,12 @@ public class DiagramCreator {
 
         Set<AbstractBasicRegion> allZones = zoneScores.keySet();
         for (AbstractBasicRegion abr : allZones) {
-            log.info("compare " + abr.debug() + " against " + c.debug());
+            log.info("compare " + abr.debug() + " against " + c);
 
             if (!abr.contains(rd.added_curve))
                 continue;
 
-            log.info("OK " + abr.debug() + " is in " + c.debug() + ", so compare against " + cc.debug());
+            log.info("OK " + abr.debug() + " is in " + c + ", so compare against " + cc.debug());
 
             double zoneScore = zoneScores.get(abr);
 

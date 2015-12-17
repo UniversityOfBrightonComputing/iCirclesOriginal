@@ -1,9 +1,22 @@
 package icircles.abstractdescription;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
+
 /**
  * @author Almas Baimagambetov (AlmasB) (almaslvl@gmail.com)
  */
 public class AbstractDescriptionTest {
+
+    @Test
+    public void testToString() {
+        AbstractDescription ad1 = AbstractDescription.makeForTesting("a ab abc bc ac");
+        AbstractDescription ad2 = AbstractDescription.makeForTesting("abc bc ab ac a");
+        AbstractDescription ad3 = AbstractDescription.makeForTesting("a ad abc bc ac");
+
+        assertEquals(ad1.toString(), ad2.toString());
+        assertNotEquals(ad1.toString(), ad3.toString());
+    }
 
     // Existing test, TODO: refactor as junit test
 

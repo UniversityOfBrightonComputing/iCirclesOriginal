@@ -103,7 +103,7 @@ public class AbstractDescription {
             if (!first) {
                 b.append(",");
             }
-            b.append(c.debug());
+            b.append(c);
             first = false;
         }
         if (DEB.level > 1) {
@@ -161,9 +161,9 @@ public class AbstractDescription {
 
     public String print_contour(AbstractCurve c) {
         if (one_of_multiple_instances(c)) {
-            return c.debugWithId();
+            return c.toString();
         } else {
-            return c.debug();
+            return c.toString();
         }
     }
 
@@ -218,14 +218,17 @@ public class AbstractDescription {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        zones.forEach(zone -> sb.append(zone).append(" "));
+        zones.forEach(zone -> sb.append(zone).append(","));
 
-        return sb.toString().trim();
+        int lastIndex = sb.lastIndexOf(",");
+        if (lastIndex != -1) {
+            sb.deleteCharAt(lastIndex);
+        }
+
+        return sb.toString();
     }
 
-    // TODO: replace ad-hoc check with a proper one
     public boolean hasSameAbstractDescription(AbstractDescription description) {
-        DEB.level = 3;
-        return debugAsSentence().equals(description.debugAsSentence());
+        return toString().equals(description.toString());
     }
 }

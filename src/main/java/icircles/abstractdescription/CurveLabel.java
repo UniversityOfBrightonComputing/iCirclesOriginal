@@ -3,11 +3,12 @@ package icircles.abstractdescription;
 import java.util.Set;
 import java.util.TreeSet;
 
-import icircles.util.DEB;
-
+/**
+ * A curve label.
+ */
 public class CurveLabel implements Comparable<CurveLabel> {
 
-    private String label;
+    private final String label;
     private static Set<CurveLabel> library = new TreeSet<>();
 
     public static void clearLibrary() {
@@ -30,14 +31,7 @@ public class CurveLabel implements Comparable<CurveLabel> {
         return result;
     }
 
-    public String debug() {
-        if (DEB.level == 0) {
-            return "";
-        } else {
-            return label;
-        }
-    }
-
+    @Override
     public int compareTo(CurveLabel other) {
         return label.compareTo(other.label);
     }

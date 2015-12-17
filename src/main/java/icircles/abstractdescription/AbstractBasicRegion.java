@@ -8,21 +8,21 @@ import icircles.util.DEB;
 
 public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
 
-    private TreeSet<AbstractCurve> theInSet;
+    private Set<AbstractCurve> theInSet;
     private static Set<AbstractBasicRegion> library = new TreeSet<>();
 
-    private AbstractBasicRegion(TreeSet<AbstractCurve> in_set) {
+    private AbstractBasicRegion(Set<AbstractCurve> in_set) {
         theInSet = in_set;
     }
 
-    public static AbstractBasicRegion get(TreeSet<AbstractCurve> in_set) {
+    public static AbstractBasicRegion get(Set<AbstractCurve> in_set) {
         for (AbstractBasicRegion alreadyThere : library) {
             if (alreadyThere.theInSet.equals(in_set)) {
                 return alreadyThere;
             }
         }
 
-        TreeSet<AbstractCurve> tmp = new TreeSet<>(in_set);
+        Set<AbstractCurve> tmp = new TreeSet<>(in_set);
         AbstractBasicRegion result = new AbstractBasicRegion(tmp);
         library.add(result);
         return result;
@@ -30,7 +30,7 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
 
     public AbstractBasicRegion moveOutside(AbstractCurve c) {
         if (theInSet.contains(c)) {
-            TreeSet<AbstractCurve> contours = new TreeSet<>(theInSet);
+            Set<AbstractCurve> contours = new TreeSet<>(theInSet);
             contours.remove(c);
             return get(contours);
         } else {
@@ -70,11 +70,11 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
             b.append("(");
         }
         boolean first = true;
-        for (AbstractCurve c : theInSet) {
+        for (AbstractCurve curve : theInSet) {
             if (!first && DEB.level > 1) {
                 b.append(",");
             }
-            b.append(c.debug());
+            b.append(curve);
             first = false;
         }
         if (DEB.level > 1) {
@@ -119,7 +119,7 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
                 }
             }
             if (DEB.level > 2) {
-                System.out.println("straddle : " + debug() + "->" + other.debug() + "=" + result.debug());
+                System.out.println("straddle : " + debug() + "->" + other.debug() + "=" + result);
             }
             return result;
         }
@@ -186,8 +186,15 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        theInSet.forEach(sb::append);
+        StringBuilder sb = new StringBuilder("{");
+        theInSet.forEach(curve -> sb.append(curve).append(","));
+        sb.append("}");
+
+        int lastIndex = sb.lastIndexOf(",");
+        if (lastIndex != -1) {
+            sb.deleteCharAt(lastIndex);
+        }
+
         return sb.toString();
     }
 }
