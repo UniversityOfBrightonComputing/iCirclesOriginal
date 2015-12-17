@@ -2,7 +2,6 @@ package icircles.decomposition;
 
 import java.util.*;
 
-import icircles.util.DEB;
 import icircles.abstractdescription.AbstractDescription;
 import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractBasicRegion;
@@ -11,7 +10,7 @@ public class DecompositionStep {
 
     private AbstractDescription from;
     private AbstractDescription to;
-    private TreeMap<AbstractBasicRegion, AbstractBasicRegion> zonesMoved;
+    private Map<AbstractBasicRegion, AbstractBasicRegion> zonesMoved;
 
     /**
      * The curve that was removed in this step.
@@ -30,7 +29,7 @@ public class DecompositionStep {
     public DecompositionStep(
             AbstractDescription from,
             AbstractDescription to,
-            TreeMap<AbstractBasicRegion, AbstractBasicRegion> zonesMoved, // could be derived from from + to
+            Map<AbstractBasicRegion, AbstractBasicRegion> zonesMoved, // could be derived from from + to
             AbstractCurve removed) // could be derived from from + to
     {
         this.from = from;
@@ -39,47 +38,15 @@ public class DecompositionStep {
         this.removed = removed;
     }
 
-    public String debug() {
-        if (DEB.level == 0) {
-            return "";
-        }
-        StringBuilder sb = new StringBuilder();
-        sb.append("remove ");
-        sb.append(removed.toDebugString());
-        if (DEB.level > 1) {
-            sb.append("\n");
-        }
-        sb.append(" from ");
-        sb.append(from.toDebugString());
-        if (DEB.level > 1) {
-            sb.append("\n");
-        }
-        sb.append(" to ");
-        sb.append(to.toDebugString());
-        if (DEB.level > 1) {
-            sb.append("\n");
-        }
-        sb.append(" zonesMoved: ");
-        Set<Map.Entry<AbstractBasicRegion, AbstractBasicRegion>> entries = zonesMoved.entrySet();
-        for (Map.Entry<AbstractBasicRegion, AbstractBasicRegion> z_map : entries) {
-            sb.append("[");
-            sb.append(z_map.getKey().toString());
-            sb.append("->");
-            sb.append(z_map.getValue().toString());
-            sb.append("]");
-        }
-        return sb.toString();
+    public AbstractDescription from() {
+        return from;
     }
 
     public AbstractDescription to() {
         return to;
     }
 
-    public AbstractDescription from() {
-        return from;
-    }
-
-    public TreeMap<AbstractBasicRegion, AbstractBasicRegion> zonesMoved() {
+    public Map<AbstractBasicRegion, AbstractBasicRegion> zonesMoved() {
         return zonesMoved;
     }
 
@@ -99,5 +66,12 @@ public class DecompositionStep {
             scaling += 0.1;
         }
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "D_Step[From=" + from + " To=" + to +
+                ". Zones Moved=" + zonesMoved.toString().replace("=", "->") +
+                ". Removed=" + removed + "]";
     }
 }

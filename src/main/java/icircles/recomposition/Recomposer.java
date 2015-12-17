@@ -102,7 +102,7 @@ public class Recomposer {
         // find the resulting zones in the previous step got to
         ArrayList<AbstractBasicRegion> zones_to_split = new ArrayList<>();
 
-        TreeMap<AbstractBasicRegion, AbstractBasicRegion> zones_moved_during_decomp = decompStep.zonesMoved();
+        Map<AbstractBasicRegion, AbstractBasicRegion> zones_moved_during_decomp = decompStep.zonesMoved();
         Collection<AbstractBasicRegion> zones_after_moved = zones_moved_during_decomp.values();
 
         HashMap<AbstractBasicRegion, AbstractBasicRegion> matched_inverse = new HashMap<>();
