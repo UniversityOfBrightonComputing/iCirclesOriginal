@@ -28,13 +28,13 @@ public class DiagramCreator {
     private List<RecompositionStep> r_steps;
 
     private Map<AbstractBasicRegion, Double> zoneScores;
-    private Map<AbstractCurve, Double> contScores;
+    private Map<AbstractCurve, Double> contourScores;
 
     /**
      * K - abstract curve
      * V - suggested radius for the curve
      */
-    private Map<AbstractCurve, Double> guide_sizes;
+    private Map<AbstractCurve, Double> guideSizes;
 
     /**
      * Holds the results so far.
@@ -54,7 +54,8 @@ public class DiagramCreator {
     }
 
     public ConcreteDiagram createDiagram(int size) throws CannotDrawException {
-        make_guide_sizes(); // scores zones too
+        // also computes zone scores
+        makeGuideSizes();
 
         circles = new ArrayList<>();
         createCircles();
@@ -65,48 +66,43 @@ public class DiagramCreator {
         return new ConcreteDiagram(new Rectangle2D.Double(0, 0, size, size), circles, shadedZones);
     }
 
-    private void make_guide_sizes() {
-        guide_sizes = new HashMap<>();
+    private void makeGuideSizes() {
+        guideSizes = new HashMap<>();
         if (r_steps.isEmpty()) {
             return;
         }
 
-        RecompositionStep last_step = r_steps.get(r_steps.size() - 1);
-        AbstractDescription last_diag = last_step.to();
+        RecompositionStep lastStep = r_steps.get(r_steps.size() - 1);
+        AbstractDescription finalDiagram = lastStep.to();
 
         zoneScores = new HashMap<>();
-        double total_score = 0.0;
-        {
-            Iterator<AbstractBasicRegion> zIt = last_diag.getZoneIterator();
-            while (zIt.hasNext()) {
-                AbstractBasicRegion abr = zIt.next();
-                double score = scoreZone(abr, last_diag);
-                total_score += score;
-                zoneScores.put(abr, score);
-            }
+        contourScores = new HashMap<>();
+        double totalScore = 0.0;
+
+        for (AbstractBasicRegion zone : finalDiagram.getCopyOfZones()) {
+            double score = computeZoneScore(zone, finalDiagram);
+            totalScore += score;
+            zoneScores.put(zone, score);
         }
 
-        contScores = new HashMap<>();
-        Iterator<AbstractCurve> cIt = last_diag.getContourIterator();
-        while (cIt.hasNext()) {
-            AbstractCurve ac = cIt.next();
-            double cScore = 0;
-            Iterator<AbstractBasicRegion> zIt = last_diag.getZoneIterator();
-            while (zIt.hasNext()) {
-                AbstractBasicRegion abr = zIt.next();
-                if (abr.contains(ac)) {
-                    cScore += zoneScores.get(abr);
+        for (AbstractCurve curve : finalDiagram.getCopyOfContours()) {
+            double score = 0;
+
+            for (AbstractBasicRegion zone : finalDiagram.getCopyOfZones()) {
+                if (zone.contains(curve)) {
+                    score += zoneScores.get(zone);
                 }
             }
-            contScores.put(ac, cScore);
-            double guide_size = Math.exp(0.75 * Math.log(cScore / total_score)) * 200;
-            guide_sizes.put(ac, guide_size);
+
+            contourScores.put(curve, score);
+            double guideSize = Math.exp(0.75 * Math.log(score / totalScore)) * 200;
+            guideSizes.put(curve, guideSize);
         }
 
-        log.trace("Guide sizes: " + guide_sizes.toString());
+        log.trace("Guide sizes: " + guideSizes);
     }
 
-    private double scoreZone(AbstractBasicRegion abr, AbstractDescription context) {
+    private double computeZoneScore(AbstractBasicRegion abr, AbstractDescription context) {
         return 1.0;
     }
 
@@ -189,7 +185,7 @@ public class DiagramCreator {
         AbstractDescription last_diagram = last_step.to();
 
         AbstractCurve curve = rd.added_curve;
-        double suggested_radius = guide_sizes.get(curve);
+        double suggested_radius = guideSizes.get(curve);
 
         List<AbstractCurve> curves = new ArrayList<>();
         for (RecompData rd2 : step.recomp_data) {
@@ -239,7 +235,7 @@ public class DiagramCreator {
         Area a = new Area(cz0.getShape(outerBox));
         a.add(cz1.getShape(outerBox));
 
-        double suggested_radius = guide_sizes.get(piercingCurve);
+        double suggested_radius = guideSizes.get(piercingCurve);
 
         //DEB.show(4, a, "a for 1-piercings "+debug_image_number);
 
@@ -286,7 +282,7 @@ public class DiagramCreator {
             center_of_circle_lies_on_rad -= nudge;
         }
 
-        double guide_radius = guide_sizes.get(step.recomp_data.get(0).added_curve);
+        double guide_radius = guideSizes.get(step.recomp_data.get(0).added_curve);
         int sampleSize = (int) (Math.PI / Math.asin(guide_radius / pierced_cc.radius));
         if (sampleSize >= step.recomp_data.size()) {
             int num_ok = 0;
@@ -488,7 +484,7 @@ public class DiagramCreator {
 
                 if (attempt != null) {
                     solution = attempt;
-                    if (solution.radius == guide_sizes.get(ac)) {
+                    if (solution.radius == guideSizes.get(ac)) {
                         break; // no need to try any more
                     }
                 }
@@ -598,7 +594,7 @@ public class DiagramCreator {
             // next RecompData in the BuildStep
             for (RecompData rd : step.recomp_data) {
                 AbstractCurve ac = rd.added_curve;
-                double suggested_radius = guide_sizes.get(ac);
+                double suggested_radius = guideSizes.get(ac);
                 if (rd.split_zones.size() == 1) {
                     addNestedContour(bs, ac, rd, suggested_radius, outerBox);
                 } else if (rd.split_zones.size() == 2) {
@@ -633,8 +629,8 @@ public class DiagramCreator {
                     log.info("found matching abrs " + abr + ", " + abr2);
                     // check scores match
 
-                    double abrScore = contScores.get(rd.added_curve);
-                    double abrScore2 = contScores.get(rd2.added_curve);
+                    double abrScore = contourScores.get(rd.added_curve);
+                    double abrScore2 = contourScores.get(rd2.added_curve);
 
                     //DEB.assertCondition(abrScore > 0 && abrScore2 > 0, "zones must have score");
 
@@ -675,8 +671,8 @@ public class DiagramCreator {
 
                     log.info("found matching abrs " + abr1 + ", " + abr2);
                     // check scores match
-                    double abrScore = contScores.get(rd.added_curve);
-                    double abrScore2 = contScores.get(rd2.added_curve);
+                    double abrScore = contourScores.get(rd.added_curve);
+                    double abrScore2 = contourScores.get(rd2.added_curve);
 
                     //DEB.assertCondition(abrScore > 0 && abrScore2 > 0, "zones must have score");
 
