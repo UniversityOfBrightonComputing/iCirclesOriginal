@@ -1,11 +1,10 @@
 package icircles.recomposition;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.util.DEB;
 
-import icircles.abstractdescription.AbstractBasicRegion;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Cluster {
 

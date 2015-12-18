@@ -1,9 +1,9 @@
 package icircles.decomposition;
 
-import java.util.List;
-
-import icircles.abstractdescription.AbstractDescription;
 import icircles.abstractdescription.AbstractCurve;
+import icircles.abstractdescription.AbstractDescription;
+
+import java.util.List;
 
 public abstract class DecompositionStrategy {
 

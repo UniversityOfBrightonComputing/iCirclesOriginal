@@ -1,8 +1,8 @@
 package icircles.abstractdual;
 
-import java.util.ArrayList;
-
 import icircles.abstractdescription.AbstractBasicRegion;
+
+import java.util.ArrayList;
 
 public class AbstractDualNode {
 

@@ -1,12 +1,12 @@
 package icircles.concrete;
 
-import java.awt.geom.Area;
-import java.awt.geom.Rectangle2D;
-import java.util.List;
-
 import icircles.abstractdescription.AbstractBasicRegion;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
+
+import java.awt.geom.Area;
+import java.awt.geom.Rectangle2D;
+import java.util.List;
 
 /**
  * Concrete form of AbstractBasicRegion.

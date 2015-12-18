@@ -1,14 +1,13 @@
 package icircles.recomposition;
 
-import java.util.*;
-
-import icircles.abstractdescription.AbstractDescription;
-import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractBasicRegion;
-
+import icircles.abstractdescription.AbstractCurve;
+import icircles.abstractdescription.AbstractDescription;
 import icircles.decomposition.DecompositionStep;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.*;
 
 public class Recomposer {
 

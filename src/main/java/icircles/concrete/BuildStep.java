@@ -1,9 +1,9 @@
 package icircles.concrete;
 
+import icircles.recomposition.RecompositionData;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import icircles.recomposition.RecompositionData;
 
 public class BuildStep {
 

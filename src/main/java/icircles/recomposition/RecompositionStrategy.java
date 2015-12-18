@@ -1,11 +1,8 @@
 package icircles.recomposition;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import icircles.util.DEB;
-
 import icircles.abstractdescription.AbstractBasicRegion;
+
+import java.util.List;
 
 public abstract class RecompositionStrategy {
 

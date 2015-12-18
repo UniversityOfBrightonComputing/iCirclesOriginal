@@ -1,40 +1,30 @@
 package icircles;
 
-import icircles.decomposition.DecompositionType;
-import icircles.gui.CirclesPanel;
-
-import java.awt.BorderLayout;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-
-import icircles.concrete.CircleContour;
-import icircles.concrete.ConcreteDiagram;
-import icircles.concrete.DiagramCreator;
-
-import icircles.recomposition.Recomposer;
-import icircles.recomposition.RecompositionStep;
-
-import icircles.recomposition.RecompositionType;
-import icircles.util.CannotDrawException;
-import icircles.util.DEB;
-
 import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
 import icircles.abstractdescription.CurveLabel;
-
+import icircles.concrete.CircleContour;
+import icircles.concrete.ConcreteDiagram;
+import icircles.concrete.DiagramCreator;
 import icircles.decomposition.Decomposer;
 import icircles.decomposition.DecompositionStep;
+import icircles.decomposition.DecompositionType;
+import icircles.gui.CirclesPanel;
+import icircles.recomposition.Recomposer;
+import icircles.recomposition.RecompositionStep;
+import icircles.recomposition.RecompositionType;
+import icircles.util.CannotDrawException;
+import icircles.util.DEB;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import javax.swing.*;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class TestCode {
 

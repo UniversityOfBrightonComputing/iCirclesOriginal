@@ -1,13 +1,13 @@
 package icircles.concrete;
 
-import java.awt.Shape;
+import icircles.abstractdescription.AbstractCurve;
+import javafx.scene.shape.Circle;
+
+import java.awt.*;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
-
-import icircles.abstractdescription.AbstractCurve;
-import javafx.scene.shape.Circle;
 
 /**
  * Concrete form of AbstractCurve.

@@ -1,9 +1,9 @@
 package icircles.recomposition;
 
-import java.util.List;
-
 import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdescription.AbstractCurve;
+
+import java.util.List;
 
 /**
  * Holds data for a single recomposition step.

@@ -1,23 +1,22 @@
 package icircles.concrete;
 
-import java.awt.Rectangle;
-import java.awt.geom.Area;
-import java.awt.geom.Rectangle2D;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import icircles.decomposition.DecompositionStep;
-import icircles.gui.CirclesPanel;
-
 import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
+import icircles.decomposition.DecompositionStep;
+import icircles.gui.CirclesPanel;
 import icircles.recomposition.RecompositionData;
 import icircles.recomposition.RecompositionStep;
 import icircles.util.CannotDrawException;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.awt.*;
+import java.awt.geom.Area;
+import java.awt.geom.Rectangle2D;
+import java.util.*;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class DiagramCreator {
 

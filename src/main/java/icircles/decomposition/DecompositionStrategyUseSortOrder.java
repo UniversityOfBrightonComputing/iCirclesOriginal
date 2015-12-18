@@ -1,11 +1,10 @@
 package icircles.decomposition;
 
+import icircles.abstractdescription.AbstractCurve;
+import icircles.abstractdescription.AbstractDescription;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import icircles.util.DEB;
-import icircles.abstractdescription.AbstractDescription;
-import icircles.abstractdescription.AbstractCurve;
 
 public class DecompositionStrategyUseSortOrder extends DecompositionStrategy {
 

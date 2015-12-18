@@ -1,10 +1,11 @@
 package icircles.decomposition;
 
-import java.util.*;
-
-import icircles.abstractdescription.AbstractDescription;
-import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractBasicRegion;
+import icircles.abstractdescription.AbstractCurve;
+import icircles.abstractdescription.AbstractDescription;
+
+import java.util.List;
+import java.util.Map;
 
 public class DecompositionStep {
 

@@ -1,18 +1,14 @@
 package icircles.decomposition;
 
-import icircles.abstractdescription.AbstractBasicRegion;
-import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
 import icircles.abstractdescription.CurveLabel;
-import icircles.util.DEB;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
-import java.util.ArrayList;
 import java.util.List;
-import java.util.TreeSet;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class DecomposerTest {
 
