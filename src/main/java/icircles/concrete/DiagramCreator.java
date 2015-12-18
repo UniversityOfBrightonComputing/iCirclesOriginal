@@ -617,6 +617,7 @@ public class DiagramCreator {
     private void combineNestedContourSteps(BuildStep bs) {
         RecompData rd = bs.recomp_data.get(0);
         AbstractBasicRegion abr = rd.split_zones.get(0);
+
         // look ahead - are there other similar nested additions?
         // loop through futurebs's to see if we insert another
         BuildStep beforefuturebs = bs;
@@ -625,15 +626,16 @@ public class DiagramCreator {
             if (rd2.split_zones.size() == 1) {
                 AbstractBasicRegion abr2 = rd2.split_zones.get(0);
                 if (abr.isLabelEquivalent(abr2)) {
-                    log.info("found matching abrs " + abr + ", " + abr2);
-                    // check scores match
+                    log.trace("Found matching abrs " + abr + ", " + abr2);
 
+                    // check scores match
                     double abrScore = contourScores.get(rd.added_curve);
                     double abrScore2 = contourScores.get(rd2.added_curve);
 
-                    //DEB.assertCondition(abrScore > 0 && abrScore2 > 0, "zones must have score");
+                    if (!(abrScore > 0 && abrScore2 > 0))
+                        throw new RuntimeException("Zones must have score");
 
-                    log.trace("matched nestings " + abr + " and " + abr2 + "\n with scores " + abrScore + " and " + abrScore2);
+                    log.trace("Matched nestings " + abr + " and " + abr2 + " with scores " + abrScore + " and " + abrScore2);
 
                     if (abrScore == abrScore2) {
                         // unhook futurebs and insert into list after bs
@@ -657,6 +659,7 @@ public class DiagramCreator {
         RecompData rd = bs.recomp_data.get(0);
         AbstractBasicRegion abr1 = rd.split_zones.get(0);
         AbstractBasicRegion abr2 = rd.split_zones.get(1);
+
         // look ahead - are there other similar 1-piercings?
         // loop through futurebs's to see if we insert another
         BuildStep beforefuturebs = bs;
@@ -668,14 +671,16 @@ public class DiagramCreator {
                 if ((abr1.isLabelEquivalent(abr3) && abr2.isLabelEquivalent(abr4))
                         || (abr1.isLabelEquivalent(abr4) && abr2.isLabelEquivalent(abr3))) {
 
-                    log.info("found matching abrs " + abr1 + ", " + abr2);
+                    log.trace("Found matching abrs " + abr1 + ", " + abr2);
+
                     // check scores match
                     double abrScore = contourScores.get(rd.added_curve);
                     double abrScore2 = contourScores.get(rd2.added_curve);
 
-                    //DEB.assertCondition(abrScore > 0 && abrScore2 > 0, "zones must have score");
+                    if (!(abrScore > 0 && abrScore2 > 0))
+                        throw new RuntimeException("Zones must have score");
 
-                    log.trace("matched piercings " + abr1 + " and " + abr2 + "\n with scores " + abrScore + " and " + abrScore2);
+                    log.trace("Matched piercings " + abr1 + " and " + abr2 + " with scores " + abrScore + " and " + abrScore2);
 
                     if (abrScore == abrScore2) {
                         // unhook futurebs and insert into list after bs
@@ -694,7 +699,8 @@ public class DiagramCreator {
     private void shuffle_and_combine(BuildStep steplist) {
         BuildStep bs = steplist;
         while (bs != null) {
-            //DEB.assertCondition(bs.recomp_data.size() == 1, "not ready for multistep");
+            if (bs.recomp_data.size() != 1)
+                throw new RuntimeException("Not ready for multistep");
 
             RecompData rd = bs.recomp_data.get(0);
 
