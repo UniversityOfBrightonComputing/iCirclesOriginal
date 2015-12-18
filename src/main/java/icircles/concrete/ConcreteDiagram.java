@@ -3,39 +3,82 @@ package icircles.concrete;
 import icircles.abstractdescription.AbstractDescription;
 import icircles.decomposition.Decomposer;
 import icircles.decomposition.DecompositionStep;
-import icircles.decomposition.DecompositionStrategy;
-import icircles.gui.CirclesPanel;
+import icircles.decomposition.DecompositionType;
 import icircles.recomposition.Recomposer;
 import icircles.recomposition.RecompositionStep;
-import icircles.recomposition.RecompositionStrategy;
+import icircles.recomposition.RecompositionType;
 import icircles.util.CannotDrawException;
 
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
-import javax.swing.JFrame;
-
+/**
+ * Represents a diagram at the concrete level.
+ * Technically, this is a concrete form of AbstractDescription.
+ */
 public class ConcreteDiagram {
 
-    Rectangle2D.Double box;
-    ArrayList<CircleContour> circles;
-    ArrayList<ConcreteZone> shadedZones;
+    private Rectangle2D.Double box;
+    private List<CircleContour> circles;
+    private List<ConcreteZone> shadedZones;
 
     public ConcreteDiagram(Rectangle2D.Double box,
-            ArrayList<CircleContour> circles,
-            ArrayList<ConcreteZone> shadedZones) {
+            List<CircleContour> circles,
+            List<ConcreteZone> shadedZones) {
         this.box = box;
         this.circles = circles;
         this.shadedZones = shadedZones;
     }
 
-    public ArrayList<CircleContour> getCircles() {
+    /**
+     * Constructs a concrete form of an abstract diagram.
+     *
+     * @param description the description to be drawn
+     * @param size the size of the concrete diagram
+     * @param dType decomposition type
+     * @param rType recomposition type
+     * @throws CannotDrawException if diagram cannot be drawn with given parameters
+     */
+    public ConcreteDiagram(AbstractDescription description, int size,
+                           DecompositionType dType, RecompositionType rType) throws CannotDrawException {
+
+        Decomposer d = new Decomposer(dType);
+        List<DecompositionStep> dSteps = d.decompose(description);
+
+        Recomposer r = new Recomposer(rType);
+        List<RecompositionStep> rSteps = r.recompose(dSteps);
+
+        DiagramCreator dc = new DiagramCreator(dSteps, rSteps);
+        ConcreteDiagram diagram = dc.createDiagram(size);
+
+        this.box = diagram.box;
+        this.circles = diagram.circles;
+        this.shadedZones = diagram.shadedZones;
+    }
+
+    /**
+     * @return bounding box of the whole diagram
+     */
+    public Rectangle2D.Double getBox() {
+        return box;
+    }
+
+    /**
+     * @return diagram contours
+     */
+    public List<CircleContour> getCircles() {
         return circles;
     }
 
-    public static double checksum(ArrayList<CircleContour> circles) {
+    /**
+     * @return extra zones
+     */
+    public List<ConcreteZone> getShadedZones() {
+        return shadedZones;
+    }
 
+    public static double checksum(List<CircleContour> circles) {
         double result = 0.0;
         if (circles == null) {
             return result;
@@ -50,58 +93,14 @@ public class ConcreteDiagram {
         return result;
     }
 
-    public ArrayList<ConcreteZone> getShadedZones() {
-        return shadedZones;
+    public String toDebugString() {
+        return "ConcreteDiagram[box=" + box + "\n"
+                + "contours: " + circles + "\n"
+                + "shaded zones: " + shadedZones + "]";
     }
 
-    public Rectangle2D.Double getBox() {
-        return box;
+    @Override
+    public String toString() {
+        return toDebugString();
     }
-
-    /**
-     * This can be used to obtain a drawing of an abstract diagram.
-     * @param ad the description to be drawn
-     * @param size the size of the drawing panel
-     * @return
-     * @throws CannotDrawException
-     */
-    public static ConcreteDiagram makeConcreteDiagram(AbstractDescription ad, int size) throws CannotDrawException
-    {
-        ArrayList<DecompositionStep> d_steps = new ArrayList<DecompositionStep>();
-        ArrayList<RecompositionStep> r_steps = new ArrayList<RecompositionStep>();
-        Decomposer d = new Decomposer(DecompositionStrategy.PIERCEDFIRST);
-        d_steps.addAll(d.decompose(ad));
-
-        Recomposer r = new Recomposer(RecompositionStrategy.RECOMPOSE_DOUBLY_PIERCED);
-        r_steps.addAll(r.recompose(d_steps));
-        DiagramCreator dc = new DiagramCreator(d_steps, r_steps, size);
-        ConcreteDiagram cd = dc.createDiagram(size);
-        return cd;
-    }
-    
-    public static void main(String[] args)
-    {
-    	AbstractDescription ad = AbstractDescription.makeForTesting("a ab b c");
-
-    	String failuremessage = "no failure";
-    	ConcreteDiagram cd = null;
-    	try
-    	{
-    	cd = ConcreteDiagram.makeConcreteDiagram(ad, 100);
-    	}
-    	catch(CannotDrawException ex)
-    	{
-    		failuremessage = ex.message;
-    	}
-
-    	CirclesPanel cp = new CirclesPanel("a sample CirclesPanel", failuremessage, cd, 100, 
-    			true); // do use colors
-    	
-    	JFrame viewingFrame = new JFrame("frame to hold a CirclesPanel");
-    	viewingFrame.getContentPane().add(cp);
-    	viewingFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    	viewingFrame.pack();
-    	viewingFrame.setVisible(true);
-    }
-
 }

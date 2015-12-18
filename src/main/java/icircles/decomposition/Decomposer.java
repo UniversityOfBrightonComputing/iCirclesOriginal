@@ -1,128 +1,71 @@
 package icircles.decomposition;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.TreeMap;
-import java.util.TreeSet;
-
-import icircles.util.DEB;
-
-import icircles.abstractdescription.AbstractDescription;
-import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractBasicRegion;
+import icircles.abstractdescription.AbstractCurve;
+import icircles.abstractdescription.AbstractDescription;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.*;
 
 public class Decomposer {
 
-    DecompositionStrategy s;
-    ArrayList<AbstractCurve> toRemove = new ArrayList<AbstractCurve>(); // some utility data
+    private static final Logger log = LogManager.getLogger(Decomposer.class);
 
-    public Decomposer(int decompStrategy) {
-        s = DecompositionStrategy.getDecompositionStrategy(decompStrategy);
+    private DecompositionType type;
+
+    public Decomposer(DecompositionType type) {
+        this.type = type;
     }
 
-    public Decomposer() {
-        s = DecompositionStrategy.getDecompositionStrategy();
-    }
-
-    private DecompositionStep take_step(AbstractDescription ad, AbstractCurve c) {
-        if (c == null) {
-            return null;
-        }
-
-        // otherwise, make a new AbstractDescription
-        TreeSet<AbstractCurve> contours = ad.getCopyOfContours();
-        contours.remove(c);
-
-        Iterator<AbstractBasicRegion> zoneIt = ad.getZoneIterator();
-        TreeSet<AbstractBasicRegion> zones = new TreeSet<AbstractBasicRegion>();
-        TreeMap<AbstractBasicRegion, AbstractBasicRegion> zones_moved = new TreeMap<AbstractBasicRegion, AbstractBasicRegion>();
-        while (zoneIt.hasNext()) {
-            AbstractBasicRegion z = zoneIt.next();
-            AbstractBasicRegion znew = z.moveOutside(c);
-            zones.add(znew);
-            if (z != znew) {
-                zones_moved.put(z, znew);
-            }
-        }
-        AbstractDescription target_ad = new AbstractDescription(contours, zones);
-        DecompositionStep result = new DecompositionStep(
-                ad, target_ad, zones_moved, c);
-        return result;
-    }
-
-    public ArrayList<DecompositionStep> decompose(AbstractDescription ad) {
+    public List<DecompositionStep> decompose(AbstractDescription ad) {
         if (!ad.getZoneIterator().hasNext()) {
-            throw new Error("decompose empty description?");
+            throw new IllegalArgumentException("Abstraction description is empty: " + ad.toDebugString());
         }
 
-        ArrayList<DecompositionStep> result = new ArrayList<DecompositionStep>();
-        while_loop:
+        log.info("Using strategy: " + type.getUiName());
+        DecompositionStrategy strategy = type.strategy();
+
+        List<DecompositionStep> result = new ArrayList<>();
+
         while (true) {
-            s.getContoursToRemove(ad, toRemove);
+            List<AbstractCurve> toRemove = strategy.getContoursToRemove(ad);
 
-            if (toRemove.size() == 0) {
-                break while_loop;
+            // TODO: do we know that it doesn't contain null?
+            if (toRemove.isEmpty() || toRemove.contains(null)) {
+                break;
             }
 
-            for (AbstractCurve c : toRemove) {
-                DecompositionStep step = take_step(ad, c);
-                if (step == null) {
-                    break while_loop;
-                }
+            for (AbstractCurve curveToRemove : toRemove) {
+                DecompositionStep step = takeStep(ad, curveToRemove);
                 result.add(step);
-                ad = step.target();
+                ad = step.to();
             }
         }
-        if (DEB.level >= 1) {
-            System.out.println("decomposition begin : ");
-            for (DecompositionStep step : result) {
-                System.out.println("step : " + step.debug());
-            }
-            System.out.println("decomposition end ");
-        }
+
+        log.info("Decomposition begin");
+        result.forEach(log::trace);
+        log.info("Decomposition end");
+
         return result;
     }
-    /*
-    public static void main(String args[])
-    {
-    Decomposer d = new Decomposer();
-    DEB.level = 1;
 
-    System.out.println("example 1: ____________ a b ab");
-    ArrayList<DecompositionStep> steplist = d.decompose(
-    AbstractDescription.makeForTesting("a b ab"));
-    for(DecompositionStep step : steplist)
-    System.out.println("step : "+step.debug());
+    private DecompositionStep takeStep(AbstractDescription ad, AbstractCurve curve) {
+        Set<AbstractCurve> contours = ad.getCopyOfContours();
+        contours.remove(curve);
 
-    System.out.println("example 1: ____________ a b ab ac ad de");
-    steplist = d.decompose(
-    AbstractDescription.makeForTesting("a b ab ac ad de"));
-    for(DecompositionStep step : steplist)
-    System.out.println("step : "+step.debug());
+        Set<AbstractBasicRegion> zones = new TreeSet<>();
+        Map<AbstractBasicRegion, AbstractBasicRegion> zonesMoved = new TreeMap<>();
 
-    System.out.println("example 1: ____________ a(1) b a(2)b");
-    // an example with multiple curves with the same label
-    CurveLabel a = CurveLabel.get("a");
-    CurveLabel b = CurveLabel.get("b");
+        for (AbstractBasicRegion zone : ad.getCopyOfZones()) {
+            AbstractBasicRegion newZone = zone.moveOutside(curve);
+            zones.add(newZone);
+            if (zone != newZone) {
+                zonesMoved.put(zone, newZone);
+            }
+        }
 
-    TreeSet<AbstractCurve> tsc = new TreeSet<AbstractCurve>();
-    TreeSet<AbstractBasicRegion> tsz = new TreeSet<AbstractBasicRegion>();
-    AbstractCurve ca1 = new AbstractCurve(a);
-    AbstractCurve ca2 = new AbstractCurve(a);
-    AbstractCurve cb = new AbstractCurve(b);
-    tsz.add(AbstractBasicRegion.get(tsc)); // empty
-    tsc.add(ca1);
-    tsz.add(AbstractBasicRegion.get(tsc)); // in a(1)
-    tsc.clear();
-    tsc.add(cb);
-    tsz.add(AbstractBasicRegion.get(tsc)); // in b
-    tsc.add(ca2);
-    tsz.add(AbstractBasicRegion.get(tsc)); // in a(2) and b
-    tsc.add(ca1);
-    AbstractDescription ad = new AbstractDescription(tsc, tsz);
-    steplist = d.decompose(ad);
-    for(DecompositionStep step : steplist)
-    System.out.println("step : "+step.debug());
+        AbstractDescription targetAD = new AbstractDescription(contours, zones);
+        return new DecompositionStep(ad, targetAD, zonesMoved, curve);
     }
-     */
 }

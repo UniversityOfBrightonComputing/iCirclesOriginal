@@ -1,21 +1,17 @@
 package icircles.decomposition;
 
+import icircles.abstractdescription.AbstractBasicRegion;
+import icircles.abstractdescription.AbstractCurve;
+import icircles.abstractdescription.AbstractDescription;
+
 import java.util.ArrayList;
 import java.util.Iterator;
-
-import icircles.util.DEB;
-
-import icircles.abstractdescription.AbstractDescription;
-import icircles.abstractdescription.AbstractCurve;
-import icircles.abstractdescription.AbstractBasicRegion;
+import java.util.List;
 
 public class DecompositionStrategyInnermost extends DecompositionStrategy {
 
-    void getContoursToRemove(AbstractDescription ad, ArrayList<AbstractCurve> toRemove) {
-        toRemove.clear();
-        if (DEB.level > 1) {
-            System.out.println("recomposition stratgey is innermost");
-        }
+    List<AbstractCurve> getContoursToRemove(AbstractDescription ad) {
+        List<AbstractCurve> result = new ArrayList<>();
 
         // an innermost abstract contour has the fewest abstract basic regions inside
         int best_num_zones = ad.getNumZones() + 1;
@@ -27,7 +23,7 @@ public class DecompositionStrategyInnermost extends DecompositionStrategy {
             Iterator<AbstractBasicRegion> z_it = ad.getZoneIterator();
             while (z_it.hasNext()) {
                 AbstractBasicRegion z = z_it.next();
-                if (z.is_in(c)) {
+                if (z.contains(c)) {
                     num_zones++;
                 }
             }
@@ -36,6 +32,8 @@ public class DecompositionStrategyInnermost extends DecompositionStrategy {
                 best_contour = c;
             }
         }
-        toRemove.add(best_contour);
+        result.add(best_contour);
+
+        return result;
     }
 }

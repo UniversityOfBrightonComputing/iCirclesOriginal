@@ -1,63 +1,56 @@
 package icircles.recomposition;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-
-import icircles.util.DEB;
-
 import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdual.AbstractDualEdge;
 import icircles.abstractdual.AbstractDualGraph;
 import icircles.abstractdual.AbstractDualNode;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 public class RecompositionStrategySinglyPierced extends RecompositionStrategy {
 
-    public ArrayList<Cluster> make_clusters(
-            ArrayList<AbstractBasicRegion> zonesToSplit) {
+    private static final Logger log = LogManager.getLogger(Recomposer.class);
 
-        if (DEB.level > 1) {
-            System.out.println("recomposition stratgey is singly peirced");
-        }
-
+    public List<Cluster> makeClusters(List<AbstractBasicRegion> zonesToSplit) {
         // Look for pairs of AbstractBasicRegions which differ by just a
         // single AbstractCurve - these pairs are potential double-clusters
 
         AbstractDualGraph adg = new AbstractDualGraph(zonesToSplit);
-        ArrayList<Cluster> result = seekSinglePiercings(adg);
-        return result;
+        return seekSinglePiercings(adg);
     }
 
-    public static ArrayList<Cluster> seekSinglePiercings(AbstractDualGraph adg) {
-        ArrayList<Cluster> result = new ArrayList<Cluster>();
-        for (AbstractDualEdge e = adg.getLowDegreeEdge();
-                e != null;
-                e = adg.getLowDegreeEdge()) {
+    public static List<Cluster> seekSinglePiercings(AbstractDualGraph adg) {
+        List<Cluster> result = new ArrayList<>();
+        for (AbstractDualEdge e = adg.getLowDegreeEdge(); e != null; e = adg.getLowDegreeEdge()) {
             Cluster c = new Cluster(e.from.abr, e.to.abr);
             result.add(c);
-            if (DEB.level > 2) {
-                System.out.println("made single-peirced cluster " + (c.debug()) + "\n");
-                System.out.println("graph before trimming for cluster " + (adg.debug()) + "\n");
-            }
+
+            log.trace("Made single-pierced cluster: " + c);
+            log.trace("Graph before trimming for cluster: " + adg.debug());
+
             adg.remove(e.from);
             adg.remove(e.to);
-            if (DEB.level > 2) {
-                System.out.println("graph after trimming for cluster " + adg.debug() + "\n");
-            }
+
+            log.trace("Graph after trimming for cluster: " + adg.debug());
+
         }
-        DEB.assertCondition(adg.getNumEdges() == 0, "non-empty adg edge set");
+        //DEB.assertCondition(adg.getNumEdges() == 0, "non-empty adg edge set");
         result.addAll(seekNestedPiercings(adg));
         return result;
     }
 
-    public static ArrayList<Cluster> seekNestedPiercings(AbstractDualGraph adg) {
-        ArrayList<Cluster> result = new ArrayList<Cluster>();
+    public static List<Cluster> seekNestedPiercings(AbstractDualGraph adg) {
+        List<Cluster> result = new ArrayList<>();
         Iterator<AbstractDualNode> nIt = adg.getNodeIterator();
         while (nIt.hasNext()) {
             AbstractDualNode n = nIt.next();
             result.add(new Cluster(n.abr));
-            if (DEB.level > 2) {
-                System.out.println("adding nested cluster " + n.abr.debug());
-            }
+
+            log.trace("Adding nested cluster: " + n.abr);
         }
         return result;
     }

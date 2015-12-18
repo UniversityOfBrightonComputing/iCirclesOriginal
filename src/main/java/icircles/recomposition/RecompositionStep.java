@@ -1,61 +1,49 @@
 package icircles.recomposition;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-
-import icircles.util.DEB;
-import icircles.abstractdescription.CurveLabel;
 import icircles.abstractdescription.AbstractDescription;
+import icircles.abstractdescription.CurveLabel;
+
+import java.util.Iterator;
+import java.util.List;
 
 public class RecompositionStep {
 
-    AbstractDescription m_from;
-    AbstractDescription m_to;
-    ArrayList<RecompData> m_added_contour_data;
+    private AbstractDescription from;
+    private AbstractDescription to;
+    private List<RecompositionData> addedContourData;
 
     public RecompositionStep(AbstractDescription from,
             AbstractDescription to,
-            ArrayList<RecompData> added_contour_data) {
-        m_from = from;
-        m_to = to;
-        m_added_contour_data = added_contour_data;
-        DEB.assertCondition(added_contour_data.size() > 0, "no added curve in recomp");
-        CurveLabel cl = added_contour_data.get(0).added_curve.getLabel();
-        for (RecompData rp : added_contour_data) {
-            DEB.assertCondition(rp.added_curve.getLabel() == cl, "mixed curves added in recomp");
+            List<RecompositionData> added_contour_data) {
+        this.from = from;
+        this.to = to;
+        addedContourData = added_contour_data;
+
+        if (addedContourData.isEmpty()) {
+            throw new IllegalArgumentException("No added curve in recomp");
         }
 
-        DEB.assertCondition(!from.includesLabel(cl), "added curve already present");
-        DEB.assertCondition(to.includesLabel(cl), "added curve wasn't added");
-    }
-
-    public String debug() {
-        if (DEB.level == 0) {
-            return "";
-        }
-        StringBuilder sb = new StringBuilder();
-        if (DEB.level > 1) {
-            sb.append("\n");
-        }
-        sb.append(" from ");
-        sb.append(m_from.debugAsSentence());
-        if (DEB.level > 1) {
-            sb.append("\n");
-        }
-        sb.append(" to ");
-        sb.append(m_to.debugAsSentence());
-        if (DEB.level > 1) {
-            sb.append("\n");
+        CurveLabel cl = added_contour_data.get(0).addedCurve.getLabel();
+        for (RecompositionData rp : added_contour_data) {
+            if (rp.addedCurve.getLabel() != cl)
+                throw new IllegalArgumentException("Mixed curves added in recomp");
         }
 
-        return sb.toString();
+        if (from.includesLabel(cl))
+            throw new IllegalArgumentException("Added curve already present");
+        if (!to.includesLabel(cl))
+            throw new IllegalArgumentException("Added curve not present in next description");
     }
 
     public AbstractDescription to() {
-        return m_to;
+        return to;
     }
 
-    public static double checksum(ArrayList<RecompositionStep> rSteps) {
+    public Iterator<RecompositionData> getRecompIterator() {
+        return addedContourData.iterator();
+    }
+
+    public static double checksum(List<RecompositionStep> rSteps) {
         double scaling = 11.23;
         double result = 0.0;
         for (RecompositionStep step : rSteps) {
@@ -66,10 +54,11 @@ public class RecompositionStep {
     }
 
     private double checksum() {
-        return 7.1 * m_from.checksum() + 7.3 * m_to.checksum();
+        return 7.1 * from.checksum() + 7.3 * to.checksum();
     }
 
-    public Iterator<RecompData> getRecompIterator() {
-        return m_added_contour_data.iterator();
+    @Override
+    public String toString() {
+        return "R_Step[From=" + from + " To=" + to + " Data=" + addedContourData + "]";
     }
 }

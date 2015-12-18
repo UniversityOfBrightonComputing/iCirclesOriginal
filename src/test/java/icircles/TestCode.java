@@ -1,43 +1,68 @@
-package icircles.test;
-
-import icircles.gui.CirclesPanel;
-
-import java.awt.BorderLayout;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.util.ArrayList;
-
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-
-import icircles.concrete.CircleContour;
-import icircles.concrete.ConcreteDiagram;
-import icircles.concrete.DiagramCreator;
-
-import icircles.recomposition.Recomposer;
-import icircles.recomposition.RecompositionStep;
-import icircles.recomposition.RecompositionStrategy;
-
-import icircles.util.CannotDrawException;
-import icircles.util.DEB;
+package icircles;
 
 import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
 import icircles.abstractdescription.CurveLabel;
-
+import icircles.concrete.CircleContour;
+import icircles.concrete.ConcreteDiagram;
+import icircles.concrete.DiagramCreator;
 import icircles.decomposition.Decomposer;
 import icircles.decomposition.DecompositionStep;
-import icircles.decomposition.DecompositionStrategy;
+import icircles.decomposition.DecompositionType;
+import icircles.gui.CirclesPanel;
+import icircles.recomposition.Recomposer;
+import icircles.recomposition.RecompositionStep;
+import icircles.recomposition.RecompositionType;
+import icircles.util.CannotDrawException;
+import icircles.util.DEB;
+import org.junit.Test;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class TestCode {
+
+    @Test
+    public void runAllTests() {
+        for (int i = 0; i < TestData.test_data.length; i++) {
+            runTest(i);
+        }
+    }
+
+    public void runTest(int testNumber) {
+        TestDatum datum = TestData.test_data[testNumber];
+
+        AbstractCurve.resetIdCounter();
+        AbstractBasicRegion.clearLibrary();
+        CurveLabel.clearLibrary();
+
+        try {
+            ArrayList<DecompositionStep> d_steps = new ArrayList<>();
+            ArrayList<RecompositionStep> r_steps = new ArrayList<>();
+
+            ConcreteDiagram cd = getDiagram(testNumber, d_steps, r_steps, 100); // fixed size for checksumming
+            List<CircleContour> circles = cd.getCircles();
+
+            double actualChecksum = DecompositionStep.checksum(d_steps)
+                    + RecompositionStep.checksum(r_steps)
+                    + ConcreteDiagram.checksum(circles);
+
+            assertEquals("Test: " + testNumber, datum.expectedChecksum, actualChecksum, 3);
+        } catch (CannotDrawException e) {
+            fail(e.getMessage());
+        }
+    }
 
     public static void main(String args[]) {
         DEB.level = TestData.TEST_DEBUG_LEVEL;
         if (TestData.TASK == TestData.RUN_ALL_TESTS) {
-            ArrayList<Integer> failures = runAllTests();
+            ArrayList<Integer> failures = runAllTestsOld();
             if (!TestData.GENERATE_ALL_TEST_DATA) {
                 System.out.println("******************");
                 if (failures.isEmpty()) {
@@ -57,7 +82,7 @@ public class TestCode {
         }
     }
 
-    public static ArrayList<Integer> runAllTests() {
+    public static ArrayList<Integer> runAllTestsOld() {
         int num_tests = TestData.test_data.length;
         int[] testlist = new int[num_tests];
         for (int i = 0; i < num_tests; i++) {
@@ -92,7 +117,7 @@ public class TestCode {
     	else if(TestData.TEST_EULER_THREE)
     	{
 	        testlist = new int[39];
-	        for (int i = 0; i < 39; i++) 
+	        for (int i = 0; i < 39; i++)
 	            testlist[i] = i * 3 + 2;
         }
 
@@ -137,6 +162,7 @@ public class TestCode {
         GridBagConstraints c = new GridBagConstraints();
         //c.fill = GridBagConstraints.NONE;
         int num_failures = 0;
+
         for (int i = 0; i < testlist.length; i++) {
             int test_num = testlist[i];
             if (test_num < 0 || test_num >= TestData.test_data.length) {
@@ -145,13 +171,11 @@ public class TestCode {
                 return result;
             } else {
                 if (do_run) {
-                    if (!run_test(test_num, false, false,
-                            TestData.VIEW_PANEL_SIZE)) {
-                        result.add(new Integer(test_num));
+                    if (!run_test(test_num, false, false, TestData.VIEW_PANEL_SIZE)) {
+                        result.add(test_num);
                         num_failures++;
                         if (TestData.DO_VIEW_FAILURES) {
-                            run_test(test_num, true, true,
-                                    TestData.FAIL_VIEW_PANEL_SIZE);
+                            run_test(test_num, true, true, TestData.FAIL_VIEW_PANEL_SIZE);
                         }
                     }
                 }
@@ -166,6 +190,7 @@ public class TestCode {
                 }
             }
         }
+
         if (do_view) {
             JFrame jf = new JFrame("circle tests");
 
@@ -183,20 +208,6 @@ public class TestCode {
         return result;
     }
 
-//	private static boolean sleep(int time) 
-//		{
-//		try 
-//			{
-//			Thread.sleep(time);
-//			} 
-//		catch(Exception e) 
-//			{
-//			System.out.println("Exception occurred in Thread.sleep() "+e);
-//			e.printStackTrace();
-//			return false;
-//			}
-//		return true;
-//		}
     private static boolean within_tol(double expected, double found) {
         if (isNaN(expected) && isNaN(found)) {
             return true;
@@ -236,7 +247,7 @@ public class TestCode {
             int size) {
         // clear the static id counter for abstract curves
         if (!view_failure) {
-            AbstractCurve.reset_id_counter();
+            AbstractCurve.resetIdCounter();
             AbstractBasicRegion.clearLibrary();
             CurveLabel.clearLibrary();
         }
@@ -244,9 +255,10 @@ public class TestCode {
         if (DEB.level > 0) {
             System.out.println("test desc:" + desc);
         }
-        ArrayList<DecompositionStep> d_steps = new ArrayList<DecompositionStep>();
-        ArrayList<RecompositionStep> r_steps = new ArrayList<RecompositionStep>();
-        ArrayList<CircleContour> circles = null;
+
+        ArrayList<DecompositionStep> d_steps = new ArrayList<>();
+        ArrayList<RecompositionStep> r_steps = new ArrayList<>();
+        List<CircleContour> circles = null;
         try {
             ConcreteDiagram cd = getDiagram(test_num, d_steps, r_steps, 100); // fixed size for checksumming
             circles = cd.getCircles();
@@ -258,7 +270,7 @@ public class TestCode {
                 + RecompositionStep.checksum(r_steps)
                 + ConcreteDiagram.checksum(circles);
 
-        double baseline = TestData.test_data[test_num].expected_checksum;
+        double baseline = TestData.test_data[test_num].expectedChecksum;
 
         if (TestData.GENERATE_ALL_TEST_DATA) {
             printFreshTestData(test_num, checksum_found);
@@ -314,75 +326,35 @@ public class TestCode {
                 true);// do use colours
         return jp;
     }
-//	static Rectangle getBoundingBox(ConstructedConcreteDiagram ccd)
-//	{
-//	int minX = Integer.MAX_VALUE;
-//	int maxX = Integer.MIN_VALUE;
-//	int minY = Integer.MAX_VALUE;
-//	int maxY = Integer.MIN_VALUE;
-//	
-//	for(ConcreteContour cc : ccd.getConcreteContours()){
-//		RegularPolygon rp = cc.getCircle();
-//		int lowX = rp.getCentreX() - rp.getRadius();
-//		int higX = rp.getCentreX() + rp.getRadius();
-//		int lowY = rp.getCentreY() - rp.getRadius();
-//		int higY = rp.getCentreY() + rp.getRadius();
-//		if(lowX < minX) minX = lowX;
-//		if(higX > maxX) maxX = higX;
-//		if(lowY < minY) minY = lowY;
-//		if(higY > maxY) maxY = higY;
-//	}
-//	return new Rectangle(minX, minY, maxX - minX, maxY - minY);
-//	}
-//	static ConstructedConcreteDiagram 
-//			transform(ConstructedConcreteDiagram ccd, 
-//						double xstep, double ystep, double scale,
-//						String desc)
-//	{
-//		ArrayList<ConcreteContour> newConts = new ArrayList<ConcreteContour>();
-//		for(ConcreteContour cc : ccd.getConcreteContours()){
-//			RegularPolygon rp = cc.getCircle();
-//			RegularPolygon newrp = new RegularPolygon(
-//					(int)((rp.getCentreX()+xstep)*scale),
-//					(int)((rp.getCentreY()+ystep)*scale),
-//					(int)(rp.getRadius()*scale),50);
-//			ConcreteContour newcc = 
-//				new ConcreteContour(cc.getAbstractContour(), newrp);
-//			newConts.add(newcc);
-//		}
-//		ConstructedConcreteDiagram result = 
-//			new ConstructedConcreteDiagram(desc, newConts);
-//		return result;
-//	}
 
     private static ConcreteDiagram getDiagram(int test_num,
             ArrayList<DecompositionStep> d_steps,
             ArrayList<RecompositionStep> r_steps,
             int size) throws CannotDrawException {
-        int decomp_strategy = TestData.test_data[test_num].decomp_strategy;
-        int recomp_strategy = TestData.test_data[test_num].recomp_strategy;
+        DecompositionType decomp_strategy = TestData.test_data[test_num].decomp_strategy;
+        RecompositionType recomp_strategy = TestData.test_data[test_num].recomp_strategy;
         Decomposer d = new Decomposer(decomp_strategy);
-        d_steps.addAll(d.decompose(AbstractDescription.makeForTesting(TestData.test_data[test_num].description)));
+        d_steps.addAll(d.decompose(new AbstractDescription(TestData.test_data[test_num].description)));
 
         Recomposer r = new Recomposer(recomp_strategy);
         r_steps.addAll(r.recompose(d_steps));
-        DiagramCreator dc = new DiagramCreator(d_steps, r_steps, size);
-        ConcreteDiagram cd = dc.createDiagram(size);
-        return cd;
+        DiagramCreator dc = new DiagramCreator(d_steps, r_steps);
+
+        return dc.createDiagram(size);
     }
-    
+
     private static void printFreshTestData(int test_num, double checksum_found) {
-        int decomp_strategy = TestData.test_data[test_num].decomp_strategy;
-        int recomp_strategy = TestData.test_data[test_num].recomp_strategy;
+        DecompositionType decomp_strategy = TestData.test_data[test_num].decomp_strategy;
+        RecompositionType recomp_strategy = TestData.test_data[test_num].recomp_strategy;
         String desc = TestData.test_data[test_num].description;
 
         System.out.println("/*" + test_num
                 + "*/new TestDatum( \""
                 + desc + "\", "
                 + "DecompositionStrategy."
-                + DecompositionStrategy.text_for(decomp_strategy) + ", "
+                + decomp_strategy.toString() + ", "
                 + "RecompositionStrategy."
-                + RecompositionStrategy.text_for(recomp_strategy) + ", "
+                + recomp_strategy.toString() + ", "
                 + (isNaN(checksum_found) ? 111 : checksum_found) + "),");
 
     }

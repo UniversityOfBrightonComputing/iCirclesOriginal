@@ -1,34 +1,28 @@
 package icircles.decomposition;
 
-import java.util.ArrayList;
-
-import icircles.util.DEB;
-import icircles.abstractdescription.AbstractDescription;
 import icircles.abstractdescription.AbstractCurve;
+import icircles.abstractdescription.AbstractDescription;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DecompositionStrategyUseSortOrder extends DecompositionStrategy {
 
-    boolean m_natural_order;
+    // TODO: add param
+    boolean m_natural_order = true;
 
-    DecompositionStrategyUseSortOrder(boolean natural_order) {
-
-        if (DEB.level > 1) {
-            System.out.println("recomposition stratgey is alphabetic");
-            if (m_natural_order) {
-                System.out.println("natural order");
-            } else {
-                System.out.println("reversed order");
-            }
-        }
-        m_natural_order = natural_order;
+    DecompositionStrategyUseSortOrder() {
     }
 
-    void getContoursToRemove(AbstractDescription ad, ArrayList<AbstractCurve> toRemove) {
-        toRemove.clear();
+    List<AbstractCurve> getContoursToRemove(AbstractDescription ad) {
+        List<AbstractCurve> result = new ArrayList<>();
+
         if (m_natural_order) {
-            toRemove.add(ad.getFirstContour());
+            result.add(ad.getFirstContour());
         } else {
-            toRemove.add(ad.getLastContour());
+            result.add(ad.getLastContour());
         }
+
+        return result;
     }
 }

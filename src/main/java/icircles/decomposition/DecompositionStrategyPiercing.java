@@ -1,17 +1,19 @@
 package icircles.decomposition;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.TreeSet;
-
 import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.TreeSet;
+
 public class DecompositionStrategyPiercing extends DecompositionStrategy {
 
-    void getContoursToRemove(AbstractDescription ad, ArrayList<AbstractCurve> toRemove) {
-        toRemove.clear();
+    List<AbstractCurve> getContoursToRemove(AbstractDescription ad) {
+        List<AbstractCurve> result = new ArrayList<>();
+
         int bestNZ = Integer.MAX_VALUE;
         Iterator<AbstractCurve> acIt = ad.getContourIterator();
         while (acIt.hasNext()) {
@@ -19,46 +21,47 @@ public class DecompositionStrategyPiercing extends DecompositionStrategy {
             if (isPiercingCurve(ac, ad)) {
                 int nz = numZonesInside(ac, ad);
                 if (nz < bestNZ) {
-                    toRemove.clear();
-                    toRemove.add(ac);
+                    result.clear();
+                    result.add(ac);
                     bestNZ = nz;
                 } else if (nz == bestNZ) {
-                    toRemove.add(ac);
+                    result.add(ac);
                 }
             }
         }
-        if (toRemove.size() == 0) {
+
+        if (result.isEmpty()) {
             acIt = ad.getContourIterator();
             while (acIt.hasNext()) {
                 AbstractCurve ac = acIt.next();
                 int nz = numZonesInside(ac, ad);
                 if (nz < bestNZ) {
-                    toRemove.clear();
-                    toRemove.add(ac);
+                    result.clear();
+                    result.add(ac);
                     bestNZ = nz;
                 } else if (nz == bestNZ) {
-                    toRemove.add(ac);
+                    result.add(ac);
                 }
             }
         }
+
+        return result;
     }
 
-    private int numZonesInside(AbstractCurve ac,
-            AbstractDescription ad) {
+    private int numZonesInside(AbstractCurve ac, AbstractDescription ad) {
         int nz = 0;
 
         Iterator<AbstractBasicRegion> abrit = ad.getZoneIterator();
         while (abrit.hasNext()) {
             AbstractBasicRegion abr = abrit.next();
-            if (abr.is_in(ac)) {
+            if (abr.contains(ac)) {
                 nz++;
             }
         }
         return nz;
     }
 
-    private boolean isPiercingCurve(AbstractCurve ac,
-            AbstractDescription ad) {
+    private boolean isPiercingCurve(AbstractCurve ac, AbstractDescription ad) {
         // every abstract basic region in ad which is in ac
         // must have a corresponding abr which is not in ac
         Iterator<AbstractBasicRegion> abrit = ad.getZoneIterator();
@@ -68,7 +71,7 @@ public class DecompositionStrategyPiercing extends DecompositionStrategy {
         abrLoop:
         while (abrit.hasNext()) {
             AbstractBasicRegion abr = abrit.next();
-            if (abr.is_in(ac)) {
+            if (abr.contains(ac)) {
                 zonesInContour.add(abr);
                 // look for a partner zone
                 Iterator<AbstractBasicRegion> abrit2 = ad.getZoneIterator();
@@ -107,7 +110,7 @@ public class DecompositionStrategyPiercing extends DecompositionStrategy {
             Iterator<AbstractCurve> acIt = smallestZone.getContourIterator();
             while (acIt.hasNext()) {
                 AbstractCurve ac2 = acIt.next();
-                if (!abr.is_in(ac2)) {
+                if (!abr.contains(ac2)) {
                     return false;
                 }
             }
@@ -121,7 +124,7 @@ public class DecompositionStrategyPiercing extends DecompositionStrategy {
             Iterator<AbstractCurve> acIt = abr.getContourIterator();
             while (acIt.hasNext()) {
                 AbstractCurve ac2 = acIt.next();
-                if (!smallestZone.is_in(ac2)) {
+                if (!smallestZone.contains(ac2)) {
                     addedContours.add(ac2);
                     if (addedContours.size() > power) {
                         return false;
@@ -132,8 +135,12 @@ public class DecompositionStrategyPiercing extends DecompositionStrategy {
         return true;
     }
 
-    private int powerOfTwo(int n) // return result where  n = 2^(result)
-    {
+    /**
+     *
+     * @param n
+     * @return result where  n = 2^(result)
+     */
+    private int powerOfTwo(int n) {
         int result = 0;
         while (n % 2 == 0) {
             result++;

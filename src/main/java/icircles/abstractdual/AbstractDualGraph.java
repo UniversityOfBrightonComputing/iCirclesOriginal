@@ -1,19 +1,19 @@
 package icircles.abstractdual;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-
-import icircles.util.DEB;
-
 import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdescription.AbstractCurve;
+import icircles.util.DEB;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 public class AbstractDualGraph {
 
-    ArrayList<AbstractDualNode> nodes;
-    ArrayList<AbstractDualEdge> edges;
+    List<AbstractDualNode> nodes;
+    List<AbstractDualEdge> edges;
 
-    public AbstractDualGraph(ArrayList<AbstractBasicRegion> abrs) {
+    public AbstractDualGraph(List<AbstractBasicRegion> abrs) {
         nodes = new ArrayList<AbstractDualNode>();
         edges = new ArrayList<AbstractDualEdge>();
         // Each abr becomes a node.
@@ -119,7 +119,7 @@ public class AbstractDualGraph {
             } else {
                 isFirst = false;
             }
-            result += n.abr.debug();
+            result += n.abr.toString();
         }
         result += " edges : ";
         isFirst = true;
@@ -129,9 +129,9 @@ public class AbstractDualGraph {
             } else {
                 isFirst = false;
             }
-            result += e.from.abr.debug();
+            result += e.from.abr.toString();
             result += "->";
-            result += e.to.abr.debug();
+            result += e.to.abr.toString();
         }
         return result;
     }
@@ -151,8 +151,8 @@ public class AbstractDualGraph {
 
                     if (DEB.level > 2) {
                         // we have edges e and e2 - are these part of a square?
-                        System.out.println("edges are " + e.from.abr.debug() + "->" + e.to.abr.debug() + "\n and "
-                                + e2.from.abr.debug() + "->" + e2.to.abr.debug());
+                        System.out.println("edges are " + e.from.abr.toString() + "->" + e.to.abr.toString() + "\n and "
+                                + e2.from.abr.toString() + "->" + e2.to.abr.toString());
                     }
 
                     // look for an edge from n with the same label as e2

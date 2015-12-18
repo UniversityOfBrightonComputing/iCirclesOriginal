@@ -1,39 +1,20 @@
 package icircles.gui;
 
-import java.awt.BasicStroke;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.util.ArrayList;
-import java.util.HashMap;
-
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-
-import icircles.abstractdescription.AbstractDescription;
 import icircles.abstractdescription.CurveLabel;
-
 import icircles.concrete.CircleContour;
 import icircles.concrete.ConcreteDiagram;
 import icircles.concrete.ConcreteZone;
-import icircles.util.CannotDrawException;
-import icircles.util.DEB;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class CirclesPanel extends JPanel {
 
-    /**
-     *
-     */
-    private static final long serialVersionUID = 1L;
-    private static final HashMap<CurveLabel, Color> labelsToColours =
-            new HashMap<CurveLabel, Color>();
+    // TODO: why do we even need this?
+    private static final Map<CurveLabel, Color> labelsToColours = new HashMap<>();
 
     public CirclesPanel(String desc, String failureMessage, ConcreteDiagram cd, int size,
             boolean useColors) 
@@ -65,7 +46,6 @@ public class CirclesPanel extends JPanel {
         labelsToColours.put(CurveLabel.get("y"), new Color(0, 100, 0)); // dark green
         labelsToColours.put(CurveLabel.get("z"), Color.red);
 
-        //setBorder(BorderFactory.createLineBorder(Color.black));
         setLayout(new BorderLayout());
         JLabel jl = new JLabel(desc);
         Font f = new Font("Dialog", Font.PLAIN, 12);
@@ -82,7 +62,6 @@ public class CirclesPanel extends JPanel {
 
         int padding = 5;
         DiagramPanel dp = new DiagramPanel(cd, failureMessage, useColors);
-        //dp.setBorder(BorderFactory.createLineBorder(Color.black));
 
         if (cd == null) {
             dp.setPreferredSize(new Dimension(size + padding, size + padding));
@@ -93,23 +72,11 @@ public class CirclesPanel extends JPanel {
         JPanel containsDiag = new JPanel();
         containsDiag.setLayout(new FlowLayout());
         containsDiag.add(dp);
-        //containsDiag.setBackground(Color.orange);
-
-        //containsDiag.setPreferredSize(new Dimension(size+2*padding, size+2*padding));
-        //containsDiag.setMinimumSize(  new Dimension(size+2*padding, size+2*padding));
-        //containsDiag.setMaximumSize(  new Dimension(size+2*padding, size+2*padding));
-        //containsDiag.setBorder(BorderFactory.createLineBorder(Color.blue));
-
-        //setPreferredSize(new Dimension(size+3*padding, size+3*padding + 20));
-        //setMinimumSize(  new Dimension(size+3*padding, size+3*padding + 20));
-        //setMaximumSize(  new Dimension(size+3*padding, size+3*padding + 20));
 
         add(containsDiag, BorderLayout.CENTER);
     }
 
     static class DiagramPanel extends JPanel {
-
-        private static final long serialVersionUID = 1L;
         ConcreteDiagram diagram;
         String failureMessage;
         private boolean useColors;
@@ -123,7 +90,6 @@ public class CirclesPanel extends JPanel {
                 setPreferredSize(new Dimension((int) (diagram.getBox().width) + 5,
                         (int) (diagram.getBox().height) + 5));
             }
-            //setBackground(Color.yellow);
         }
 
         public void paint(Graphics g) {
@@ -139,15 +105,21 @@ public class CirclesPanel extends JPanel {
             // draw the diagram
             super.paint(g);
 
-            // shaded zones
+            // draw shaded zones
+
             g.setColor(Color.lightGray);
-            ArrayList<ConcreteZone> zones = diagram.getShadedZones();
+            List<ConcreteZone> zones = diagram.getShadedZones();
             for (ConcreteZone z : zones) {
                 ((Graphics2D) g).fill(z.getShape(diagram.getBox()));
             }
+
             ((Graphics2D) g).setStroke(new BasicStroke(2));
-            ArrayList<CircleContour> circles = diagram.getCircles();
+            List<CircleContour> circles = diagram.getCircles();
+
+            // draw curve contours
+
             for (CircleContour cc : circles) {
+
                 if (useColors) {
                     Color col = labelsToColours.get(cc.ac.getLabel());
                     if (col == null) {
@@ -157,13 +129,16 @@ public class CirclesPanel extends JPanel {
                 } else {
                     g.setColor(Color.black);
                 }
-                ;
 
                 ((Graphics2D) g).draw(cc.getCircle());
             }
+
+            // draw labels
+
             for (CircleContour cc : circles) {
-            	if( cc.ac.getLabel() == null )
+            	if (cc.ac.getLabel() == null)
             		continue;
+
                 if (useColors) {
                     Color col = labelsToColours.get(cc.ac.getLabel());
                     if (col == null) {
@@ -173,61 +148,11 @@ public class CirclesPanel extends JPanel {
                 } else {
                     g.setColor(Color.black);
                 }
+
                 ((Graphics2D) g).drawString(cc.ac.getLabel().getLabel(),
                         (int) cc.getLabelXPosition(),
                         (int) cc.getLabelYPosition());
             }
         }
     }
-    /**
-     * This can be used to obtain a drawing of an abstract diagram.
-     * @param ad the description to be drawn
-     * @param size the size of the drawing panel
-     * @return
-     * @throws CannotDrawException
-     */
-    public static CirclesPanel makeCirclesPanel(AbstractDescription ad, 
-    		                                    String diagText,
-    		                                    int size)
-    {
-    	String failuremessage = "no failure";
-    	ConcreteDiagram cd = null;
-    	try
-    	{
-    	cd = ConcreteDiagram.makeConcreteDiagram(ad, size);
-    	}
-    	catch(CannotDrawException ex)
-    	{
-    		failuremessage = ex.message;
-    	}
-
-    	CirclesPanel cp = new CirclesPanel(diagText, failuremessage, cd, size, 
-    			true); // do use colors
-    	
-    	return cp;
-    }
-    public static void main(String[] args)
-    {
-    	// See the implementation of makeForTesting to see how to make an 
-    	// AbstractDescription from scratch.
-    	AbstractDescription ad = AbstractDescription.makeForTesting(
-    			//"qh h fh ih ik kh b ab ac de bd  abc bfg fc bj l lc al m mn nc bc bco bo boj bp bop cq cqb rs ra s t");
-    			"qh h fh ih ik kh b ab ac de bd  abc bfg fc bj l lc al m mn nc bc bco bo boj bp bop cq cqb rs ra s");
-    			//"a ab b c");
-
-    	DEB.level = 3; // generates intermediate frames
-    	
-    	int size = 600;
-    	
-    	CirclesPanel cp = CirclesPanel.makeCirclesPanel(ad, "a sample diagram", size);
-    	
-    	JFrame viewingFrame = new JFrame("frame to hold a CirclesPanel");
-    	JScrollPane scrollPane = new JScrollPane(cp);
-    	viewingFrame.getContentPane().setPreferredSize(new Dimension(Math.min(size,  800), Math.min(size,  800)));
-    	viewingFrame.getContentPane().add(scrollPane);
-    	viewingFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    	viewingFrame.pack();
-    	viewingFrame.setVisible(true);
-    }
-
 }

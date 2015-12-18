@@ -1,73 +1,71 @@
 package icircles.abstractdescription;
 
-import icircles.util.DEB;
-
+/**
+ * Represents a curve at an abstract level.
+ * The curve has a label and a unique ID.
+ */
 public class AbstractCurve implements Comparable<AbstractCurve> {
 
-    static int id = 0;
-    CurveLabel m_label;
-    int m_id;
+    private static int uniqueId = 0;
+    private final CurveLabel label;
+    private final int id;
 
+    public static void resetIdCounter() {
+        uniqueId = 0;
+    }
+
+    /**
+     * Constructs an abstract curve with given label.
+     *
+     * @param label the curve label
+     */
     public AbstractCurve(CurveLabel label) {
-        id++;
-        m_id = id;
-        m_label = label;
+        uniqueId++;
+        id = uniqueId;
+        this.label = label;
     }
 
+    /**
+     * Copy constructor. The created abstract curve
+     * will have same curve label but different id.
+     *
+     * @param curve other curve
+     */
+    public AbstractCurve(AbstractCurve curve) {
+        this(curve.label);
+    }
+
+    /**
+     * @return curve label
+     */
     public CurveLabel getLabel() {
-        return m_label;
+        return label;
     }
 
-    public AbstractCurve clone() {
-        return new AbstractCurve(m_label);
-    }
-
-    public int compareTo(AbstractCurve o) {
-        int tmp = m_label.compareTo(o.m_label);
+    @Override
+    public int compareTo(AbstractCurve other) {
+        int tmp = label.compareTo(other.label);
         if (tmp != 0) {
             return tmp;
         }
-        int this_id = m_id;
-        int other_id = o.m_id;
-        return (this_id < other_id) ? -1 : (this_id == other_id) ? 0 : 1;
-    }
 
-    public String debug() {
-        if (DEB.level == 0) {
-            return "";
-        }
-        StringBuilder sb = new StringBuilder();
-        boolean deb_level_was_high = false;
-        if (DEB.level > 4) {
-            sb.append("contour(");
-            deb_level_was_high = true;
-            DEB.level--;
-        }
-        sb.append(m_label.debug());
-        if (deb_level_was_high) {
-            DEB.level++;
-            sb.append("_" + m_id + ")@");
-            sb.append(hashCode());
-        }
-        return sb.toString();
+        return (id < other.id) ? -1 : (id == other.id) ? 0 : 1;
     }
 
     public boolean matches_label(AbstractCurve c) {
-        return m_label == c.m_label;
-    }
-
-    public String debugWithId() {
-        return debug() + "_" + m_id;
+        return label == c.label;
     }
 
     public double checksum() {
-        if (DEB.level == 2) {
-            System.out.println("build checksum from " + m_label + " and " + m_id + "\n");
-        }
-        return m_label.checksum() * m_id;
+        return label.checksum() * id;
     }
 
-    public static void reset_id_counter() {
-        id = 0;
+    @Override
+    public String toString() {
+        return label.getLabel();
+    }
+
+    public String toDebugString() {
+        return "[id=" + id + ",label=" + label.getLabel() + "]";
     }
 }
