@@ -28,8 +28,7 @@ public class CirclesPanelTest {
         ConcreteDiagram cd = null;
         try
         {
-            cd = ConcreteDiagram.makeConcreteDiagram(DecompositionType.PIERCED_FIRST, RecompositionType.DOUBLY_PIERCED,
-                    ad, size);
+            cd = new ConcreteDiagram(ad, size, DecompositionType.PIERCED_FIRST, RecompositionType.DOUBLY_PIERCED);
         }
         catch(CannotDrawException ex)
         {

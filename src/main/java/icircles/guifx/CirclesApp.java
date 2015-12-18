@@ -105,9 +105,10 @@ public class CirclesApp extends Application {
         try {
             System.out.println(new AbstractDescription(description).toDebugString());
 
-            ConcreteDiagram diagram = ConcreteDiagram.makeConcreteDiagram(decompBox.getValue(),
-                    recompBox.getValue(), new AbstractDescription(description),
-                    Math.min((int)root.getWidth(), (int)root.getHeight()));
+            ConcreteDiagram diagram = new ConcreteDiagram(new AbstractDescription(description),
+                    Math.min((int)root.getWidth(), (int)root.getHeight()),
+                    decompBox.getValue(),
+                    recompBox.getValue());
 
             System.out.println(diagram);
             findDuplicates(diagram.getCircles());

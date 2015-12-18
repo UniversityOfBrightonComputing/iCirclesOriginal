@@ -13,16 +13,26 @@ import javafx.scene.shape.Shape;
  */
 public class ConcreteZone {
 
-    private AbstractBasicRegion abr;
+    /**
+     * The abstract basic region of this concrete zone.
+     */
+    private AbstractBasicRegion zone;
+
+    /**
+     * Contours within this zone.
+     */
     private List<CircleContour> containingCircles;
+
+    /**
+     * Contours outside of this zone.
+     */
     private List<CircleContour> excludingCircles;
+
     private Area shape;
     private Shape shapeFX;
 
-    public ConcreteZone(AbstractBasicRegion abr,
-            List<CircleContour> containingCircles,
-            List<CircleContour> excludingCircles) {
-        this.abr = abr;
+    public ConcreteZone(AbstractBasicRegion zone, List<CircleContour> containingCircles, List<CircleContour> excludingCircles) {
+        this.zone = zone;
         this.containingCircles = containingCircles;
         this.excludingCircles = excludingCircles;
     }
@@ -61,13 +71,13 @@ public class ConcreteZone {
     }
 
     public String toDebugString() {
-        return "ConcreteZone:[zone=" + abr + "\n"
+        return "ConcreteZone:[zone=" + zone + "\n"
                 + "containing: " + containingCircles.toString() + "\n"
                 + "excluding:  " + excludingCircles.toString() + "]";
     }
 
     @Override
     public String toString() {
-        return abr.toString();
+        return zone.toString();
     }
 }

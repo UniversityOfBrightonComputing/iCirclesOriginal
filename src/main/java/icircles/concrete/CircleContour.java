@@ -9,6 +9,9 @@ import java.util.List;
 import icircles.abstractdescription.AbstractCurve;
 import javafx.scene.shape.Circle;
 
+/**
+ * Concrete form of AbstractCurve.
+ */
 public class CircleContour {
 
     private Ellipse2D.Double circle;
@@ -17,8 +20,19 @@ public class CircleContour {
     double radius;
     double nudge = 0.1;
 
+    /**
+     * Abstract representation of this concrete contour.
+     */
     public AbstractCurve ac;
 
+    /**
+     * Constructs a contour from abstract curve and geometric values.
+     *
+     * @param cx center x coordinate of the contour
+     * @param cy center y coordinate of the contour
+     * @param radius contour radius
+     * @param ac abstract curve
+     */
     public CircleContour(double cx, double cy, double radius, AbstractCurve ac) {
         this.cx = cx;
         this.cy = cy;
