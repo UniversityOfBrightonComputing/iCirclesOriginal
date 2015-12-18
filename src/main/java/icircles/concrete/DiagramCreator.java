@@ -135,19 +135,23 @@ public class DiagramCreator {
         return result;
     }
 
-    private ConcreteZone makeConcreteZone(AbstractBasicRegion z) {
+    /**
+     * Creates a concrete zone out of an abstract zone.
+     *
+     * @param zone the abstract zone
+     * @return the concrete zone
+     */
+    private ConcreteZone makeConcreteZone(AbstractBasicRegion zone) {
         List<CircleContour> includingCircles = new ArrayList<>();
         List<CircleContour> excludingCircles = new ArrayList<>(circles);
 
-        Iterator<AbstractCurve> acIt = z.getContourIterator();
-        while (acIt.hasNext()) {
-            AbstractCurve ac = acIt.next();
-            CircleContour containingCC = map.get(ac);
-            excludingCircles.remove(containingCC);
-            includingCircles.add(containingCC);
+        for (AbstractCurve curve : zone.getCopyOfContours()) {
+            CircleContour contour = map.get(curve);
+            excludingCircles.remove(contour);
+            includingCircles.add(contour);
         }
 
-        return new ConcreteZone(z, includingCircles, excludingCircles);
+        return new ConcreteZone(zone, includingCircles, excludingCircles);
     }
 
     private BuildStep makeBuildSteps() {

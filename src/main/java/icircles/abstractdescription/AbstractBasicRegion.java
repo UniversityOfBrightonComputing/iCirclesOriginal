@@ -72,6 +72,10 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
         return 0;
     }
 
+    public Set<AbstractCurve> getCopyOfContours() {
+        return new TreeSet<>(theInSet);
+    }
+
     public Iterator<AbstractCurve> getContourIterator() {
         return theInSet.iterator();
     }
