@@ -106,30 +106,32 @@ public class DiagramCreator {
         return 1.0;
     }
 
+    /**
+     * Creates shaded (extra) zones based on the difference
+     * between the initial diagram and final diagram.
+     * In other words, finds which zones in final diagram were not in initial diagram.
+     *
+     * @return list of shaded zones
+     */
     private List<ConcreteZone> createShadedZones() {
         List<ConcreteZone> result = new ArrayList<>();
         if (d_steps.isEmpty()) {
             return result;
         }
 
-        AbstractDescription initial_diagram = d_steps.get(0).from();
-        AbstractDescription final_diagram = r_steps.get(r_steps.size() - 1).to();
+        AbstractDescription initialDiagram = d_steps.get(0).from();
+        AbstractDescription finalDiagram = r_steps.get(r_steps.size() - 1).to();
 
-        // which zones in final_diagram were not in initial_diagram?
-        log.trace("Initial diagram zones: " + initial_diagram);
-        log.trace("Final diagram zones:   " + final_diagram);
+        log.trace("Initial diagram zones: " + initialDiagram);
+        log.trace("Final diagram zones:   " + finalDiagram);
 
-        Iterator<AbstractBasicRegion> it = final_diagram.getZoneIterator();
-        while (it.hasNext()) {
-            AbstractBasicRegion z = it.next();
-            if (!initial_diagram.hasLabelEquivalentZone(z)) {
-                // we have an extra zone
-                log.trace("Extra zone: " + z.toString());
-
-                ConcreteZone cz = makeConcreteZone(z);
-                result.add(cz);
+        for (AbstractBasicRegion zone : finalDiagram.getCopyOfZones()) {
+            if (!initialDiagram.hasLabelEquivalentZone(zone)) {
+                log.trace("Extra zone: " + zone);
+                result.add(makeConcreteZone(zone));
             }
         }
+
         return result;
     }
 
