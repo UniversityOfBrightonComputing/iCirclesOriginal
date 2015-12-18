@@ -4,6 +4,7 @@ import java.awt.Rectangle;
 import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import icircles.decomposition.DecompositionStep;
 import icircles.gui.CirclesPanel;
@@ -187,33 +188,31 @@ public class DiagramCreator {
         RecompData rd = step.recomp_data.get(0);
         AbstractBasicRegion zone = rd.split_zones.get(0);
 
-        RecompositionStep last_step = r_steps.get(r_steps.size() - 1);
-        AbstractDescription last_diagram = last_step.to();
+        AbstractDescription finalDiagram = r_steps.get(r_steps.size() - 1).to();
 
-        AbstractCurve curve = rd.added_curve;
-        double suggested_radius = guideSizes.get(curve);
+        double suggestedRadius = guideSizes.get(rd.added_curve);
 
-        List<AbstractCurve> curves = new ArrayList<>();
-        for (RecompData rd2 : step.recomp_data) {
-            curve = rd2.added_curve;
-            curves.add(curve);
-        }
+        List<AbstractCurve> curves = step.recomp_data.stream()
+                .map(d -> d.added_curve)
+                .collect(Collectors.toList());
 
         // put contours into a zone
-        List<CircleContour> cs = findCircleContours(outerBox, SMALLEST_RADIUS, suggested_radius,
-                zone, last_diagram, curves);
+        List<CircleContour> contours = findCircleContours(outerBox, SMALLEST_RADIUS, suggestedRadius,
+                zone, finalDiagram, curves);
 
-        if (cs != null && cs.size() > 0) {
-            //DEB.assertCondition(cs.size() == step.recomp_data.size(), "not enough circles for rds");
+        if (contours != null && !contours.isEmpty()) {
+            if (contours.size() != step.recomp_data.size())
+                throw new CannotDrawException("Not enough circles for rds");
 
-            for (int i = 0; i < cs.size(); i++) {
-                CircleContour c = cs.get(i);
-                curve = step.recomp_data.get(i).added_curve;
+            for (int i = 0; i < contours.size(); i++) {
+                CircleContour contour = contours.get(i);
+                AbstractCurve curve = step.recomp_data.get(i).added_curve;
 
-                //DEB.assertCondition(c.ac.getLabel() == curve.getLabel(), "mismatched labels");
+                if (contour.ac.getLabel() != curve.getLabel())
+                    throw new CannotDrawException("Mismatched labels");
 
-                map.put(curve, c);
-                addCircle(c);
+                map.put(curve, contour);
+                addCircle(contour);
             }
             return true;
         }
@@ -572,7 +571,7 @@ public class DiagramCreator {
 
         BuildStep step = bs;
         while (step != null) {
-            log.trace("new build step");
+            log.trace("Build step begin");
             Rectangle2D.Double outerBox = CircleContour.makeBigOuterBox(circles);
             
             // we need to add the new curves with regard to their placement
@@ -612,7 +611,7 @@ public class DiagramCreator {
 
             step = step.next;
 
-            log.info("Step complete: " + circles);
+            log.info("Build step end: " + circles);
         }
     }
 
