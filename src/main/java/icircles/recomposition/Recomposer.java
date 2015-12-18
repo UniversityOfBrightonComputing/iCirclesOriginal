@@ -54,7 +54,7 @@ public class Recomposer {
                                                  Map<AbstractBasicRegion, AbstractBasicRegion> matchedZones) {
 
         AbstractCurve was_removed = decompStep.removed();
-        List<RecompData> added_contour_data = new ArrayList<>();
+        List<RecompositionData> added_contour_data = new ArrayList<>();
 
         // make a new Abstract Description
         Set<AbstractCurve> contours = new TreeSet<>();
@@ -63,7 +63,7 @@ public class Recomposer {
         List<AbstractBasicRegion> split_zone = new ArrayList<>();
         List<AbstractBasicRegion> added_zone = new ArrayList<>();
         split_zone.add(outside_zone);
-        added_contour_data.add(new RecompData(was_removed, split_zone, added_zone));
+        added_contour_data.add(new RecompositionData(was_removed, split_zone, added_zone));
 
         contours.add(was_removed);
         AbstractBasicRegion new_zone = AbstractBasicRegion.get(contours);
@@ -94,7 +94,7 @@ public class Recomposer {
             Map<AbstractBasicRegion, AbstractBasicRegion> matchedZones) {
 
         AbstractCurve was_removed = decompStep.removed();
-        List<RecompData> added_contour_data = new ArrayList<>();
+        List<RecompositionData> added_contour_data = new ArrayList<>();
 
         AbstractDescription from = previous.to();
 
@@ -143,7 +143,7 @@ public class Recomposer {
                 matchedZones.put(decomp_z.moved_in(was_removed), new_zone);
             }
 
-            added_contour_data.add(new RecompData(new_cont, split_zones, added_zones));
+            added_contour_data.add(new RecompositionData(new_cont, split_zones, added_zones));
         }
 
         AbstractDescription to = new AbstractDescription(new_cont_set, new_zone_set);

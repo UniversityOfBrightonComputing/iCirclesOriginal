@@ -3,14 +3,14 @@ package icircles.concrete;
 import java.util.ArrayList;
 import java.util.List;
 
-import icircles.recomposition.RecompData;
+import icircles.recomposition.RecompositionData;
 
 public class BuildStep {
 
-    public List<RecompData> recomp_data = new ArrayList<>();
+    public List<RecompositionData> recomp_data = new ArrayList<>();
     public BuildStep next = null;
 
-    BuildStep(RecompData rd) {
+    BuildStep(RecompositionData rd) {
         recomp_data.add(rd);
     }
 }

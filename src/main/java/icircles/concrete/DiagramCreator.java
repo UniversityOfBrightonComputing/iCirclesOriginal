@@ -12,7 +12,7 @@ import icircles.gui.CirclesPanel;
 import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
-import icircles.recomposition.RecompData;
+import icircles.recomposition.RecompositionData;
 import icircles.recomposition.RecompositionStep;
 import icircles.util.CannotDrawException;
 
@@ -159,9 +159,9 @@ public class DiagramCreator {
         BuildStep tail = null;
 
         for (RecompositionStep rs : r_steps) {
-            Iterator<RecompData> it = rs.getRecompIterator();
+            Iterator<RecompositionData> it = rs.getRecompIterator();
             while (it.hasNext()) {
-                RecompData rd = it.next();
+                RecompositionData rd = it.next();
                 BuildStep newOne = new BuildStep(rd);
                 if (head == null) {
                     head = newOne;
@@ -184,13 +184,13 @@ public class DiagramCreator {
      * @throws CannotDrawException
      */
     private boolean addSymmetricalNestedContours(BuildStep step, Rectangle2D.Double outerBox) throws CannotDrawException {
-        RecompData rd = step.recomp_data.get(0);
-        AbstractBasicRegion zone = rd.split_zones.get(0);
+        RecompositionData rd = step.recomp_data.get(0);
+        AbstractBasicRegion zone = rd.splitZones.get(0);
 
-        double suggestedRadius = guideSizes.get(rd.added_curve);
+        double suggestedRadius = guideSizes.get(rd.addedCurve);
 
         List<AbstractCurve> curves = step.recomp_data.stream()
-                .map(d -> d.added_curve)
+                .map(d -> d.addedCurve)
                 .collect(Collectors.toList());
 
         // put contours into a zone
@@ -203,7 +203,7 @@ public class DiagramCreator {
 
             for (int i = 0; i < contours.size(); i++) {
                 CircleContour contour = contours.get(i);
-                AbstractCurve curve = step.recomp_data.get(i).added_curve;
+                AbstractCurve curve = step.recomp_data.get(i).addedCurve;
 
                 if (contour.ac.getLabel() != curve.getLabel())
                     throw new CannotDrawException("Mismatched labels");
@@ -225,10 +225,10 @@ public class DiagramCreator {
      */
     private boolean addSymmetricalSinglePiercingContours(BuildStep step, Rectangle2D.Double outerBox) {
         // Look at the 1st 1-piercing
-        RecompData rd0 = step.recomp_data.get(0);
-        AbstractBasicRegion abr0 = rd0.split_zones.get(0);
-        AbstractBasicRegion abr1 = rd0.split_zones.get(1);
-        AbstractCurve piercingCurve = rd0.added_curve;
+        RecompositionData rd0 = step.recomp_data.get(0);
+        AbstractBasicRegion abr0 = rd0.splitZones.get(0);
+        AbstractBasicRegion abr1 = rd0.splitZones.get(1);
+        AbstractCurve piercingCurve = rd0.addedCurve;
 
         AbstractCurve pierced_ac = abr0.getStraddledContour(abr1);
         CircleContour pierced_cc = map.get(pierced_ac);
@@ -282,7 +282,7 @@ public class DiagramCreator {
             center_of_circle_lies_on_rad -= nudge;
         }
 
-        double guide_radius = guideSizes.get(step.recomp_data.get(0).added_curve);
+        double guide_radius = guideSizes.get(step.recomp_data.get(0).addedCurve);
         int sampleSize = (int) (Math.PI / Math.asin(guide_radius / pierced_cc.radius));
         if (sampleSize >= step.recomp_data.size()) {
             int num_ok = 0;
@@ -291,7 +291,7 @@ public class DiagramCreator {
                 double x = pierced_cc.cx + Math.cos(angle) * center_of_circle_lies_on_rad;
                 double y = pierced_cc.cy + Math.sin(angle) * center_of_circle_lies_on_rad;
                 if (a.contains(x, y)) {
-                    CircleContour sample = new CircleContour(x, y, guide_radius, step.recomp_data.get(0).added_curve);
+                    CircleContour sample = new CircleContour(x, y, guide_radius, step.recomp_data.get(0).addedCurve);
                     if (containedIn(sample, a)) {
                         num_ok++;
                     }
@@ -306,10 +306,10 @@ public class DiagramCreator {
                         double x = pierced_cc.cx + Math.cos(angle) * center_of_circle_lies_on_rad;
                         double y = pierced_cc.cy + Math.sin(angle) * center_of_circle_lies_on_rad;
                         if (a.contains(x, y)) {
-                            AbstractCurve added_curve = step.recomp_data.get(i).added_curve;
+                            AbstractCurve added_curve = step.recomp_data.get(i).addedCurve;
                             CircleContour c = new CircleContour(x, y, guide_radius, added_curve);
-                            abr0 = step.recomp_data.get(i).split_zones.get(0);
-                            abr1 = step.recomp_data.get(i).split_zones.get(1);
+                            abr0 = step.recomp_data.get(i).splitZones.get(0);
+                            abr1 = step.recomp_data.get(i).splitZones.get(1);
 
                             map.put(added_curve, c);
                             addCircle(c);
@@ -324,11 +324,11 @@ public class DiagramCreator {
                         double x = pierced_cc.cx + Math.cos(angle) * center_of_circle_lies_on_rad;
                         double y = pierced_cc.cy + Math.sin(angle) * center_of_circle_lies_on_rad;
                         if (a.contains(x, y)) {
-                            AbstractCurve added_curve = step.recomp_data.get(i).added_curve;
+                            AbstractCurve added_curve = step.recomp_data.get(i).addedCurve;
                             CircleContour c = new CircleContour(x, y, guide_radius, added_curve);
                             if (containedIn(c, a)) {
-                                abr0 = step.recomp_data.get(num_ok).split_zones.get(0);
-                                abr1 = step.recomp_data.get(num_ok).split_zones.get(1);
+                                abr0 = step.recomp_data.get(num_ok).splitZones.get(0);
+                                abr1 = step.recomp_data.get(num_ok).splitZones.get(1);
                                 map.put(added_curve, c);
                                 addCircle(c);
                                 num_ok++;
@@ -350,9 +350,9 @@ public class DiagramCreator {
     private boolean willPierce(BuildStep bs, AbstractCurve ac) {
         BuildStep future_bs = bs.next;
         while (future_bs != null) {
-            if (future_bs.recomp_data.get(0).split_zones.size() == 2) {
-                AbstractBasicRegion abr0 = future_bs.recomp_data.get(0).split_zones.get(0);
-                AbstractBasicRegion abr1 = future_bs.recomp_data.get(0).split_zones.get(1);
+            if (future_bs.recomp_data.get(0).splitZones.size() == 2) {
+                AbstractBasicRegion abr0 = future_bs.recomp_data.get(0).splitZones.get(0);
+                AbstractBasicRegion abr1 = future_bs.recomp_data.get(0).splitZones.get(1);
                 AbstractCurve ac_future = abr0.getStraddledContour(abr1);
                 if (ac_future == ac) {
                     return true;
@@ -364,7 +364,7 @@ public class DiagramCreator {
         return false;
     }
 
-    private void addNestedContour(BuildStep bs, AbstractCurve ac, RecompData rd,
+    private void addNestedContour(BuildStep bs, AbstractCurve ac, RecompositionData rd,
                                   Rectangle2D.Double outerBox) throws CannotDrawException {
 
         log.trace("Make a nested contour");
@@ -375,7 +375,7 @@ public class DiagramCreator {
 
         // make a circle inside containingCircles, outside excludingCirles.
 
-        AbstractBasicRegion zone = rd.split_zones.get(0);
+        AbstractBasicRegion zone = rd.splitZones.get(0);
 
         double suggestedRadius = guideSizes.get(ac);
 
@@ -387,11 +387,11 @@ public class DiagramCreator {
             throw new CannotDrawException("Cannot place nested contour");
         }
 
-        if (willPierce && rd.split_zones.get(0).getNumContours() > 0) {
+        if (willPierce && rd.splitZones.get(0).getNumContours() > 0) {
             // nudge to the left
             contour.cx -= contour.radius * 0.5;
 
-            ConcreteZone cz = makeConcreteZone(rd.split_zones.get(0));
+            ConcreteZone cz = makeConcreteZone(rd.splitZones.get(0));
             Area a = new Area(cz.getShape(outerBox));
             if (!containedIn(contour, a)) {
                 contour.cx += contour.radius * 0.25;
@@ -403,12 +403,12 @@ public class DiagramCreator {
         addCircle(contour);
     }
 
-    private void addSinglePiercingContour(AbstractCurve ac, RecompData rd, double suggested_radius,
+    private void addSinglePiercingContour(AbstractCurve ac, RecompositionData rd, double suggested_radius,
                                           Rectangle2D.Double outerBox) throws CannotDrawException {
         log.trace("Make a single-piercing contour");
 
-        AbstractBasicRegion abr0 = rd.split_zones.get(0);
-        AbstractBasicRegion abr1 = rd.split_zones.get(1);
+        AbstractBasicRegion abr0 = rd.splitZones.get(0);
+        AbstractBasicRegion abr1 = rd.splitZones.get(1);
         AbstractCurve c = abr0.getStraddledContour(abr1);
         CircleContour cc = map.get(c);
         ConcreteZone cz0 = makeConcreteZone(abr0);
@@ -434,7 +434,7 @@ public class DiagramCreator {
         for (AbstractBasicRegion zone : allZones) {
             log.info("compare " + zone + " against " + c);
 
-            if (!zone.contains(rd.added_curve))
+            if (!zone.contains(rd.addedCurve))
                 continue;
 
             log.info("OK. " + zone + " is in " + c + ", so compare against " + cc.toDebugString());
@@ -475,7 +475,7 @@ public class DiagramCreator {
                 // how big a circle can we make?
                 double start_radius = SMALLEST_RADIUS + (solution != null ? solution.radius : 0);
 
-                CircleContour attempt = growCircleContour(a, rd.added_curve,
+                CircleContour attempt = growCircleContour(a, rd.addedCurve,
                         x, y,
                         suggested_radius,
                         start_radius,
@@ -496,19 +496,19 @@ public class DiagramCreator {
             throw new CannotDrawException("1-piercing no fit");
         } else {
             log.trace("Added a single piercing labelled " + solution.ac.getLabel());
-            map.put(rd.added_curve, solution);
+            map.put(rd.addedCurve, solution);
             addCircle(solution);
         }
     }
 
-    private void addDoublePiercingContour(RecompData rd, double suggested_radius,
+    private void addDoublePiercingContour(RecompositionData rd, double suggested_radius,
                                           Rectangle2D.Double outerBox) throws CannotDrawException {
         log.trace("Make a double-piercing contour");
 
-        AbstractBasicRegion abr0 = rd.split_zones.get(0);
-        AbstractBasicRegion abr1 = rd.split_zones.get(1);
-        AbstractBasicRegion abr2 = rd.split_zones.get(2);
-        AbstractBasicRegion abr3 = rd.split_zones.get(3);
+        AbstractBasicRegion abr0 = rd.splitZones.get(0);
+        AbstractBasicRegion abr1 = rd.splitZones.get(1);
+        AbstractBasicRegion abr2 = rd.splitZones.get(2);
+        AbstractBasicRegion abr3 = rd.splitZones.get(3);
         AbstractCurve c1 = abr0.getStraddledContour(abr1);
         AbstractCurve c2 = abr0.getStraddledContour(abr2);
         CircleContour cc1 = map.get(c1);
@@ -545,7 +545,7 @@ public class DiagramCreator {
             throw new CannotDrawException("2piercing + disjoint");
         }
 
-        CircleContour solution = growCircleContour(a, rd.added_curve, cx, cy,
+        CircleContour solution = growCircleContour(a, rd.addedCurve, cx, cy,
                 suggested_radius, SMALLEST_RADIUS, SMALLEST_RADIUS);
 
         // no double piercing found which was OK
@@ -553,7 +553,7 @@ public class DiagramCreator {
             throw new CannotDrawException("2piercing no fit");
         } else {
             log.trace("Added a double piercing labelled " + solution.ac.getLabel());
-            map.put(rd.added_curve, solution);
+            map.put(rd.addedCurve, solution);
             addCircle(solution);
         }
     }
@@ -571,7 +571,7 @@ public class DiagramCreator {
             // we need to add the new curves with regard to their placement
             // relative to the existing ones in the map
             if (step.recomp_data.size() > 1) {
-                if (step.recomp_data.get(0).split_zones.size() == 1) {
+                if (step.recomp_data.get(0).isNested()) {
                     // we have a symmetry of nested contours.
                     // try to add them together
                     boolean skip = addSymmetricalNestedContours(step, outerBox);
@@ -579,7 +579,7 @@ public class DiagramCreator {
                         step = step.next;
                         continue;
                     }
-                } else if (step.recomp_data.get(0).split_zones.size() == 2) {
+                } else if (step.recomp_data.get(0).isSinglePiercing()) {
                     // we have a symmetry of 1-piercings.
                     // try to add them together
                     boolean skip = addSymmetricalSinglePiercingContours(step, outerBox);
@@ -591,12 +591,12 @@ public class DiagramCreator {
             }
 
             // next RecompData in the BuildStep
-            for (RecompData rd : step.recomp_data) {
-                AbstractCurve ac = rd.added_curve;
+            for (RecompositionData rd : step.recomp_data) {
+                AbstractCurve ac = rd.addedCurve;
                 double suggested_radius = guideSizes.get(ac);
-                if (rd.split_zones.size() == 1) {
+                if (rd.isNested()) {
                     addNestedContour(bs, ac, rd, outerBox);
-                } else if (rd.split_zones.size() == 2) {
+                } else if (rd.isSinglePiercing()) {
                     addSinglePiercingContour(ac, rd, suggested_radius, outerBox);
                 } else {
                     addDoublePiercingContour(rd, suggested_radius, outerBox);
@@ -615,22 +615,22 @@ public class DiagramCreator {
      * @param bs build steps
      */
     private void combineNestedContourSteps(BuildStep bs) {
-        RecompData rd = bs.recomp_data.get(0);
-        AbstractBasicRegion abr = rd.split_zones.get(0);
+        RecompositionData rd = bs.recomp_data.get(0);
+        AbstractBasicRegion abr = rd.splitZones.get(0);
 
         // look ahead - are there other similar nested additions?
         // loop through futurebs's to see if we insert another
         BuildStep beforefuturebs = bs;
         while (beforefuturebs != null && beforefuturebs.next != null) {
-            RecompData rd2 = beforefuturebs.next.recomp_data.get(0);
-            if (rd2.split_zones.size() == 1) {
-                AbstractBasicRegion abr2 = rd2.split_zones.get(0);
+            RecompositionData rd2 = beforefuturebs.next.recomp_data.get(0);
+            if (rd2.splitZones.size() == 1) {
+                AbstractBasicRegion abr2 = rd2.splitZones.get(0);
                 if (abr.isLabelEquivalent(abr2)) {
                     log.trace("Found matching abrs " + abr + ", " + abr2);
 
                     // check scores match
-                    double abrScore = contourScores.get(rd.added_curve);
-                    double abrScore2 = contourScores.get(rd2.added_curve);
+                    double abrScore = contourScores.get(rd.addedCurve);
+                    double abrScore2 = contourScores.get(rd2.addedCurve);
 
                     if (!(abrScore > 0 && abrScore2 > 0))
                         throw new RuntimeException("Zones must have score");
@@ -656,26 +656,26 @@ public class DiagramCreator {
      * @param bs build steps
      */
     private void combineSinglePiercingSteps(BuildStep bs) {
-        RecompData rd = bs.recomp_data.get(0);
-        AbstractBasicRegion abr1 = rd.split_zones.get(0);
-        AbstractBasicRegion abr2 = rd.split_zones.get(1);
+        RecompositionData rd = bs.recomp_data.get(0);
+        AbstractBasicRegion abr1 = rd.splitZones.get(0);
+        AbstractBasicRegion abr2 = rd.splitZones.get(1);
 
         // look ahead - are there other similar 1-piercings?
         // loop through futurebs's to see if we insert another
         BuildStep beforefuturebs = bs;
         while (beforefuturebs != null && beforefuturebs.next != null) {
-            RecompData rd2 = beforefuturebs.next.recomp_data.get(0);
-            if (rd2.split_zones.size() == 2) {
-                AbstractBasicRegion abr3 = rd2.split_zones.get(0);
-                AbstractBasicRegion abr4 = rd2.split_zones.get(1);
+            RecompositionData rd2 = beforefuturebs.next.recomp_data.get(0);
+            if (rd2.splitZones.size() == 2) {
+                AbstractBasicRegion abr3 = rd2.splitZones.get(0);
+                AbstractBasicRegion abr4 = rd2.splitZones.get(1);
                 if ((abr1.isLabelEquivalent(abr3) && abr2.isLabelEquivalent(abr4))
                         || (abr1.isLabelEquivalent(abr4) && abr2.isLabelEquivalent(abr3))) {
 
                     log.trace("Found matching abrs " + abr1 + ", " + abr2);
 
                     // check scores match
-                    double abrScore = contourScores.get(rd.added_curve);
-                    double abrScore2 = contourScores.get(rd2.added_curve);
+                    double abrScore = contourScores.get(rd.addedCurve);
+                    double abrScore2 = contourScores.get(rd2.addedCurve);
 
                     if (!(abrScore > 0 && abrScore2 > 0))
                         throw new RuntimeException("Zones must have score");
@@ -702,13 +702,13 @@ public class DiagramCreator {
             if (bs.recomp_data.size() != 1)
                 throw new RuntimeException("Not ready for multistep");
 
-            RecompData rd = bs.recomp_data.get(0);
+            RecompositionData rd = bs.recomp_data.get(0);
 
-            if (rd.split_zones.size() == 1) {
+            if (rd.splitZones.size() == 1) {
                 // we are adding a nested contour
                 combineNestedContourSteps(bs);
             }
-            else if (rd.split_zones.size() == 2) {
+            else if (rd.splitZones.size() == 2) {
                 // we are adding a 1-piercing
                 combineSinglePiercingSteps(bs);
             }
