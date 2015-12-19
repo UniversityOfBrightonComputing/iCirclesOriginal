@@ -6,6 +6,7 @@ import icircles.concrete.ConcreteZone;
 import icircles.geometry.Rectangle;
 import icircles.gui.Renderer;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
@@ -14,21 +15,47 @@ import java.awt.geom.Rectangle2D;
 /**
  * @author Almas Baimagambetov (AlmasB) (almaslvl@gmail.com)
  */
-public class SwingRenderer implements Renderer {
+public class SwingRenderer extends JPanel implements Renderer {
 
     private Graphics2D g;
 
-    public SwingRenderer(Graphics2D g) {
-        this.g = g;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    private ConcreteDiagram lastDrawnDiagram;
+
+    public SwingRenderer() {
+        setBackground(Color.WHITE);
+    }
+
+    @Override
+    public void paint(Graphics g) {
+        this.g = (Graphics2D)g;
+        this.g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        this.g.setStroke(new BasicStroke(2));
+
+        System.out.println("repaint1");
+
+        super.paint(g);
+        drawImpl(lastDrawnDiagram);
     }
 
     @Override
     public void draw(ConcreteDiagram diagram) {
+        lastDrawnDiagram = diagram;
+        Rectangle2D.Double bbox = toSwingRectangle(diagram.getBoundingBox());
+
+        setPreferredSize(new Dimension((int)bbox.getWidth() + 5, (int)bbox.getHeight() + 5));
+
+        repaint();
+    }
+
+    private void drawImpl(ConcreteDiagram diagram) {
+        System.out.println("repaint2");
         Rectangle2D.Double bbox = toSwingRectangle(diagram.getBoundingBox());
 
         for (ConcreteZone zone : diagram.getShadedZones())
             drawShadedZone(zone, bbox);
+
+        for (CircleContour contour : diagram.getCircles())
+            drawContour(contour);
     }
 
     private void drawShadedZone(ConcreteZone zone, Rectangle2D.Double bbox) {
@@ -44,6 +71,24 @@ public class SwingRenderer implements Renderer {
 
         g.setColor(Color.LIGHT_GRAY);
         g.fill(area);
+    }
+
+    private void drawContour(CircleContour contour) {
+        g.setColor(Color.BLUE);
+
+        double radius = contour.getRadius();
+        double x = contour.getCenterX() - radius;
+        double y = contour.getCenterY() - radius;
+        double w = 2 * radius;
+        double h = 2 * radius;
+
+        Ellipse2D.Double circle = new Ellipse2D.Double(x, y, w, h);
+
+        g.draw(circle);
+
+        // draw label
+        g.setColor(Color.BLACK);
+        g.drawString(contour.ac.getLabel().getLabel(), (int) contour.getLabelXPosition(), (int) contour.getLabelYPosition());
     }
 
     private Rectangle2D.Double toSwingRectangle(Rectangle rectangle) {

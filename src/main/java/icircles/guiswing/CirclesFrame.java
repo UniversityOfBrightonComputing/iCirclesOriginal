@@ -157,8 +157,11 @@ public class CirclesFrame extends JFrame {
 
         JPanel p = new JPanel();
 
+        private SwingRenderer renderer = new SwingRenderer();
+
         ResultPanel() {
             p.setLayout(new BorderLayout());
+            p.add(renderer, BorderLayout.CENTER);
         }
 
         JPanel getPanel() {
@@ -170,12 +173,8 @@ public class CirclesFrame extends JFrame {
                 ConcreteDiagram cd,
                 int SIZE,
                 boolean useColors) {
-            JPanel jp = new CirclesPanel(description, failureMessage, cd, SIZE, useColors);
-            p.removeAll();
-            p.invalidate();
-            p.add(jp);
-            p.revalidate();
-            getContentPane().repaint();
+
+            renderer.draw(cd);
         }
     }
 

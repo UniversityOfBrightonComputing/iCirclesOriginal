@@ -106,62 +106,7 @@ public class CirclesPanel extends JPanel {
             // draw the diagram
             super.paint(g);
 
-            // draw shaded zones
 
-//            g.setColor(Color.lightGray);
-//            List<ConcreteZone> zones = diagram.getShadedZones();
-//            for (ConcreteZone z : zones) {
-//                ((Graphics2D) g).fill(z.getShape(diagram.getBox()));
-//            }
-
-            ((Graphics2D) g).setStroke(new BasicStroke(2));
-            List<CircleContour> circles = diagram.getCircles();
-
-            // draw curve contours
-
-            for (CircleContour contour : circles) {
-
-                if (useColors) {
-                    Color col = labelsToColours.get(contour.ac.getLabel());
-                    if (col == null) {
-                        col = Color.black;
-                    }
-                    g.setColor(col);
-                } else {
-                    g.setColor(Color.black);
-                }
-
-                double radius = contour.getRadius();
-                double x = contour.getCenterX() - radius;
-                double y = contour.getCenterY() - radius;
-                double w = 2 * radius;
-                double h = 2 * radius;
-
-                Ellipse2D.Double circle = new Ellipse2D.Double(x, y, w, h);
-
-                ((Graphics2D) g).draw(circle);
-            }
-
-            // draw labels
-
-            for (CircleContour cc : circles) {
-            	if (cc.ac.getLabel() == null)
-            		continue;
-
-                if (useColors) {
-                    Color col = labelsToColours.get(cc.ac.getLabel());
-                    if (col == null) {
-                        col = Color.black;
-                    }
-                    g.setColor(col);
-                } else {
-                    g.setColor(Color.black);
-                }
-
-                ((Graphics2D) g).drawString(cc.ac.getLabel().getLabel(),
-                        (int) cc.getLabelXPosition(),
-                        (int) cc.getLabelYPosition());
-            }
         }
     }
 }
