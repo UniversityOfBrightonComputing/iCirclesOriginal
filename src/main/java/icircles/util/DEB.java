@@ -1,5 +1,8 @@
 package icircles.util;
 
+import icircles.concrete.CircleContour;
+import icircles.concrete.ConcreteDiagram;
+import icircles.concrete.ConcreteZone;
 import icircles.guiswing.CirclesPanel;
 
 import javax.swing.*;
@@ -11,12 +14,30 @@ public class DEB {
     public static int level = 0; // DO NOT CHANGE HERE - change in code with main e.g. test harness
     
     private static ArrayList<CirclesPanel> filmStripShots = new ArrayList<CirclesPanel>();
+
+    // this has been refactored from DiagramCreator, it seems to have been used for
+    // showing individual frames
+//    private void DEB_show_frame(int deb_level, int debug_frame_index, int size) {
+//        // build a ConcreteDiagram for the current collection of circles
+//        ArrayList<ConcreteZone> shadedZones = new ArrayList<ConcreteZone>();
+//
+//        ArrayList<CircleContour> circles_copy = new ArrayList<CircleContour>();
+//        for(CircleContour c : circles) {
+//            circles_copy.add(new CircleContour(c));
+//        }
+//        CircleContour.fitCirclesToSize(circles_copy, size);
+//        ConcreteDiagram cd = new ConcreteDiagram(new icircles.geometry.Rectangle(0, 0, size, size),
+//                circles_copy, shadedZones);
+//        CirclesPanel cp = new CirclesPanel("toDebugString frame "+debug_frame_index, "no failure",
+//                cd, size, true);
+//        //DEB.addFilmStripShot(cp);
+//    }
+
     public static void addFilmStripShot(CirclesPanel cp)
     {
     	filmStripShots.add(cp);
     }
-    public static void showFilmStrip()
-    {
+    public static void showFilmStrip() {
     	if(filmStripShots.size()==0)
     		return;
     	

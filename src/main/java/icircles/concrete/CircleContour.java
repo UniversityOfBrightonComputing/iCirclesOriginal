@@ -1,19 +1,14 @@
 package icircles.concrete;
 
 import icircles.abstractdescription.AbstractCurve;
+import icircles.geometry.Rectangle;
 
-import java.awt.*;
-import java.awt.geom.Area;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.Rectangle2D;
 import java.util.List;
 
 /**
  * Concrete form of AbstractCurve.
  */
 public class CircleContour {
-
-    private Ellipse2D.Double circle;
     double centerX;
     double centerY;
     double radius;
@@ -37,17 +32,7 @@ public class CircleContour {
         this.centerY = centerY;
         this.radius = radius;
         this.ac = ac;
-        circle = makeEllipse(centerX, centerY, radius);
     }
-
-    /**
-     * Copy constructor.
-     *
-     * @param contour other contour
-     */
-    public CircleContour(CircleContour contour) {
-        this(contour.centerX, contour.centerY, contour.radius, contour.ac);
-	}
 
     /**
      * @return center x
@@ -78,34 +63,12 @@ public class CircleContour {
     private void shift(double x, double y) {
         centerX += x;
         centerY += y;
-        circle = makeEllipse(centerX, centerY, radius);
     }
 
     private void scaleAboutZero(double scale) {
         centerX *= scale;
         centerY *= scale;
         radius *= scale;
-        circle = makeEllipse(centerX, centerY, radius);
-    }
-
-    private Ellipse2D.Double makeEllipse(double x, double y, double r) {
-        return new Ellipse2D.Double(x - r, y - r, 2 * r, 2 * r);
-    }
-
-    public Ellipse2D.Double getCircle() {
-        return circle;
-    }
-
-    public Area getBigInterior() {
-        return new Area(makeEllipse(centerX, centerY, radius + nudge));
-    }
-
-    public Area getSmallInterior() {
-        return new Area(makeEllipse(centerX, centerY, radius - nudge));
-    }
-
-    public Shape getFatInterior(double fatter) {
-        return new Area(makeEllipse(centerX, centerY, radius + fatter));
     }
 
     public double getLabelXPosition() {
@@ -182,9 +145,9 @@ public class CircleContour {
         }
     }
 
-    static Rectangle2D.Double makeBigOuterBox(List<CircleContour> circles) {
+    static Rectangle makeBigOuterBox(List<CircleContour> circles) {
     	if (circles.isEmpty())
-    		return new Rectangle2D.Double(0, 0, 1000, 1000);
+    		return new Rectangle(0, 0, 1000, 1000);
     	
         // work out a suitable size
         int minX = Integer.MAX_VALUE;
@@ -208,6 +171,6 @@ public class CircleContour {
         int width = maxX - minX;
         int height = maxY - minX;
         
-        return new Rectangle2D.Double(minX - 2*width, minY - 2*height, 5*width, 5*height);
+        return new Rectangle(minX - 2*width, minY - 2*height, 5*width, 5*height);
     }
 }

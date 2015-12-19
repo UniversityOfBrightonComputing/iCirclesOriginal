@@ -7,6 +7,7 @@ import icircles.concrete.ConcreteZone;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.Ellipse2D;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,8 +88,8 @@ public class CirclesPanel extends JPanel {
             this.failureMessage = failureMessage;
             this.useColors = useColors;
             if (diagram != null) {
-                setPreferredSize(new Dimension((int) (diagram.getBox().width) + 5,
-                        (int) (diagram.getBox().height) + 5));
+                setPreferredSize(new Dimension((int) (diagram.getBoundingBox().getWidth()) + 5,
+                        (int) (diagram.getBoundingBox().getHeight()) + 5));
             }
         }
 
@@ -118,10 +119,10 @@ public class CirclesPanel extends JPanel {
 
             // draw curve contours
 
-            for (CircleContour cc : circles) {
+            for (CircleContour contour : circles) {
 
                 if (useColors) {
-                    Color col = labelsToColours.get(cc.ac.getLabel());
+                    Color col = labelsToColours.get(contour.ac.getLabel());
                     if (col == null) {
                         col = Color.black;
                     }
@@ -130,7 +131,15 @@ public class CirclesPanel extends JPanel {
                     g.setColor(Color.black);
                 }
 
-                ((Graphics2D) g).draw(cc.getCircle());
+                double radius = contour.getRadius();
+                double x = contour.getCenterX() - radius;
+                double y = contour.getCenterY() - radius;
+                double w = 2 * radius;
+                double h = 2 * radius;
+
+                Ellipse2D.Double circle = new Ellipse2D.Double(x, y, w, h);
+
+                ((Graphics2D) g).draw(circle);
             }
 
             // draw labels

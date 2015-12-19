@@ -4,6 +4,7 @@ import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
 import icircles.decomposition.DecompositionStep;
+import icircles.geometry.*;
 import icircles.guiswing.CirclesPanel;
 import icircles.recomposition.RecompositionData;
 import icircles.recomposition.RecompositionStep;
@@ -12,6 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.awt.*;
+import java.awt.Rectangle;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
@@ -66,7 +68,7 @@ public class DiagramCreator {
         CircleContour.fitCirclesToSize(circles, size);
 
         List<ConcreteZone> shadedZones = createShadedZones();
-        return new ConcreteDiagram(new Rectangle2D.Double(0, 0, size, size), circles, shadedZones);
+        return new ConcreteDiagram(new icircles.geometry.Rectangle(0, 0, size, size), circles, shadedZones);
     }
 
     private void makeGuideSizes() {
@@ -568,7 +570,9 @@ public class DiagramCreator {
         BuildStep step = bs;
         while (step != null) {
             log.trace("Build step begin");
-            Rectangle2D.Double outerBox = CircleContour.makeBigOuterBox(circles);
+
+            icircles.geometry.Rectangle bbox = CircleContour.makeBigOuterBox(circles);
+            Rectangle2D.Double outerBox = new Rectangle2D.Double(bbox.getX(), bbox.getY(), bbox.getWidth(), bbox.getHeight());
             
             // we need to add the new curves with regard to their placement
             // relative to the existing ones in the map
@@ -1202,28 +1206,9 @@ public class DiagramCreator {
     }
 
     private boolean containedIn(CircleContour c, Area a) {
-        Area test = new Area(c.getFatInterior(SMALLEST_RADIUS));
+        Area test = new Area(makeEllipse(c.getCenterX(), c.getCenterY(), c.getRadius() + SMALLEST_RADIUS));
         test.subtract(a);
         return test.isEmpty();
-    }
-
-    private void DEB_show_frame(int deb_level, int debug_frame_index, int size) {
-//		if(DEB.level<deb_level)
-//			return;
-		
-		// build a ConcreteDiagram for the current collection of circles
-		ArrayList<ConcreteZone> shadedZones = new ArrayList<ConcreteZone>();
-		
-		ArrayList<CircleContour> circles_copy = new ArrayList<CircleContour>();
-		for(CircleContour c : circles) {
-			circles_copy.add(new CircleContour(c));
-		}
-        CircleContour.fitCirclesToSize(circles_copy, size);
-		ConcreteDiagram cd = new ConcreteDiagram(new Rectangle2D.Double(0, 0, size, size),
-	            circles_copy, shadedZones);
-	    CirclesPanel cp = new CirclesPanel("toDebugString frame "+debug_frame_index, "no failure",
-	    		cd, size, true);
-	    //DEB.addFilmStripShot(cp);
     }
 
     /**

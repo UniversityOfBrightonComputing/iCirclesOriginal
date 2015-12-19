@@ -1,6 +1,8 @@
 package icircles.geometry;
 
 /**
+ * Immutable 2D rectangle data.
+ *
  * @author Almas Baimagambetov (AlmasB) (almaslvl@gmail.com)
  */
 public final class Rectangle {
@@ -27,5 +29,10 @@ public final class Rectangle {
 
     public double getHeight() {
         return height;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Rect[%.0f, %.0f, %.0f, %.0f]", x, y, width, height);
     }
 }

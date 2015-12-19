@@ -10,7 +10,6 @@ import icircles.recomposition.RecompositionStep;
 import icircles.recomposition.RecompositionType;
 import icircles.util.CannotDrawException;
 
-import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 import java.util.List;
 
@@ -20,13 +19,11 @@ import java.util.List;
  */
 public class ConcreteDiagram {
 
-    private Rectangle2D.Double box;
-    private List<CircleContour> circles;
-    private List<ConcreteZone> shadedZones;
+    private final Rectangle box;
+    private final List<CircleContour> circles;
+    private final List<ConcreteZone> shadedZones;
 
-    public ConcreteDiagram(Rectangle2D.Double box,
-            List<CircleContour> circles,
-            List<ConcreteZone> shadedZones) {
+    public ConcreteDiagram(Rectangle box, List<CircleContour> circles, List<ConcreteZone> shadedZones) {
         this.box = box;
         this.circles = circles;
         this.shadedZones = shadedZones;
@@ -61,12 +58,8 @@ public class ConcreteDiagram {
     /**
      * @return bounding box of the whole diagram
      */
-    public Rectangle2D.Double getBox() {
-        return box;
-    }
-
     public Rectangle getBoundingBox() {
-        return new Rectangle(box.getX(), box.getY(), box.getWidth(), box.getHeight());
+        return box;
     }
 
     /**
