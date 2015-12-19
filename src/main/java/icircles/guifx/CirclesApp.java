@@ -1,5 +1,6 @@
 package icircles.guifx;
 
+import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
 import icircles.concrete.CircleContour;
 import icircles.concrete.ConcreteDiagram;
@@ -30,6 +31,7 @@ import org.apache.logging.log4j.core.config.Configurator;
 
 import java.awt.geom.Ellipse2D;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Almas Baimagambetov (AlmasB) (almaslvl@gmail.com)
@@ -79,18 +81,6 @@ public class CirclesApp extends Application {
         return vbox;
     }
 
-    private void findDuplicates(List<CircleContour> contours) {
-        for (int i = 0; i < contours.size(); i++) {
-            CircleContour contour = contours.get(i);
-            for (int j = i + 1; j < contours.size(); j++) {
-                CircleContour contour2 = contours.get(j);
-                if (contour.ac.getLabel().getLabel().equals(contour2.ac.getLabel().getLabel())) {
-                    System.out.println("Found duplicate curve label: " + contour.ac.getLabel().getLabel());
-                }
-            }
-        }
-    }
-
     private void draw(String description) {
         try {
             System.out.println(new AbstractDescription(description).toDebugString());
@@ -101,7 +91,15 @@ public class CirclesApp extends Application {
                     recompBox.getValue());
 
             System.out.println(diagram);
-            findDuplicates(diagram.getCircles());
+
+            Map<AbstractCurve, List<CircleContour> > duplicates = diagram.findDuplicateContours();
+
+            log.trace("Duplicates: " + duplicates);
+            duplicates.values().forEach(contours -> {
+                for (CircleContour contour : contours) {
+                    log.trace("Contour " + contour + " is in " + diagram.getZonesContainingContour(contour));
+                }
+            });
 
             renderer.draw(diagram);
         } catch (CannotDrawException e) {

@@ -1,6 +1,8 @@
 package icircles.concrete;
 
+import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
+import icircles.abstractdescription.CurveLabel;
 import icircles.decomposition.Decomposer;
 import icircles.decomposition.DecompositionStep;
 import icircles.decomposition.DecompositionType;
@@ -10,8 +12,8 @@ import icircles.recomposition.RecompositionStep;
 import icircles.recomposition.RecompositionType;
 import icircles.util.CannotDrawException;
 
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Represents a diagram at the concrete level.
@@ -21,12 +23,19 @@ public class ConcreteDiagram {
 
     private final Rectangle box;
     private final List<CircleContour> circles;
-    private final List<ConcreteZone> shadedZones;
+    private final List<ConcreteZone> shadedZones, allZones;
 
-    public ConcreteDiagram(Rectangle box, List<CircleContour> circles, List<ConcreteZone> shadedZones) {
+    private AbstractDescription original, actual;
+
+    public ConcreteDiagram(AbstractDescription original, AbstractDescription actual,
+                           Rectangle box, List<CircleContour> circles,
+                           List<ConcreteZone> allZones, List<ConcreteZone> shadedZones) {
+        this.original = original;
+        this.actual = actual;
         this.box = box;
         this.circles = circles;
         this.shadedZones = shadedZones;
+        this.allZones = allZones;
     }
 
     /**
@@ -53,6 +62,9 @@ public class ConcreteDiagram {
         this.box = diagram.box;
         this.circles = diagram.circles;
         this.shadedZones = diagram.shadedZones;
+        this.original = diagram.original;
+        this.actual = diagram.actual;
+        this.allZones = diagram.allZones;
     }
 
     /**
@@ -74,6 +86,63 @@ public class ConcreteDiagram {
      */
     public List<ConcreteZone> getShadedZones() {
         return shadedZones;
+    }
+
+    /**
+     * Returns original abstract description, i.e. the one that was requested.
+     *
+     * @return original abstract description
+     */
+    public AbstractDescription getOriginalDescription() {
+        return original;
+    }
+
+    /**
+     * Returns actual abstract description, i.e. the one that was generated.
+     *
+     * @return actual abstract description
+     */
+    public AbstractDescription getActualDescription() {
+        return actual;
+    }
+
+    /**
+     * @return all zones this concrete diagram has
+     */
+    public List<ConcreteZone> getAllZones() {
+        return allZones;
+    }
+
+    /**
+     * Returns a map, where keys are abstract curves that map to all concrete contours
+     * for that curve. The map only contains duplicates, i.e. it won't contain a curve
+     * which only maps to a single contour.
+     *
+     * @return duplicate contours
+     */
+    public Map<AbstractCurve, List<CircleContour> > findDuplicateContours() {
+        Map<String, List<CircleContour> > groups = circles.stream()
+                .collect(Collectors.groupingBy(contour -> contour.ac.getLabel().getLabel()));
+
+        Map<AbstractCurve, List<CircleContour> > duplicates = new TreeMap<>();
+        groups.forEach((label, contours) -> {
+            if (contours.size() > 1)
+                duplicates.put(new AbstractCurve(CurveLabel.get(label)), contours);
+        });
+
+        return duplicates;
+    }
+
+    /**
+     * Returns zones in the drawn diagram that contain the given contour.
+     *
+     * @param contour the contour
+     * @return zones containing contour
+     */
+    public List<ConcreteZone> getZonesContainingContour(CircleContour contour) {
+        return allZones.stream()
+                .filter(zone -> zone.getContainingCircles().contains(contour))
+                .collect(Collectors.toList());
     }
 
     public static double checksum(List<CircleContour> circles) {

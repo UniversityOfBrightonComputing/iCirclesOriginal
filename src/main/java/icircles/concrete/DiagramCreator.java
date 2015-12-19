@@ -4,15 +4,13 @@ import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
 import icircles.decomposition.DecompositionStep;
-import icircles.geometry.*;
-import icircles.guiswing.CirclesPanel;
+
 import icircles.recomposition.RecompositionData;
 import icircles.recomposition.RecompositionStep;
 import icircles.util.CannotDrawException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.awt.*;
 import java.awt.Rectangle;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
@@ -68,7 +66,9 @@ public class DiagramCreator {
         CircleContour.fitCirclesToSize(circles, size);
 
         List<ConcreteZone> shadedZones = createShadedZones();
-        return new ConcreteDiagram(new icircles.geometry.Rectangle(0, 0, size, size), circles, shadedZones);
+        return new ConcreteDiagram(getInitialDiagram(), getFinalDiagram(),
+                new icircles.geometry.Rectangle(0, 0, size, size), circles,
+                getFinalDiagram().getCopyOfZones().stream().map(this::makeConcreteZone).collect(Collectors.toList()), shadedZones);
     }
 
     private void makeGuideSizes() {
@@ -123,7 +123,7 @@ public class DiagramCreator {
             return result;
         }
 
-        AbstractDescription initialDiagram = d_steps.get(0).from();
+        AbstractDescription initialDiagram = getInitialDiagram();
         AbstractDescription finalDiagram = getFinalDiagram();
 
         log.trace("Initial diagram zones: " + initialDiagram);
@@ -1211,10 +1211,20 @@ public class DiagramCreator {
         return test.isEmpty();
     }
 
+    private AbstractDescription getInitialDiagram() {
+        if (d_steps.isEmpty())
+            return new AbstractDescription("");
+
+        return d_steps.get(0).from();
+    }
+
     /**
      * @return target abstract description of the last recomposition step
      */
     private AbstractDescription getFinalDiagram() {
+        if (r_steps.isEmpty())
+            return new AbstractDescription("");
+
         return r_steps.get(r_steps.size() - 1).to();
     }
 
