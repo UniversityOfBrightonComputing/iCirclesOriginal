@@ -10,7 +10,7 @@ import icircles.concrete.DiagramCreator;
 import icircles.decomposition.Decomposer;
 import icircles.decomposition.DecompositionStep;
 import icircles.decomposition.DecompositionType;
-import icircles.guiswing.CirclesPanel;
+import icircles.guiswing.SwingRenderer;
 import icircles.recomposition.Recomposer;
 import icircles.recomposition.RecompositionStep;
 import icircles.recomposition.RecompositionType;
@@ -310,7 +310,7 @@ public class TestCode {
         try {
             cd = getDiagram(test_num, d_steps, r_steps, size);
         } catch (CannotDrawException x) {
-            failureMessage = x.message;
+            failureMessage = x.getMessage();
         }
         int number_for_display = 0;
         if(TestData.TEST_EULER_THREE)
@@ -322,9 +322,9 @@ public class TestCode {
             description = "" + number_for_display + ".description..";
         }
 
-        JPanel jp = new CirclesPanel(description, failureMessage, cd, size,
-                true);// do use colours
-        return jp;
+        SwingRenderer renderer = new SwingRenderer();
+        renderer.draw(cd);
+        return renderer;
     }
 
     private static ConcreteDiagram getDiagram(int test_num,

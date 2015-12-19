@@ -31,8 +31,6 @@ public class SwingRenderer extends JPanel implements Renderer {
         this.g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         this.g.setStroke(new BasicStroke(2));
 
-        System.out.println("repaint1");
-
         super.paint(g);
         drawImpl(lastDrawnDiagram);
     }
@@ -48,7 +46,6 @@ public class SwingRenderer extends JPanel implements Renderer {
     }
 
     private void drawImpl(ConcreteDiagram diagram) {
-        System.out.println("repaint2");
         Rectangle2D.Double bbox = toSwingRectangle(diagram.getBoundingBox());
 
         for (ConcreteZone zone : diagram.getShadedZones())

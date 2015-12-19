@@ -36,10 +36,6 @@ import java.util.List;
  */
 public class CirclesApp extends Application {
 
-    static {
-        Configurator.initialize("default", CirclesApp.class.getResource("/icircles/log4j2.xml").toExternalForm());
-    }
-
     private static final Logger log = LogManager.getLogger(CirclesApp.class);
 
     private FXRenderer renderer = new FXRenderer();
@@ -62,11 +58,9 @@ public class CirclesApp extends Application {
         input.setOnAction(e -> draw(input.getText()));
 
         pane.widthProperty().addListener((observable, oldValue, newValue) -> {
-            //renderer.setCanvasSize(newValue.doubleValue(), renderer.getHeight());
             draw(input.getText());
         });
         pane.heightProperty().addListener((observable, oldValue, newValue) -> {
-            //renderer.setCanvasSize(renderer.getWidth(), newValue.doubleValue());
             draw(input.getText());
         });
 
@@ -124,9 +118,5 @@ public class CirclesApp extends Application {
         stage.setScene(new Scene(createContent()));
         stage.setTitle("iCircles FX");
         stage.show();
-    }
-
-    public static void main(String[] args) {
-        launch(args);
     }
 }

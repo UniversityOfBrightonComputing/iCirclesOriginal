@@ -1,19 +1,11 @@
 package icircles.util;
 
-import icircles.concrete.CircleContour;
-import icircles.concrete.ConcreteDiagram;
-import icircles.concrete.ConcreteZone;
-import icircles.guiswing.CirclesPanel;
-
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
 
 public class DEB {
 
     public static int level = 0; // DO NOT CHANGE HERE - change in code with main e.g. test harness
-    
-    private static ArrayList<CirclesPanel> filmStripShots = new ArrayList<CirclesPanel>();
 
     // this has been refactored from DiagramCreator, it seems to have been used for
     // showing individual frames
@@ -33,34 +25,6 @@ public class DEB {
 //        //DEB.addFilmStripShot(cp);
 //    }
 
-    public static void addFilmStripShot(CirclesPanel cp)
-    {
-    	filmStripShots.add(cp);
-    }
-    public static void showFilmStrip() {
-    	if(filmStripShots.size()==0)
-    		return;
-    	
-    	JFrame viewingFrame = new JFrame("frame to hold a CirclesPanel");
-    	JScrollPane scrollPane = new JScrollPane();
-    	JPanel filmPanel = new JPanel();
-    	for(CirclesPanel cp : filmStripShots)
-    	{
-    		filmPanel.add(cp);
-    	}
-    	scrollPane.add(filmPanel);
-    			
-    	viewingFrame.getContentPane().setPreferredSize(new Dimension(200, 200));
-    	viewingFrame.getContentPane().add(scrollPane);
-    	viewingFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    	viewingFrame.pack();
-    	viewingFrame.setVisible(true);    	
-    }
-
-    public void clearFilmStrip()
-    {
-    	filmStripShots.clear();
-    }
     
     public static void assertCondition(boolean condition, String messageIfFail) {
         if (!condition) {
