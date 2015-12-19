@@ -1,7 +1,6 @@
 package icircles.concrete;
 
 import icircles.abstractdescription.AbstractCurve;
-import javafx.scene.shape.Circle;
 
 import java.awt.*;
 import java.awt.geom.Area;
@@ -101,16 +100,8 @@ public class CircleContour {
         return new Area(makeEllipse(centerX, centerY, radius + nudge));
     }
 
-    public javafx.scene.shape.Shape getBigInteriorFX() {
-        return new Circle(centerX, centerY, radius + nudge);
-    }
-
     public Area getSmallInterior() {
         return new Area(makeEllipse(centerX, centerY, radius - nudge));
-    }
-
-    public javafx.scene.shape.Shape getSmallInteriorFX() {
-        return new Circle(centerX, centerY, radius - nudge);
     }
 
     public Shape getFatInterior(double fatter) {

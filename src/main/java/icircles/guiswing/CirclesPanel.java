@@ -107,11 +107,11 @@ public class CirclesPanel extends JPanel {
 
             // draw shaded zones
 
-            g.setColor(Color.lightGray);
-            List<ConcreteZone> zones = diagram.getShadedZones();
-            for (ConcreteZone z : zones) {
-                ((Graphics2D) g).fill(z.getShape(diagram.getBox()));
-            }
+//            g.setColor(Color.lightGray);
+//            List<ConcreteZone> zones = diagram.getShadedZones();
+//            for (ConcreteZone z : zones) {
+//                ((Graphics2D) g).fill(z.getShape(diagram.getBox()));
+//            }
 
             ((Graphics2D) g).setStroke(new BasicStroke(2));
             List<CircleContour> circles = diagram.getCircles();
