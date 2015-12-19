@@ -1,4 +1,4 @@
-package icircles.gui;
+package icircles.guiswing;
 
 import icircles.util.DEB;
 

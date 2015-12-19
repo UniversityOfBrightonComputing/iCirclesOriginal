@@ -37,6 +37,14 @@ public class ConcreteZone {
         this.excludingCircles = excludingCircles;
     }
 
+    public List<CircleContour> getContainingCircles() {
+        return containingCircles;
+    }
+
+    public List<CircleContour> getExcludingCircles() {
+        return excludingCircles;
+    }
+
     public Area getShape(Rectangle2D.Double box) {
         if (shape != null) {
             return shape;

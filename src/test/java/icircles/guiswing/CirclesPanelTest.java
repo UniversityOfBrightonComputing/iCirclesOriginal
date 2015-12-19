@@ -1,4 +1,4 @@
-package icircles.gui;
+package icircles.guiswing;
 
 import icircles.abstractdescription.AbstractDescription;
 import icircles.concrete.ConcreteDiagram;

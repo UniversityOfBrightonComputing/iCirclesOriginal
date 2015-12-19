@@ -15,8 +15,8 @@ import java.util.List;
 public class CircleContour {
 
     private Ellipse2D.Double circle;
-    double cx;
-    double cy;
+    double centerX;
+    double centerY;
     double radius;
     double nudge = 0.1;
 
@@ -28,17 +28,17 @@ public class CircleContour {
     /**
      * Constructs a contour from abstract curve and geometric values.
      *
-     * @param cx center x coordinate of the contour
-     * @param cy center y coordinate of the contour
+     * @param centerX center x coordinate of the contour
+     * @param centerY center y coordinate of the contour
      * @param radius contour radius
      * @param ac abstract curve
      */
-    public CircleContour(double cx, double cy, double radius, AbstractCurve ac) {
-        this.cx = cx;
-        this.cy = cy;
+    public CircleContour(double centerX, double centerY, double radius, AbstractCurve ac) {
+        this.centerX = centerX;
+        this.centerY = centerY;
         this.radius = radius;
         this.ac = ac;
-        circle = makeEllipse(cx, cy, radius);
+        circle = makeEllipse(centerX, centerY, radius);
     }
 
     /**
@@ -47,20 +47,46 @@ public class CircleContour {
      * @param contour other contour
      */
     public CircleContour(CircleContour contour) {
-        this(contour.cx, contour.cy, contour.radius, contour.ac);
+        this(contour.centerX, contour.centerY, contour.radius, contour.ac);
 	}
 
-	private void shift(double x, double y) {
-        cx += x;
-        cy += y;
-        circle = makeEllipse(cx, cy, radius);
+    /**
+     * @return center x
+     */
+    public double getCenterX() {
+        return centerX;
+    }
+
+    /**
+     * @return center y
+     */
+    public double getCenterY() {
+        return centerY;
+    }
+
+    public double getRadius() {
+        return radius;
+    }
+
+    public double getSmallRadius() {
+        return radius - nudge;
+    }
+
+    public double getBigRadius() {
+        return radius + nudge;
+    }
+
+    private void shift(double x, double y) {
+        centerX += x;
+        centerY += y;
+        circle = makeEllipse(centerX, centerY, radius);
     }
 
     private void scaleAboutZero(double scale) {
-        cx *= scale;
-        cy *= scale;
+        centerX *= scale;
+        centerY *= scale;
         radius *= scale;
-        circle = makeEllipse(cx, cy, radius);
+        circle = makeEllipse(centerX, centerY, radius);
     }
 
     private Ellipse2D.Double makeEllipse(double x, double y, double r) {
@@ -72,52 +98,52 @@ public class CircleContour {
     }
 
     public Area getBigInterior() {
-        return new Area(makeEllipse(cx, cy, radius + nudge));
+        return new Area(makeEllipse(centerX, centerY, radius + nudge));
     }
 
     public javafx.scene.shape.Shape getBigInteriorFX() {
-        return new Circle(cx, cy, radius + nudge);
+        return new Circle(centerX, centerY, radius + nudge);
     }
 
     public Area getSmallInterior() {
-        return new Area(makeEllipse(cx, cy, radius - nudge));
+        return new Area(makeEllipse(centerX, centerY, radius - nudge));
     }
 
     public javafx.scene.shape.Shape getSmallInteriorFX() {
-        return new Circle(cx, cy, radius - nudge);
+        return new Circle(centerX, centerY, radius - nudge);
     }
 
     public Shape getFatInterior(double fatter) {
-        return new Area(makeEllipse(cx, cy, radius + fatter));
+        return new Area(makeEllipse(centerX, centerY, radius + fatter));
     }
 
     public double getLabelXPosition() {
-        return cx + 0.8 * radius;
+        return centerX + 0.8 * radius;
     }
 
     public double getLabelYPosition() {
-        return cy - 0.8 * radius;
+        return centerY - 0.8 * radius;
     }
 
     public int getMinX() {
-        return (int) (cx - radius);
+        return (int) (centerX - radius);
     }
 
     public int getMaxX() {
-        return (int) (cx + radius) + 1;
+        return (int) (centerX + radius) + 1;
     }
 
     public int getMinY() {
-        return (int) (cy - radius);
+        return (int) (centerY - radius);
     }
 
     public int getMaxY() {
-        return (int) (cy + radius) + 1;
+        return (int) (centerY + radius) + 1;
     }
 
     public String toDebugString() {
         return String.format("CircleCountour[center=(%.0f,%.0f),radius=%.0f,curve=%s]",
-                cx, cy, radius, ac);
+                centerX, centerY, radius, ac);
     }
 
     @Override

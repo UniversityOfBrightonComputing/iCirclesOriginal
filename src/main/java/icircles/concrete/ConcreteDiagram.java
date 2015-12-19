@@ -4,6 +4,7 @@ import icircles.abstractdescription.AbstractDescription;
 import icircles.decomposition.Decomposer;
 import icircles.decomposition.DecompositionStep;
 import icircles.decomposition.DecompositionType;
+import icircles.geometry.Rectangle;
 import icircles.recomposition.Recomposer;
 import icircles.recomposition.RecompositionStep;
 import icircles.recomposition.RecompositionType;
@@ -64,6 +65,10 @@ public class ConcreteDiagram {
         return box;
     }
 
+    public Rectangle getBoundingBox() {
+        return new Rectangle(box.getX(), box.getY(), box.getWidth(), box.getHeight());
+    }
+
     /**
      * @return diagram contours
      */
@@ -87,7 +92,7 @@ public class ConcreteDiagram {
         Iterator<CircleContour> cIt = circles.iterator();
         while (cIt.hasNext()) {
             CircleContour c = cIt.next();
-            result += c.cx * 0.345 + c.cy * 0.456 + c.radius * 0.567 + c.ac.checksum() * 0.555;
+            result += c.centerX * 0.345 + c.centerY * 0.456 + c.radius * 0.567 + c.ac.checksum() * 0.555;
             result *= 1.2;
         }
         return result;

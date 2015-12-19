@@ -5,6 +5,7 @@ import icircles.concrete.CircleContour;
 import icircles.concrete.ConcreteDiagram;
 import icircles.concrete.ConcreteZone;
 import icircles.decomposition.DecompositionType;
+import icircles.gui.Renderer;
 import icircles.recomposition.RecompositionType;
 import icircles.util.CannotDrawException;
 import javafx.application.Application;
@@ -41,30 +42,16 @@ public class CirclesApp extends Application {
 
     private static final Logger log = LogManager.getLogger(CirclesApp.class);
 
-    private GraphicsContext g;
-    private Pane root;
-    private Pane shadedZonesRoot;
+    private FXRenderer renderer = new FXRenderer();
 
     private ChoiceBox<DecompositionType> decompBox;
     private ChoiceBox<RecompositionType> recompBox;
 
+    BorderPane pane = new BorderPane();
+
     private Parent createContent() {
-        BorderPane pane = new BorderPane();
         pane.setPrefSize(800, 600);
-
-        root = new Pane();
-        root.setPrefSize(800, 500);
-
-        shadedZonesRoot = new Pane();
-        shadedZonesRoot.setPrefSize(800, 500);
-
-        Canvas canvas = new Canvas(800, 600);
-        canvas.widthProperty().bind(root.widthProperty());
-        canvas.heightProperty().bind(root.heightProperty());
-        g = canvas.getGraphicsContext2D();
-        root.getChildren().addAll(shadedZonesRoot, canvas);
-        pane.setCenter(root);
-
+        pane.setCenter(renderer);
         pane.setLeft(createContentLeft());
 
         return pane;
@@ -73,6 +60,15 @@ public class CirclesApp extends Application {
     private Parent createContentLeft() {
         TextField input = new TextField();
         input.setOnAction(e -> draw(input.getText()));
+
+        pane.widthProperty().addListener((observable, oldValue, newValue) -> {
+            //renderer.setCanvasSize(newValue.doubleValue(), renderer.getHeight());
+            draw(input.getText());
+        });
+        pane.heightProperty().addListener((observable, oldValue, newValue) -> {
+            //renderer.setCanvasSize(renderer.getWidth(), newValue.doubleValue());
+            draw(input.getText());
+        });
 
         decompBox = new ChoiceBox<>(FXCollections.observableArrayList(DecompositionType.values()));
         recompBox = new ChoiceBox<>(FXCollections.observableArrayList(RecompositionType.values()));
@@ -106,53 +102,16 @@ public class CirclesApp extends Application {
             System.out.println(new AbstractDescription(description).toDebugString());
 
             ConcreteDiagram diagram = new ConcreteDiagram(new AbstractDescription(description),
-                    Math.min((int)root.getWidth(), (int)root.getHeight()),
+                    Math.min((int)renderer.getWidth(), (int)renderer.getHeight()),
                     decompBox.getValue(),
                     recompBox.getValue());
 
             System.out.println(diagram);
             findDuplicates(diagram.getCircles());
 
-            draw(diagram);
+            renderer.draw(diagram);
         } catch (CannotDrawException e) {
             e.printStackTrace();
-        }
-    }
-
-    private void draw(ConcreteDiagram diagram) {
-        System.out.println(root.getWidth() + " " + root.getHeight());
-
-        g.clearRect(0, 0, root.getWidth(), root.getHeight());
-
-        // draw shaded zones
-        g.setFill(Color.LIGHTGREY);
-        shadedZonesRoot.getChildren().clear();
-        List<ConcreteZone> zones = diagram.getShadedZones();
-        for (ConcreteZone zone : zones) {
-            Shape area = zone.getShapeFX(diagram.getBox());
-            area.setFill(Color.LIGHTGREY);
-
-            shadedZonesRoot.getChildren().addAll(area);
-        }
-
-        List<CircleContour> circles = diagram.getCircles();
-
-        // draw curve contours
-        g.setFill(Color.BLACK);
-        g.setStroke(Color.BLUE);
-
-        for (CircleContour cc : circles) {
-            Ellipse2D.Double circle = cc.getCircle();
-
-            g.strokeOval(circle.getX(), circle.getY(), circle.getWidth(), circle.getHeight());
-        }
-
-        // draw labels
-        for (CircleContour cc : circles) {
-            if (cc.ac.getLabel() == null)
-                continue;
-
-            g.fillText(cc.ac.getLabel().getLabel(), cc.getLabelXPosition(), cc.getLabelYPosition());
         }
     }
 
@@ -162,13 +121,9 @@ public class CirclesApp extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        log.entry();
-
         stage.setScene(new Scene(createContent()));
         stage.setTitle("iCircles FX");
         stage.show();
-
-        log.info("FX Started");
     }
 
     public static void main(String[] args) {

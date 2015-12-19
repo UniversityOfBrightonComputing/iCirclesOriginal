@@ -1,6 +1,6 @@
 package icircles.util;
 
-import icircles.gui.CirclesPanel;
+import icircles.guiswing.CirclesPanel;
 
 import javax.swing.*;
 import java.awt.*;

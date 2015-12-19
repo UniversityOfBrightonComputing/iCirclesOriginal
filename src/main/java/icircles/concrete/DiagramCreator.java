@@ -4,7 +4,7 @@ import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
 import icircles.decomposition.DecompositionStep;
-import icircles.gui.CirclesPanel;
+import icircles.guiswing.CirclesPanel;
 import icircles.recomposition.RecompositionData;
 import icircles.recomposition.RecompositionStep;
 import icircles.util.CannotDrawException;
@@ -287,8 +287,8 @@ public class DiagramCreator {
             int num_ok = 0;
             for (int i = 0; i < sampleSize; i++) {
                 double angle = i * Math.PI * 2.0 / sampleSize;
-                double x = pierced_cc.cx + Math.cos(angle) * center_of_circle_lies_on_rad;
-                double y = pierced_cc.cy + Math.sin(angle) * center_of_circle_lies_on_rad;
+                double x = pierced_cc.centerX + Math.cos(angle) * center_of_circle_lies_on_rad;
+                double y = pierced_cc.centerY + Math.sin(angle) * center_of_circle_lies_on_rad;
                 if (a.contains(x, y)) {
                     CircleContour sample = new CircleContour(x, y, guide_radius, step.recomp_data.get(0).addedCurve);
                     if (containedIn(sample, a)) {
@@ -302,8 +302,8 @@ public class DiagramCreator {
                     // all OK.
                     for (int i = 0; i < step.recomp_data.size(); i++) {
                         double angle = 0.0 + i * Math.PI * 2.0 / step.recomp_data.size();
-                        double x = pierced_cc.cx + Math.cos(angle) * center_of_circle_lies_on_rad;
-                        double y = pierced_cc.cy + Math.sin(angle) * center_of_circle_lies_on_rad;
+                        double x = pierced_cc.centerX + Math.cos(angle) * center_of_circle_lies_on_rad;
+                        double y = pierced_cc.centerY + Math.sin(angle) * center_of_circle_lies_on_rad;
                         if (a.contains(x, y)) {
                             AbstractCurve added_curve = step.recomp_data.get(i).addedCurve;
                             CircleContour c = new CircleContour(x, y, guide_radius, added_curve);
@@ -320,8 +320,8 @@ public class DiagramCreator {
                     num_ok = 0;
                     for (int i = 0; i < sampleSize; i++) {
                         double angle = 0.0 + i * Math.PI * 2.0 / sampleSize;
-                        double x = pierced_cc.cx + Math.cos(angle) * center_of_circle_lies_on_rad;
-                        double y = pierced_cc.cy + Math.sin(angle) * center_of_circle_lies_on_rad;
+                        double x = pierced_cc.centerX + Math.cos(angle) * center_of_circle_lies_on_rad;
+                        double y = pierced_cc.centerY + Math.sin(angle) * center_of_circle_lies_on_rad;
                         if (a.contains(x, y)) {
                             AbstractCurve added_curve = step.recomp_data.get(i).addedCurve;
                             CircleContour c = new CircleContour(x, y, guide_radius, added_curve);
@@ -388,12 +388,12 @@ public class DiagramCreator {
 
         if (willPierce && rd.splitZones.get(0).getNumContours() > 0) {
             // nudge to the left
-            contour.cx -= contour.radius * 0.5;
+            contour.centerX -= contour.radius * 0.5;
 
             ConcreteZone cz = makeConcreteZone(rd.splitZones.get(0));
             Area a = new Area(cz.getShape(outerBox));
             if (!containedIn(contour, a)) {
-                contour.cx += contour.radius * 0.25;
+                contour.centerX += contour.radius * 0.25;
                 contour.radius *= 0.75;
             }
         }
@@ -466,8 +466,8 @@ public class DiagramCreator {
         // loop for different centre placement
         for (AngleIterator ai = new AngleIterator(); ai.hasNext(); ) {
             double angle = ai.nextAngle();
-            double x = cc.cx + Math.cos(angle) * center_of_circle_lies_on_rad;
-            double y = cc.cy + Math.sin(angle) * center_of_circle_lies_on_rad;
+            double x = cc.centerX + Math.cos(angle) * center_of_circle_lies_on_rad;
+            double y = cc.centerY + Math.sin(angle) * center_of_circle_lies_on_rad;
 
             //check that the centre is ok
             if (a.contains(x, y)) {
@@ -513,8 +513,8 @@ public class DiagramCreator {
         CircleContour cc1 = map.get(c1);
         CircleContour cc2 = map.get(c2);
 
-        double[][] intn_coords = intersect(cc1.cx, cc1.cy, cc1.radius,
-                cc2.cx, cc2.cy, cc2.radius);
+        double[][] intn_coords = intersect(cc1.centerX, cc1.centerY, cc1.radius,
+                cc2.centerX, cc2.centerY, cc2.radius);
         if (intn_coords == null) {
             throw new CannotDrawException("Double piercing on non-intersecting circles");
         }
@@ -929,11 +929,11 @@ public class DiagramCreator {
                     double rad = Math.min(guide_rad, ccOutside.radius - smallest_radius);
                     if (rad > 0.99 * smallest_radius) {
                         // build a co-centric contour
-                        CircleContour attempt = new CircleContour(ccOutside.cx, ccOutside.cy, rad, acs.get(0));
+                        CircleContour attempt = new CircleContour(ccOutside.centerX, ccOutside.centerY, rad, acs.get(0));
                         if (containedIn(attempt, a)) {
                             // shrink the co-centric contour a bit
                             if (rad > 2 * smallest_radius) {
-                                attempt = new CircleContour(ccOutside.cx, ccOutside.cy, rad - smallest_radius, acs.get(0));
+                                attempt = new CircleContour(ccOutside.centerX, ccOutside.centerY, rad - smallest_radius, acs.get(0));
                             }
                             result.add(attempt);
                             return result;
@@ -954,8 +954,8 @@ public class DiagramCreator {
                     boolean in1 = zone.contains(ac1);
                     boolean in2 = zone.contains(ac2);
 
-                    double step_c1_c2_x = cc2.cx - cc1.cx;
-                    double step_c1_c2_y = cc2.cy - cc1.cy;
+                    double step_c1_c2_x = cc2.centerX - cc1.centerX;
+                    double step_c1_c2_y = cc2.centerY - cc1.centerY;
 
                     double step_c1_c2_len = Math.sqrt(step_c1_c2_x * step_c1_c2_x + step_c1_c2_y * step_c1_c2_y);
                     double unit_c1_c2_x = 1.0;
@@ -965,12 +965,12 @@ public class DiagramCreator {
                         unit_c1_c2_y = step_c1_c2_y / step_c1_c2_len;
                     }
 
-                    double p1x = cc1.cx + unit_c1_c2_x * cc1.radius * (in2 ? 1.0 : -1.0);
-                    double p2x = cc2.cx + unit_c1_c2_x * cc2.radius * (in1 ? -1.0 : +1.0);
+                    double p1x = cc1.centerX + unit_c1_c2_x * cc1.radius * (in2 ? 1.0 : -1.0);
+                    double p2x = cc2.centerX + unit_c1_c2_x * cc2.radius * (in1 ? -1.0 : +1.0);
                     double cx = (p1x + p2x) * 0.5;
                     double max_radx = (p2x - p1x) * 0.5;
-                    double p1y = cc1.cy + unit_c1_c2_y * cc1.radius * (in2 ? 1.0 : -1.0);
-                    double p2y = cc2.cy + unit_c1_c2_y * cc2.radius * (in1 ? -1.0 : +1.0);
+                    double p1y = cc1.centerY + unit_c1_c2_y * cc1.radius * (in2 ? 1.0 : -1.0);
+                    double p2y = cc2.centerY + unit_c1_c2_y * cc2.radius * (in1 ? -1.0 : +1.0);
                     double cy = (p1y + p2y) * 0.5;
                     double max_rady = (p2y - p1y) * 0.5;
                     double max_rad = Math.sqrt(max_radx * max_radx + max_rady * max_rady);
@@ -997,14 +997,14 @@ public class DiagramCreator {
         Rectangle bounds = a.getBounds();
         /*
         // try from the middle of the bounds.
-        double cx = bounds.getCenterX();
-        double cy = bounds.getCenterX();
-        if(a.contains(cx, cy))
+        double centerX = bounds.getCenterX();
+        double centerY = bounds.getCenterX();
+        if(a.contains(centerX, centerY))
         {
         if(labels.size() == 1)
         {
         // go for a circle of the suggested size
-        CircleContour attempt = new CircleContour(cx, cy, guide_rad, labels.get(0));
+        CircleContour attempt = new CircleContour(centerX, centerY, guide_rad, labels.get(0));
         if(containedIn(attempt, a))
         {
         result.add(attempt);
@@ -1013,7 +1013,7 @@ public class DiagramCreator {
         }
         else
         {
-        Rectangle box = new Rectangle(cx - guide_rad/2)
+        Rectangle box = new Rectangle(centerX - guide_rad/2)
         }
         }
          */
@@ -1035,7 +1035,7 @@ public class DiagramCreator {
 
             for (int j = 0; j < nj; j++) {
                 double cy = basey + j * smallest_radius;
-                //System.out.println("check for ("+cx+","+cy+") in region");
+                //System.out.println("check for ("+centerX+","+centerY+") in region");
                 contained[i][j] = new PotentialCentre(cx, cy, a.contains(cx, cy));
 
 //                if (DEB.level > 3) {
@@ -1091,7 +1091,7 @@ public class DiagramCreator {
                 actualRad = smallest_radius;
             }
 
-            // have size, cx, cy
+            // have size, centerX, centerY
             log.info("corner at " + pc.x + "," + pc.y + ", size " + size);
 
             List<CircleContour> centredCircles = new ArrayList<>();
