@@ -14,16 +14,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 
-public final class CirclesFrame extends JFrame {
+public final class SwingApplication extends JFrame {
 
-    private static final Logger log = LogManager.getLogger(CirclesFrame.class);
+    private static final Logger log = LogManager.getLogger(SwingApplication.class);
 
     private final InputPanel inputPanel = new InputPanel();
     private final ResultPanel resultPanel = new ResultPanel();
     private final SettingsPanel settingsPanel = new SettingsPanel();
     private int size = 200;
 
-    public CirclesFrame() {
+    public SwingApplication() {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         populateFrame();
         pack();

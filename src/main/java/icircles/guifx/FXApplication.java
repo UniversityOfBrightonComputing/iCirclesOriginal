@@ -4,9 +4,7 @@ import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
 import icircles.concrete.CircleContour;
 import icircles.concrete.ConcreteDiagram;
-import icircles.concrete.ConcreteZone;
 import icircles.decomposition.DecompositionType;
-import icircles.gui.Renderer;
 import icircles.recomposition.RecompositionType;
 import icircles.util.CannotDrawException;
 import javafx.application.Application;
@@ -14,31 +12,24 @@ import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Shape;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.config.Configurator;
 
-import java.awt.geom.Ellipse2D;
 import java.util.List;
 import java.util.Map;
 
 /**
  * @author Almas Baimagambetov (AlmasB) (almaslvl@gmail.com)
  */
-public class CirclesApp extends Application {
+public class FXApplication extends Application {
 
-    private static final Logger log = LogManager.getLogger(CirclesApp.class);
+    private static final Logger log = LogManager.getLogger(FXApplication.class);
 
     private FXRenderer renderer = new FXRenderer();
 
