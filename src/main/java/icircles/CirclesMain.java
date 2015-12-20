@@ -15,6 +15,8 @@ public class CirclesMain {
         try {
             if (args.length == 0) {
                 log.info("Launching FX GUI");
+                Class.forName("javafx.application.Application");
+
                 CirclesGUI gui = (CirclesGUI) Class.forName("icircles.guifx.FXCirclesGUI").newInstance();
                 gui.launchGUI(args);
             }
@@ -23,6 +25,8 @@ public class CirclesMain {
 
             try {
                 log.info("Launching Swing GUI");
+                Class.forName("javax.swing.JFrame");
+
                 CirclesGUI gui = (CirclesGUI) Class.forName("icircles.guiswing.SwingCirclesGUI").newInstance();
                 gui.launchGUI(args);
             } catch (Exception ex) {
