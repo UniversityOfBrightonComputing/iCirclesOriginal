@@ -15,7 +15,7 @@ import icircles.recomposition.Recomposer;
 import icircles.recomposition.RecompositionStep;
 import icircles.recomposition.RecompositionType;
 import icircles.util.CannotDrawException;
-import icircles.util.DEB;
+
 import org.junit.Test;
 
 import javax.swing.*;
@@ -60,7 +60,7 @@ public class TestCode {
     }
 
     public static void main(String args[]) {
-        DEB.level = TestData.TEST_DEBUG_LEVEL;
+        //DEB.level = TestData.TEST_DEBUG_LEVEL;
         if (TestData.TASK == TestData.RUN_ALL_TESTS) {
             ArrayList<Integer> failures = runAllTestsOld();
             if (!TestData.GENERATE_ALL_TEST_DATA) {
@@ -252,9 +252,9 @@ public class TestCode {
             CurveLabel.clearLibrary();
         }
         String desc = TestData.test_data[test_num].description;
-        if (DEB.level > 0) {
-            System.out.println("test desc:" + desc);
-        }
+//        if (DEB.level > 0) {
+//            System.out.println("test desc:" + desc);
+//        }
 
         ArrayList<DecompositionStep> d_steps = new ArrayList<>();
         ArrayList<RecompositionStep> r_steps = new ArrayList<>();
