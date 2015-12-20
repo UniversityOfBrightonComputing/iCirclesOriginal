@@ -1,7 +1,6 @@
 package icircles.recomposition;
 
 import icircles.abstractdescription.AbstractBasicRegion;
-import icircles.util.DEB;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +16,10 @@ public class Cluster {
 
     public Cluster(AbstractBasicRegion z1,
             AbstractBasicRegion z2) {
-        DEB.assertCondition(z1.getStraddledContour(z2) != null, "non-adjacent cluster pair");
+
+        if (z1.getStraddledContour(z2) == null)
+            throw new IllegalArgumentException("Non-adjacent cluster pair");
+
         zones = new ArrayList<>();
         zones.add(z1);
         zones.add(z2);
@@ -27,10 +29,17 @@ public class Cluster {
             AbstractBasicRegion z2,
             AbstractBasicRegion z3,
             AbstractBasicRegion z4) {
-        DEB.assertCondition(z1.getStraddledContour(z2) != null, "non-adjacent cluster pair");
-        DEB.assertCondition(z1.getStraddledContour(z3) != null, "non-adjacent cluster pair");
-        DEB.assertCondition(z2.getStraddledContour(z4) == z1.getStraddledContour(z3), "non-adjacent cluster pair");
-        DEB.assertCondition(z3.getStraddledContour(z4) == z1.getStraddledContour(z2), "non-adjacent cluster pair");
+
+        if (z1.getStraddledContour(z2) == null)
+            throw new IllegalArgumentException("Non-adjacent cluster pair");
+        if (z1.getStraddledContour(z3) == null)
+            throw new IllegalArgumentException("Non-adjacent cluster pair");
+
+        if (z2.getStraddledContour(z4) != z1.getStraddledContour(z3))
+            throw new IllegalArgumentException("Non-adjacent cluster pair");
+        if (z3.getStraddledContour(z4) != z1.getStraddledContour(z2))
+            throw new IllegalArgumentException("Non-adjacent cluster pair");
+
         zones = new ArrayList<>();
         zones.add(z1);
         zones.add(z2);

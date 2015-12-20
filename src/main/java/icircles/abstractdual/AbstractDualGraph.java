@@ -2,13 +2,16 @@ package icircles.abstractdual;
 
 import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdescription.AbstractCurve;
-import icircles.util.DEB;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 public class AbstractDualGraph {
+
+    private static final Logger log = LogManager.getLogger(AbstractDualGraph.class);
 
     List<AbstractDualNode> nodes;
     List<AbstractDualEdge> edges;
@@ -63,9 +66,8 @@ public class AbstractDualGraph {
     public AbstractDualEdge getLowDegreeEdge() {
         // find a lowest-degree vertex, and from that,
         // choose the edge to its lowest-degree neighbour
-        if (DEB.level > 3) {
-            System.out.println("graph is " + this.debug());
-        }
+        log.trace("Graph: " + this.debug());
+
         int lowestDegree = Integer.MAX_VALUE;
         AbstractDualNode lowestDegreeNode = null;
         for (AbstractDualNode n : nodes) {
@@ -90,7 +92,9 @@ public class AbstractDualGraph {
             if (e.from == lowestDegreeNode) {
                 otherNode = e.to;
             } else {
-                DEB.assertCondition(e.to == lowestDegreeNode, "inconcistent graph nodes");
+                if (e.to != lowestDegreeNode)
+                    throw new RuntimeException("Inconsistent graph nodes");
+
                 otherNode = e.from;
             }
             int otherDegree = otherNode.degree();
@@ -149,11 +153,8 @@ public class AbstractDualGraph {
                         continue;
                     }
 
-                    if (DEB.level > 2) {
-                        // we have edges e and e2 - are these part of a square?
-                        System.out.println("edges are " + e.from.abr.toString() + "->" + e.to.abr.toString() + "\n and "
-                                + e2.from.abr.toString() + "->" + e2.to.abr.toString());
-                    }
+                    // we have edges e and e2 - are these part of a square?
+                    log.trace("Edges: " + e.from.abr + "->" + e.to.abr + " and " + e2.from.abr + "->" + e2.to.abr);
 
                     // look for an edge from n with the same label as e2
                     for (AbstractDualEdge e3 : n.incidentEdges) {
