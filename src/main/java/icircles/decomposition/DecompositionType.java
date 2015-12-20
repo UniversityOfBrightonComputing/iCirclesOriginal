@@ -1,10 +1,10 @@
 package icircles.decomposition;
 
 public enum DecompositionType {
-    ALPHABETICAL("decompose in alphabetic order", DecompositionStrategyUseSortOrder.class),
-    REVERSE_ALPHABETICAL("decompose in reverse alphabetic order", DecompositionStrategyUseSortOrder.class),
-    INNERMOST("decompose using fewest-zone contours first", DecompositionStrategyInnermost.class),
-    PIERCED_FIRST("decompose using piercing curves first", DecompositionStrategyPiercing.class);
+    ALPHABETICAL("Decompose in alphabetic order", DecompositionStrategyUseSortOrder.class),
+    REVERSE_ALPHABETICAL("Decompose in reverse alphabetic order", DecompositionStrategyUseSortOrder.class),
+    INNERMOST("Decompose using fewest-zone contours first", DecompositionStrategyInnermost.class),
+    PIERCED_FIRST("Decompose using piercing curves first", DecompositionStrategyPiercing.class);
 
     private Class<? extends DecompositionStrategy> strategy;
 

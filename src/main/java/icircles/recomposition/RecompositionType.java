@@ -1,9 +1,9 @@
 package icircles.recomposition;
 
 public enum RecompositionType {
-    NESTED("recompose using zero-piercing (nesting)", RecompositionStrategyNested.class),
-    SINGLY_PIERCED("recompose using single piercings", RecompositionStrategySinglyPierced.class),
-    DOUBLY_PIERCED("recompose using double piercings", RecompositionStrategyDoublyPierced.class);
+    NESTED("Recompose using zero-piercing (nesting)", RecompositionStrategyNested.class),
+    SINGLY_PIERCED("Recompose using single piercings", RecompositionStrategySinglyPierced.class),
+    DOUBLY_PIERCED("Recompose using double piercings", RecompositionStrategyDoublyPierced.class);
 
     private Class<? extends RecompositionStrategy> strategy;
 
