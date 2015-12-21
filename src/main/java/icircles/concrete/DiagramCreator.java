@@ -4,14 +4,13 @@ import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
 import icircles.decomposition.DecompositionStep;
-
 import icircles.recomposition.RecompositionData;
 import icircles.recomposition.RecompositionStep;
 import icircles.util.CannotDrawException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
@@ -221,7 +220,7 @@ public class DiagramCreator {
                 CircleContour contour = contours.get(i);
                 AbstractCurve curve = step.recomp_data.get(i).addedCurve;
 
-                if (contour.ac.getLabel() != curve.getLabel())
+                if (!contour.ac.matchesLabel(curve))
                     throw new CannotDrawException("Mismatched labels");
 
                 map.put(curve, contour);
@@ -928,7 +927,7 @@ public class DiagramCreator {
                 AbstractBasicRegion abrInLast = abrIt.next();
                 AbstractCurve ac = zoneInLast.getStraddledContour(abrInLast);
                 if (ac != null) {
-                    if (ac.getLabel() != acs.get(0).getLabel()) {
+                    if (!ac.matchesLabel(acs.get(0))) {
                         nbring_curves.add(ac);
                     }
                 }

@@ -2,7 +2,6 @@ package icircles.concrete;
 
 import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
-import icircles.abstractdescription.CurveLabel;
 import icircles.decomposition.Decomposer;
 import icircles.decomposition.DecompositionStep;
 import icircles.decomposition.DecompositionType;
@@ -125,12 +124,12 @@ public class ConcreteDiagram {
      */
     public Map<AbstractCurve, List<CircleContour> > findDuplicateContours() {
         Map<String, List<CircleContour> > groups = circles.stream()
-                .collect(Collectors.groupingBy(contour -> contour.ac.getLabel().getLabel()));
+                .collect(Collectors.groupingBy(contour -> contour.ac.getLabel()));
 
         Map<AbstractCurve, List<CircleContour> > duplicates = new TreeMap<>();
         groups.forEach((label, contours) -> {
             if (contours.size() > 1)
-                duplicates.put(new AbstractCurve(CurveLabel.get(label)), contours);
+                duplicates.put(new AbstractCurve(label), contours);
         });
 
         return duplicates;

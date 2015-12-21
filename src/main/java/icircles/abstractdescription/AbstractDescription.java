@@ -47,19 +47,18 @@ public class AbstractDescription {
         ad_zones.add(AbstractBasicRegion.get(new TreeSet<>()));
 
         StringTokenizer st = new StringTokenizer(informalDescription);
-        Map<CurveLabel, AbstractCurve> contours = new HashMap<>();
+        Map<String, AbstractCurve> contours = new HashMap<>();
 
         while (st.hasMoreTokens()) {
             String word = st.nextToken();
             TreeSet<AbstractCurve> zoneContours = new TreeSet<>();
 
             for (int i = 0; i < word.length(); i++) {
-                String character = "" + word.charAt(i);
-                CurveLabel cl = CurveLabel.get(character);
-                if (!contours.containsKey(cl)) {
-                    contours.put(cl, new AbstractCurve(cl));
+                String label = "" + word.charAt(i);
+                if (!contours.containsKey(label)) {
+                    contours.put(label, new AbstractCurve(label));
                 }
-                zoneContours.add(contours.get(cl));
+                zoneContours.add(contours.get(label));
             }
             ad_zones.add(AbstractBasicRegion.get(zoneContours));
         }
@@ -123,9 +122,9 @@ public class AbstractDescription {
         return result;
     }
 
-    public boolean includesLabel(CurveLabel l) {
-        for (AbstractCurve c : contours) {
-            if (c.getLabel() == l) {
+    public boolean includesLabel(String label) {
+        for (AbstractCurve curve : contours) {
+            if (curve.hasLabel(label)) {
                 return true;
             }
         }

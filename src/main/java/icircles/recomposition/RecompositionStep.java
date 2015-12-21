@@ -1,7 +1,6 @@
 package icircles.recomposition;
 
 import icircles.abstractdescription.AbstractDescription;
-import icircles.abstractdescription.CurveLabel;
 
 import java.util.Iterator;
 import java.util.List;
@@ -23,9 +22,9 @@ public class RecompositionStep {
             throw new IllegalArgumentException("No added curve in recomp");
         }
 
-        CurveLabel cl = added_contour_data.get(0).addedCurve.getLabel();
+        String cl = added_contour_data.get(0).addedCurve.getLabel();
         for (RecompositionData rp : added_contour_data) {
-            if (rp.addedCurve.getLabel() != cl)
+            if (!rp.addedCurve.hasLabel(cl))
                 throw new IllegalArgumentException("Mixed curves added in recomp");
         }
 

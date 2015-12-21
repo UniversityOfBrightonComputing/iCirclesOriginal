@@ -157,7 +157,7 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
                     while (acIt2.hasNext()) {
                         AbstractCurve thatAC = acIt2.next();
                         //System.out.println(" compare abstract contours "+thisAC.toDebugString()+" and "+thatAC.toDebugString());
-                        if (thisAC.matches_label(thatAC)) {
+                        if (thisAC.matchesLabel(thatAC)) {
                             //System.out.println(" got match ");
                             continue AcItLoop;
                         }

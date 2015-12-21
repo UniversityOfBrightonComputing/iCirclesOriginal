@@ -1,7 +1,6 @@
 package icircles.decomposition;
 
 import icircles.abstractdescription.AbstractDescription;
-import icircles.abstractdescription.CurveLabel;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -35,12 +34,12 @@ public class DecomposerTest {
         assertEquals(2, steps.size());
 
         DecompositionStep step1 = steps.get(0);
-        assertTrue(step1.removed().getLabel().getLabel().equals(CurveLabel.get("a").getLabel()));
+        assertTrue(step1.removed().hasLabel("a"));
         assertTrue(step1.from().hasSameAbstractDescription(new AbstractDescription("a b ab")));
         assertTrue(step1.to().hasSameAbstractDescription(new AbstractDescription("b")));
 
         DecompositionStep step2 = steps.get(1);
-        assertTrue(step2.removed().getLabel().getLabel().equals(CurveLabel.get("b").getLabel()));
+        assertTrue(step2.removed().hasLabel("b"));
         assertTrue(step2.from().hasSameAbstractDescription(new AbstractDescription("b")));
         assertTrue(step2.to().hasSameAbstractDescription(new AbstractDescription(" ")));
 

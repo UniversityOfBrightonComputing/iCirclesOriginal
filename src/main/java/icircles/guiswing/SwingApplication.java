@@ -24,7 +24,7 @@ public final class SwingApplication extends JFrame {
     private int size = 200;
 
     public SwingApplication() {
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         populateFrame();
         pack();
         setVisible(true);
@@ -158,8 +158,8 @@ public final class SwingApplication extends JFrame {
     class SettingsPanel {
         String[] decompStrings = new String[] {"TYPE1", "TYPE2", "TYPE3", "TYPE4"};
         String[] recompStrings = new String[] {"TYPE1", "TYPE2", "TYPE3"};
-        final JComboBox decompList = new JComboBox(decompStrings);
-        final JComboBox recompList = new JComboBox(recompStrings);
+        final JComboBox<String> decompList = new JComboBox<>(decompStrings);
+        final JComboBox<String> recompList = new JComboBox<>(recompStrings);
         final JTextField testJTF = new JTextField("");
         final static String ENTER_ACTION = "go-draw-test";
         final JPanel p = new JPanel();

@@ -4,7 +4,6 @@ import icircles.concrete.CircleContour;
 import icircles.concrete.ConcreteDiagram;
 import icircles.concrete.ConcreteZone;
 import icircles.gui.Renderer;
-
 import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -106,7 +105,7 @@ public class FXRenderer extends Pane implements Renderer {
         double h = 2 * radius;
 
         g.strokeOval(x, y, w, h);
-        g.fillText(contour.ac.getLabel().getLabel(), contour.getLabelXPosition(), contour.getLabelYPosition());
+        g.fillText(contour.ac.getLabel(), contour.getLabelXPosition(), contour.getLabelYPosition());
     }
 
     private void clearRenderer() {

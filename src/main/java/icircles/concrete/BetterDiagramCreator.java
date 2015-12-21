@@ -1,16 +1,9 @@
 package icircles.concrete;
 
-import icircles.abstractdescription.AbstractBasicRegion;
-import icircles.abstractdescription.AbstractCurve;
-import icircles.abstractdescription.AbstractDescription;
-import icircles.abstractdescription.CurveLabel;
 import icircles.decomposition.DecompositionStep;
-import icircles.recomposition.RecompositionData;
 import icircles.recomposition.RecompositionStep;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Almas Baimagambetov (AlmasB) (almaslvl@gmail.com)

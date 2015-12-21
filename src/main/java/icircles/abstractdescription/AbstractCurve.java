@@ -7,7 +7,7 @@ package icircles.abstractdescription;
 public class AbstractCurve implements Comparable<AbstractCurve> {
 
     private static int uniqueId = 0;
-    private final CurveLabel label;
+    private final String label;
     private final int id;
 
     public static void resetIdCounter() {
@@ -19,7 +19,7 @@ public class AbstractCurve implements Comparable<AbstractCurve> {
      *
      * @param label the curve label
      */
-    public AbstractCurve(CurveLabel label) {
+    public AbstractCurve(String label) {
         uniqueId++;
         id = uniqueId;
         this.label = label;
@@ -38,7 +38,7 @@ public class AbstractCurve implements Comparable<AbstractCurve> {
     /**
      * @return curve label
      */
-    public CurveLabel getLabel() {
+    public String getLabel() {
         return label;
     }
 
@@ -52,30 +52,59 @@ public class AbstractCurve implements Comparable<AbstractCurve> {
         return (id < other.id) ? -1 : (id == other.id) ? 0 : 1;
     }
 
-    public boolean matches_label(AbstractCurve c) {
-        return label == c.label;
+    /**
+     * @param c other cure
+     * @return true iff given curve's label is the same as this curve's
+     */
+    public boolean matchesLabel(AbstractCurve c) {
+        return label.equals(c.label);
+    }
+
+    /**
+     * @param label the label
+     * @return true iff the curve has given label
+     */
+    public boolean hasLabel(String label) {
+        return this.label.equals(label);
     }
 
     public double checksum() {
-        return label.checksum() * id;
+        double result = 0.0;
+        double scaling = 1.1;
+        for (int i = 0; i < label.length(); i++) {
+            result += (int) (label.charAt(i)) * scaling;
+            scaling += 0.01;
+        }
+
+        return result * id;
     }
 
+//    /**
+//     * Checks if the same object.
+//     *
+//     * @param obj other object
+//     * @return true iff both are the same object
+//     */
 //    @Override
 //    public boolean equals(Object obj) {
-//        return ((AbstractCurve)obj).getLabel().getLabel().equals(getLabel().getLabel());
+//        if (!(obj instanceof AbstractCurve))
+//            return false;
+//
+//        AbstractCurve other = (AbstractCurve) obj;
+//        return label.equals(other.label) && id == other.id;
 //    }
 //
 //    @Override
 //    public int hashCode() {
-//        return getLabel().getLabel().hashCode();
+//        return Objects.hash(id, label);
 //    }
 
     @Override
     public String toString() {
-        return label.getLabel();
+        return label;
     }
 
     public String toDebugString() {
-        return "[id=" + id + ",label=" + label.getLabel() + "]";
+        return "[id=" + id + ",label=" + label + "]";
     }
 }

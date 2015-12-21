@@ -3,7 +3,6 @@ package icircles;
 import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
-import icircles.abstractdescription.CurveLabel;
 import icircles.concrete.CircleContour;
 import icircles.concrete.ConcreteDiagram;
 import icircles.concrete.DiagramCreator;
@@ -15,7 +14,6 @@ import icircles.recomposition.Recomposer;
 import icircles.recomposition.RecompositionStep;
 import icircles.recomposition.RecompositionType;
 import icircles.util.CannotDrawException;
-
 import org.junit.Test;
 
 import javax.swing.*;
@@ -40,7 +38,6 @@ public class TestCode {
 
         AbstractCurve.resetIdCounter();
         AbstractBasicRegion.clearLibrary();
-        CurveLabel.clearLibrary();
 
         try {
             ArrayList<DecompositionStep> d_steps = new ArrayList<>();
@@ -249,7 +246,6 @@ public class TestCode {
         if (!view_failure) {
             AbstractCurve.resetIdCounter();
             AbstractBasicRegion.clearLibrary();
-            CurveLabel.clearLibrary();
         }
         String desc = TestData.test_data[test_num].description;
 //        if (DEB.level > 0) {
