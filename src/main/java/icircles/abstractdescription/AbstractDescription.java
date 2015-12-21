@@ -15,6 +15,8 @@ import java.util.*;
  */
 public class AbstractDescription {
 
+    private final String informalDescription;
+
     // TODO: immutable data structure?
     private TreeSet<AbstractCurve> contours;
     private TreeSet<AbstractBasicRegion> zones;
@@ -28,6 +30,17 @@ public class AbstractDescription {
     public AbstractDescription(Set<AbstractCurve> contours, Set<AbstractBasicRegion> zones) {
         this.contours = new TreeSet<>(contours);
         this.zones = new TreeSet<>(zones);
+
+        StringBuilder sb = new StringBuilder();
+        for (AbstractBasicRegion zone : zones) {
+            for (AbstractCurve curve : zone.getCopyOfContours()) {
+                sb.append(curve.getLabel());
+            }
+
+            sb.append(" ");
+        }
+
+        informalDescription = sb.toString();
     }
 
     /**
@@ -41,6 +54,8 @@ public class AbstractDescription {
      * @param informalDescription abstract description in informal form
      */
     public AbstractDescription(String informalDescription) {
+        this.informalDescription = informalDescription;
+
         TreeSet<AbstractBasicRegion> ad_zones = new TreeSet<>();
 
         // add the outside zone
@@ -138,6 +153,10 @@ public class AbstractDescription {
             }
         }
         return false;
+    }
+
+    public String getInformalDescription() {
+        return informalDescription;
     }
 
     public String toDebugString() {

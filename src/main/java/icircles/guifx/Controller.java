@@ -13,6 +13,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.WritableImage;
+import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Shape;
 import javafx.stage.FileChooser;
@@ -23,6 +24,8 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Almas Baimagambetov (AlmasB) (almaslvl@gmail.com)
@@ -43,6 +46,10 @@ public class Controller {
 
     private ToggleGroup decompositionToggle = new ToggleGroup();
     private ToggleGroup recompositionToggle = new ToggleGroup();
+
+    private List<AbstractDescription> historyUndo = new ArrayList<>();
+    private List<AbstractDescription> historyRedo = new ArrayList<>();
+    private AbstractDescription currentDescription = new AbstractDescription("");
 
     public void initialize() {
         for (DecompositionType dType : DecompositionType.values()) {
@@ -65,7 +72,28 @@ public class Controller {
             drTypes.getItems().add(item);
         }
 
-        fieldInput.setOnAction(e -> visualize(new AbstractDescription(fieldInput.getText())));
+        fieldInput.setOnAction(e -> {
+            AbstractDescription ad = new AbstractDescription(fieldInput.getText());
+            historyUndo.add(ad);
+            visualize(ad);
+        });
+
+        fieldInput.setOnKeyPressed(e -> {
+            if (e.isControlDown() && e.getCode() == KeyCode.Z) {
+                undo();
+            }
+        });
+
+        historyUndo.add(currentDescription);
+
+        decompositionToggle.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> {
+            if (newToggle != null)
+                visualize(currentDescription);
+        });
+        recompositionToggle.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> {
+            if (newToggle != null)
+                visualize(currentDescription);
+        });
     }
 
     @FXML
@@ -125,12 +153,24 @@ public class Controller {
 
     @FXML
     private void undo() {
-        showError(new UnsupportedOperationException("Not yet implemented!"));
+        if (historyUndo.size() > 1) {
+            historyRedo.add(historyUndo.remove(historyUndo.size() - 1));
+
+            AbstractDescription ad = historyUndo.get(historyUndo.size() - 1);
+            fieldInput.setText(ad.getInformalDescription());
+            visualize(ad);
+        }
     }
 
     @FXML
     private void redo() {
-        showError(new UnsupportedOperationException("Not yet implemented!"));
+        if (!historyRedo.isEmpty()) {
+            AbstractDescription ad = historyRedo.remove(historyRedo.size() - 1);
+            historyUndo.add(ad);
+
+            fieldInput.setText(ad.getInformalDescription());
+            visualize(ad);
+        }
     }
 
     @FXML
@@ -150,6 +190,7 @@ public class Controller {
     }
 
     private void visualize(AbstractDescription description) {
+        currentDescription = description;
         int size = (int) Math.min(renderer.getWidth(), renderer.getHeight());
 
         DecompositionType dType = (DecompositionType) decompositionToggle.getSelectedToggle().getUserData();
