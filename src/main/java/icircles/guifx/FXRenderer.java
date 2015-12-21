@@ -105,7 +105,7 @@ public class FXRenderer extends Pane implements Renderer {
         double h = 2 * radius;
 
         g.strokeOval(x, y, w, h);
-        g.fillText(contour.ac.getLabel(), contour.getLabelXPosition(), contour.getLabelYPosition());
+        g.fillText(contour.getCurve().getLabel(), contour.getLabelXPosition(), contour.getLabelYPosition());
     }
 
     private void clearRenderer() {

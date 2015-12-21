@@ -124,7 +124,7 @@ public class ConcreteDiagram {
      */
     public Map<AbstractCurve, List<CircleContour> > findDuplicateContours() {
         Map<String, List<CircleContour> > groups = circles.stream()
-                .collect(Collectors.groupingBy(contour -> contour.ac.getLabel()));
+                .collect(Collectors.groupingBy(contour -> contour.getCurve().getLabel()));
 
         Map<AbstractCurve, List<CircleContour> > duplicates = new TreeMap<>();
         groups.forEach((label, contours) -> {
@@ -156,7 +156,7 @@ public class ConcreteDiagram {
         Iterator<CircleContour> cIt = circles.iterator();
         while (cIt.hasNext()) {
             CircleContour c = cIt.next();
-            result += c.centerX * 0.345 + c.centerY * 0.456 + c.radius * 0.567 + c.ac.checksum() * 0.555;
+            result += c.centerX * 0.345 + c.centerY * 0.456 + c.radius * 0.567 + c.getCurve().checksum() * 0.555;
             result *= 1.2;
         }
         return result;

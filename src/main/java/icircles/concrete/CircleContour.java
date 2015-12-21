@@ -17,7 +17,7 @@ public class CircleContour {
     /**
      * Abstract representation of this concrete contour.
      */
-    public AbstractCurve ac;
+    private final AbstractCurve curve;
 
     /**
      * Constructs a contour from abstract curve and geometric values.
@@ -25,13 +25,17 @@ public class CircleContour {
      * @param centerX center x coordinate of the contour
      * @param centerY center y coordinate of the contour
      * @param radius contour radius
-     * @param ac abstract curve
+     * @param curve abstract curve
      */
-    public CircleContour(double centerX, double centerY, double radius, AbstractCurve ac) {
+    public CircleContour(double centerX, double centerY, double radius, AbstractCurve curve) {
         this.centerX = centerX;
         this.centerY = centerY;
         this.radius = radius;
-        this.ac = ac;
+        this.curve = curve;
+    }
+
+    public AbstractCurve getCurve() {
+        return curve;
     }
 
     /**
@@ -97,12 +101,12 @@ public class CircleContour {
 
     public String toDebugString() {
         return String.format("CircleCountour[center=(%.0f,%.0f),radius=%.0f,curve=%s]",
-                centerX, centerY, radius, ac);
+                centerX, centerY, radius, curve);
     }
 
     @Override
     public String toString() {
-        return ac.toString();
+        return curve.toString();
     }
 
     static void fitCirclesToSize(List<CircleContour> circles, int size) {

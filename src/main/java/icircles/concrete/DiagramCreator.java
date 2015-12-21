@@ -220,7 +220,7 @@ public class DiagramCreator {
                 CircleContour contour = contours.get(i);
                 AbstractCurve curve = step.recomp_data.get(i).addedCurve;
 
-                if (!contour.ac.matchesLabel(curve))
+                if (!contour.getCurve().matchesLabel(curve))
                     throw new CannotDrawException("Mismatched labels");
 
                 map.put(curve, contour);
@@ -510,7 +510,7 @@ public class DiagramCreator {
         if (solution == null) {
             throw new CannotDrawException("1-piercing no fit");
         } else {
-            log.trace("Added a single piercing labelled " + solution.ac.getLabel());
+            log.trace("Added a single piercing labelled " + solution.getCurve().getLabel());
             map.put(rd.addedCurve, solution);
             addCircle(solution);
         }
@@ -567,7 +567,7 @@ public class DiagramCreator {
         if (solution == null) {
             throw new CannotDrawException("2piercing no fit");
         } else {
-            log.trace("Added a double piercing labelled " + solution.ac.getLabel());
+            log.trace("Added a double piercing labelled " + solution.getCurve().getLabel());
             map.put(rd.addedCurve, solution);
             addCircle(solution);
         }
