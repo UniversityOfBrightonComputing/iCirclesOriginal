@@ -9,8 +9,8 @@
             xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="icircles.guifx.Controller">
     <top>
-        <MenuBar BorderPane.alignment="CENTER">
-            <menus>
+        <HBox>
+            <MenuBar BorderPane.alignment="CENTER">
                 <Menu mnemonicParsing="false" text="File">
                     <MenuItem mnemonicParsing="false" text="New"        onAction="#new_"/>
                     <MenuItem mnemonicParsing="false" text="Open..."    onAction="#open"/>
@@ -20,19 +20,26 @@
                     <MenuItem mnemonicParsing="false" text="Quit" onAction="#quit"/>
                 </Menu>
                 <Menu mnemonicParsing="false" text="Edit">
-                    <MenuItem mnemonicParsing="false" text="Undo"/>
-                    <MenuItem mnemonicParsing="false" text="Redo"/>
+                    <MenuItem mnemonicParsing="false" text="Undo" onAction="#undo"/>
+                    <MenuItem mnemonicParsing="false" text="Redo" onAction="#redo"/>
                 </Menu>
                 <Menu fx:id="drTypes" text="Decomposition/Recomposition Types">
                 </Menu>
                 <Menu mnemonicParsing="false" text="Help">
                     <MenuItem mnemonicParsing="false" text="About" onAction="#about"/>
                 </Menu>
-            </menus>
-        </MenuBar>
+            </MenuBar>
+            <TextField prefWidth="450" fx:id="fieldInput" />
+        </HBox>
     </top>
 
     <center>
         <FXRenderer fx:id="renderer" />
     </center>
+
+    <left>
+        <VBox prefWidth="200">
+            <TextArea fx:id="areaInfo" editable="false" />
+        </VBox>
+    </left>
 </BorderPane>

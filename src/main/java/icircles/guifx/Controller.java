@@ -2,16 +2,26 @@ package icircles.guifx;
 
 import icircles.abstractdescription.AbstractDescription;
 import icircles.concrete.ConcreteDiagram;
+import icircles.concrete.ConcreteZone;
 import icircles.decomposition.DecompositionType;
 import icircles.recomposition.RecompositionType;
 import icircles.util.CannotDrawException;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.WritableImage;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Shape;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 
 /**
@@ -24,6 +34,12 @@ public class Controller {
 
     @FXML
     private Menu drTypes;
+
+    @FXML
+    private TextField fieldInput;
+
+    @FXML
+    private TextArea areaInfo;
 
     private ToggleGroup decompositionToggle = new ToggleGroup();
     private ToggleGroup recompositionToggle = new ToggleGroup();
@@ -48,6 +64,8 @@ public class Controller {
 
             drTypes.getItems().add(item);
         }
+
+        fieldInput.setOnAction(e -> visualize(new AbstractDescription(fieldInput.getText())));
     }
 
     @FXML
@@ -59,8 +77,7 @@ public class Controller {
             stage.setTitle("iCircles FX");
             stage.show();
         } catch (Exception e) {
-            // TODO: handle
-            e.printStackTrace();
+            showError(e);
         }
     }
 
@@ -75,11 +92,30 @@ public class Controller {
     @FXML
     private void save() {
         // TODO: save whatever we are working on now
+        showError(new UnsupportedOperationException("Not yet implemented!"));
     }
 
     @FXML
     private void saveAs() {
-        // TODO: allow user to choose save format
+        ExtensionFilter filterPNG = new ExtensionFilter("PNG image", "*.png");
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save As...");
+        fileChooser.setInitialDirectory(new File("./"));
+        fileChooser.setInitialFileName("diagram");
+        fileChooser.getExtensionFilters().addAll(filterPNG);
+        fileChooser.setSelectedExtensionFilter(filterPNG);
+        File file = fileChooser.showSaveDialog(null);
+        if (file != null) {
+            WritableImage fxImage = renderer.snapshot(null, null);
+            BufferedImage img = SwingFXUtils.fromFXImage(fxImage, null);
+
+            try {
+                ImageIO.write(img, "png", file);
+            } catch (IOException e) {
+                showError(e);
+            }
+        }
     }
 
     @FXML
@@ -88,11 +124,28 @@ public class Controller {
     }
 
     @FXML
+    private void undo() {
+        showError(new UnsupportedOperationException("Not yet implemented!"));
+    }
+
+    @FXML
+    private void redo() {
+        showError(new UnsupportedOperationException("Not yet implemented!"));
+    }
+
+    @FXML
     private void about() {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("About iCircles");
         alert.setHeaderText(null);
         alert.setContentText("iCircles is a set visualization library.");
+        alert.show();
+    }
+
+    private void showError(Exception e) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Ooops");
+        alert.setContentText(e.getMessage());
         alert.show();
     }
 
@@ -105,9 +158,20 @@ public class Controller {
         try {
             ConcreteDiagram diagram = new ConcreteDiagram(description, size, dType, rType);
             renderer.draw(diagram);
+
+            // highlighting
+            renderer.getShadedZones().forEach(zone -> {
+                zone.setOnMouseEntered(e -> {
+                    ((Shape)zone).setFill(Color.YELLOW);
+                    areaInfo.setText(((ConcreteZone)zone.getUserData()).toDebugString());
+                });
+
+                zone.setOnMouseExited(e -> {
+                    ((Shape)zone).setFill(Color.TRANSPARENT);
+                });
+            });
         } catch (CannotDrawException e) {
-            // TODO: show it to user *nicely*
-            e.printStackTrace();
+            showError(e);
         }
     }
 }

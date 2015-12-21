@@ -66,9 +66,21 @@ public class DiagramCreator {
         CircleContour.fitCirclesToSize(circles, size);
 
         List<ConcreteZone> shadedZones = createShadedZones();
-        return new ConcreteDiagram(getInitialDiagram(), getFinalDiagram(),
+        ConcreteDiagram diagram = new ConcreteDiagram(getInitialDiagram(), getFinalDiagram(),
                 new icircles.geometry.Rectangle(0, 0, size, size), circles,
                 getFinalDiagram().getCopyOfZones().stream().map(this::makeConcreteZone).collect(Collectors.toList()), shadedZones);
+
+
+        Map<AbstractCurve, List<CircleContour> > duplicates = diagram.findDuplicateContours();
+
+        log.trace("Duplicates: " + duplicates);
+        duplicates.values().forEach(contours -> {
+            for (CircleContour contour : contours) {
+                log.trace("Contour " + contour + " is in " + diagram.getZonesContainingContour(contour));
+            }
+        });
+
+        return diagram;
     }
 
     private void makeGuideSizes() {
