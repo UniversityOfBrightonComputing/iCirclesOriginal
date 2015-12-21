@@ -60,6 +60,16 @@ public class AbstractCurve implements Comparable<AbstractCurve> {
         return label.checksum() * id;
     }
 
+//    @Override
+//    public boolean equals(Object obj) {
+//        return ((AbstractCurve)obj).getLabel().getLabel().equals(getLabel().getLabel());
+//    }
+//
+//    @Override
+//    public int hashCode() {
+//        return getLabel().getLabel().hashCode();
+//    }
+
     @Override
     public String toString() {
         return label.getLabel();

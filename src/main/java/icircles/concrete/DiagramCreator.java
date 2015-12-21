@@ -611,6 +611,7 @@ public class DiagramCreator {
             // next RecompData in the BuildStep
             for (RecompositionData rd : step.recomp_data) {
                 AbstractCurve ac = rd.addedCurve;
+
                 double suggested_radius = guideSizes.get(ac);
                 if (rd.isNested()) {
                     addNestedContour(bs, ac, rd, outerBox);
