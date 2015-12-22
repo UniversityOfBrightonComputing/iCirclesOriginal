@@ -181,6 +181,18 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+
+        if (!(obj instanceof AbstractBasicRegion))
+            return false;
+
+        AbstractBasicRegion other = (AbstractBasicRegion) obj;
+        return isLabelEquivalent(other);
+    }
+
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("{");
         theInSet.forEach(curve -> sb.append(curve).append(","));

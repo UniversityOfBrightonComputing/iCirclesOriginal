@@ -35,6 +35,7 @@ public class Cluster {
         if (z1.getStraddledContour(z3) == null)
             throw new IllegalArgumentException("Non-adjacent cluster pair");
 
+        // TODO: check references?
         if (z2.getStraddledContour(z4) != z1.getStraddledContour(z3))
             throw new IllegalArgumentException("Non-adjacent cluster pair");
         if (z3.getStraddledContour(z4) != z1.getStraddledContour(z2))

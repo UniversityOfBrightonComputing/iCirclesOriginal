@@ -60,7 +60,7 @@ public class Decomposer {
         for (AbstractBasicRegion zone : ad.getCopyOfZones()) {
             AbstractBasicRegion newZone = zone.moveOutside(curve);
             zones.add(newZone);
-            if (zone != newZone) {
+            if (!zone.isLabelEquivalent(newZone)) {
                 zonesMoved.put(zone, newZone);
             }
         }

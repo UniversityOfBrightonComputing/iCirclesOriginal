@@ -362,14 +362,14 @@ public class DiagramCreator {
         return false;
     }
 
-    private boolean willPierce(BuildStep bs, AbstractCurve ac) {
+    private boolean willPierce(BuildStep bs, AbstractCurve curve) {
         BuildStep future_bs = bs.next;
         while (future_bs != null) {
-            if (future_bs.recomp_data.get(0).splitZones.size() == 2) {
+            if (future_bs.recomp_data.get(0).isSinglePiercing()) {
                 AbstractBasicRegion abr0 = future_bs.recomp_data.get(0).splitZones.get(0);
                 AbstractBasicRegion abr1 = future_bs.recomp_data.get(0).splitZones.get(1);
                 AbstractCurve ac_future = abr0.getStraddledContour(abr1);
-                if (ac_future == ac) {
+                if (ac_future == curve) {
                     return true;
                 }
             }
@@ -683,7 +683,7 @@ public class DiagramCreator {
         BuildStep beforefuturebs = bs;
         while (beforefuturebs != null && beforefuturebs.next != null) {
             RecompositionData rd2 = beforefuturebs.next.recomp_data.get(0);
-            if (rd2.splitZones.size() == 2) {
+            if (rd2.isSinglePiercing()) {
                 AbstractBasicRegion abr3 = rd2.splitZones.get(0);
                 AbstractBasicRegion abr4 = rd2.splitZones.get(1);
                 if ((abr1.isLabelEquivalent(abr3) && abr2.isLabelEquivalent(abr4))
@@ -722,11 +722,11 @@ public class DiagramCreator {
 
             RecompositionData rd = bs.recomp_data.get(0);
 
-            if (rd.splitZones.size() == 1) {
+            if (rd.isNested()) {
                 // we are adding a nested contour
                 combineNestedContourSteps(bs);
             }
-            else if (rd.splitZones.size() == 2) {
+            else if (rd.isSinglePiercing()) {
                 // we are adding a 1-piercing
                 combineSinglePiercingSteps(bs);
             }
@@ -905,7 +905,7 @@ public class DiagramCreator {
 
         // special case : one contour inside another with no other interference between
         // look at the final diagram - find the corresponding zone
-        //DEB.out(2, "");
+
         if (zone.getNumContours() > 0 && acs.size() == 1) {
             //System.out.println("look for "+zone.toDebugString()+" in "+last_diag.toDebugString());
             // not the outside zone - locate the zone in the last diag
