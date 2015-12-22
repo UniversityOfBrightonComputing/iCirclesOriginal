@@ -37,6 +37,8 @@ public class Controller {
 
     @FXML
     private Menu drTypes;
+    @FXML
+    private Menu menuDiagrams;
 
     @FXML
     private TextField fieldInput;
@@ -94,6 +96,10 @@ public class Controller {
             if (newToggle != null)
                 visualize(currentDescription);
         });
+
+        MenuItem itemVenn = new MenuItem("Venn3");
+        itemVenn.setOnAction(e -> visualize(new AbstractDescription("a b c abc ab ac bc")));
+        menuDiagrams.getItems().addAll(itemVenn);
     }
 
     @FXML
@@ -157,7 +163,7 @@ public class Controller {
             historyRedo.add(historyUndo.remove(historyUndo.size() - 1));
 
             AbstractDescription ad = historyUndo.get(historyUndo.size() - 1);
-            fieldInput.setText(ad.getInformalDescription());
+            //fieldInput.setText(ad.getInformalDescription());
             visualize(ad);
         }
     }
@@ -168,7 +174,7 @@ public class Controller {
             AbstractDescription ad = historyRedo.remove(historyRedo.size() - 1);
             historyUndo.add(ad);
 
-            fieldInput.setText(ad.getInformalDescription());
+            //fieldInput.setText(ad.getInformalDescription());
             visualize(ad);
         }
     }
@@ -190,6 +196,7 @@ public class Controller {
     }
 
     private void visualize(AbstractDescription description) {
+        fieldInput.setText(description.getInformalDescription());
         currentDescription = description;
         int size = (int) Math.min(renderer.getWidth(), renderer.getHeight());
 

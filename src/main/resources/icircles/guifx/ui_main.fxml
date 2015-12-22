@@ -23,13 +23,14 @@
                     <MenuItem mnemonicParsing="false" text="Undo" onAction="#undo"/>
                     <MenuItem mnemonicParsing="false" text="Redo" onAction="#redo"/>
                 </Menu>
-                <Menu fx:id="drTypes" text="Decomposition/Recomposition Types">
+                <Menu fx:id="drTypes" text="Decomposition/Recomposition">
                 </Menu>
+                <Menu fx:id="menuDiagrams" text="Diagrams" />
                 <Menu mnemonicParsing="false" text="Help">
                     <MenuItem mnemonicParsing="false" text="About" onAction="#about"/>
                 </Menu>
             </MenuBar>
-            <TextField prefWidth="450" fx:id="fieldInput" />
+            <TextField prefWidth="400" fx:id="fieldInput" />
         </HBox>
     </top>
 

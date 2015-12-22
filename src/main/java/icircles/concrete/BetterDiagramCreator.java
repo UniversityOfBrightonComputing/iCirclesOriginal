@@ -28,5 +28,25 @@ public class BetterDiagramCreator extends DiagramCreator {
 //        rSteps.add(step2);
 //
 //        System.out.println(step2);
+
+
+
+
+        // solution for a ab abc ac bc abd ad
+        // but iCircles currently doesn't know how to add with TP (triple point) so it adds like a 2-piercing
+
+//        RecompositionStep step1 = rSteps.get(1);
+//
+//        List<AbstractBasicRegion> splitZones = new AbstractDescription("a c ac").getCopyOfZones().stream().collect(Collectors.toList());
+//        List<AbstractBasicRegion> newZones = new AbstractDescription("ab bc abc").getCopyOfZones().stream().filter(z -> !z.getCopyOfContours().isEmpty()).collect(Collectors.toList());
+//
+//        RecompositionData data = new RecompositionData(new AbstractCurve("b"), splitZones, newZones);
+//
+//        RecompositionStep step2 = new RecompositionStep(step1.to(), new AbstractDescription("a c ac ab bc abc"),
+//                Arrays.asList(data));
+//        rSteps.set(2, step2);
+
+
+
     }
 }

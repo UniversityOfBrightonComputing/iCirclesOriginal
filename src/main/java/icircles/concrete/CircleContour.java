@@ -12,7 +12,7 @@ public class CircleContour {
     double centerX;
     double centerY;
     double radius;
-    double nudge = 0.1;
+    private double nudge = 0.1;
 
     /**
      * Abstract representation of this concrete contour.

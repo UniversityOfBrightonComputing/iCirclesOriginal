@@ -39,6 +39,12 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
         return result;
     }
 
+    public AbstractBasicRegion moved_in(AbstractCurve newCont) {
+        TreeSet<AbstractCurve> conts = new TreeSet<>(theInSet);
+        conts.add(newCont);
+        return AbstractBasicRegion.get(conts);
+    }
+
     public AbstractBasicRegion moveOutside(AbstractCurve c) {
         if (theInSet.contains(c)) {
             Set<AbstractCurve> contours = new TreeSet<>(theInSet);
@@ -87,6 +93,15 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
         return theInSet.size();
     }
 
+    /**
+     * TODO: do not return null but optional, check usage first
+     *
+     * Checks if the other zone is topologically adjacent to this zone.
+     * If that is the case the difference curve is returned else null.
+     *
+     * @param other the other zone
+     * @return curve if zones are a cluster else null
+     */
     public AbstractCurve getStraddledContour(AbstractBasicRegion other) {
         int nc = getNumContours();
         int othernc = other.getNumContours();
@@ -114,12 +129,6 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
 
             return result;
         }
-    }
-
-    public AbstractBasicRegion moved_in(AbstractCurve newCont) {
-        TreeSet<AbstractCurve> conts = new TreeSet<>(theInSet);
-        conts.add(newCont);
-        return AbstractBasicRegion.get(conts);
     }
 
     /**
