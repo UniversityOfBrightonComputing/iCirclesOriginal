@@ -4,10 +4,7 @@ import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.TreeSet;
+import java.util.*;
 
 public class DecompositionStrategyPiercing extends DecompositionStrategy {
 
@@ -76,24 +73,19 @@ public class DecompositionStrategyPiercing extends DecompositionStrategy {
         // find the smallest zone (one in fewest contours)
         int zoneSize = Integer.MAX_VALUE;
         AbstractBasicRegion smallestZone = null;
-        Iterator<AbstractBasicRegion> abrit = zonesInContour.iterator();
-        while (abrit.hasNext()) {
-            AbstractBasicRegion abr = abrit.next();
-            int numCs = abr.getNumContours();
+
+        for (AbstractBasicRegion zone : zonesInContour) {
+            int numCs = zone.getNumContours();
             if (numCs < zoneSize) {
                 zoneSize = numCs;
-                smallestZone = abr;
+                smallestZone = zone;
             }
         }
 
         // every other zone in ac must be a superset of that zone
-        abrit = zonesInContour.iterator();
-        while (abrit.hasNext()) {
-            AbstractBasicRegion abr = abrit.next();
-            Iterator<AbstractCurve> acIt = smallestZone.getContourIterator();
-            while (acIt.hasNext()) {
-                AbstractCurve ac2 = acIt.next();
-                if (!abr.contains(ac2)) {
+        for (AbstractBasicRegion zone : zonesInContour) {
+            for (AbstractCurve curve : smallestZone.getCopyOfContours()) {
+                if (!zone.contains(curve)) {
                     return false;
                 }
             }
@@ -101,21 +93,19 @@ public class DecompositionStrategyPiercing extends DecompositionStrategy {
 
         // We have 2^n zones which are all supersets of smallestZone.
         // Check that they use exactly n contours from smallestZone.
-        TreeSet<AbstractCurve> addedContours = new TreeSet<AbstractCurve>();
-        abrit = zonesInContour.iterator();
-        while (abrit.hasNext()) {
-            AbstractBasicRegion abr = abrit.next();
-            Iterator<AbstractCurve> acIt = abr.getContourIterator();
-            while (acIt.hasNext()) {
-                AbstractCurve ac2 = acIt.next();
-                if (!smallestZone.contains(ac2)) {
-                    addedContours.add(ac2);
+        Set<AbstractCurve> addedContours = new TreeSet<>();
+
+        for (AbstractBasicRegion zone : zonesInContour) {
+            for (AbstractCurve curve : zone.getCopyOfContours()) {
+                if (!smallestZone.contains(curve)) {
+                    addedContours.add(curve);
                     if (addedContours.size() > power) {
                         return false;
                     }
                 }
             }
         }
+
         return true;
     }
 
