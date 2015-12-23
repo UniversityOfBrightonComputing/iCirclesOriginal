@@ -18,7 +18,7 @@ public class DecompositionStrategyPiercing extends DecompositionStrategy {
 
         for (AbstractCurve curve : ad.getCurvesUnmodifiable()) {
             if (isPiercingCurve(curve, ad)) {
-                int nz = numZonesInside(curve, ad);
+                int nz = ad.getNumZonesIn(curve);
                 if (nz < bestNZ) {
                     result.clear();
                     result.add(curve);
@@ -31,7 +31,7 @@ public class DecompositionStrategyPiercing extends DecompositionStrategy {
 
         if (result.isEmpty()) {
             for (AbstractCurve curve : ad.getCurvesUnmodifiable()) {
-                int nz = numZonesInside(curve, ad);
+                int nz = ad.getNumZonesIn(curve);
                 if (nz < bestNZ) {
                     result.clear();
                     result.add(curve);
@@ -43,18 +43,6 @@ public class DecompositionStrategyPiercing extends DecompositionStrategy {
         }
 
         return result;
-    }
-
-    private int numZonesInside(AbstractCurve ac, AbstractDescription ad) {
-        int nz = 0;
-
-        for (AbstractBasicRegion zone : ad.getZonesUnmodifiable()) {
-            if (zone.contains(ac)) {
-                nz++;
-            }
-        }
-
-        return nz;
     }
 
     private boolean isPiercingCurve(AbstractCurve ac, AbstractDescription ad) {

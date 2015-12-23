@@ -1,5 +1,6 @@
 package icircles.abstractdescription;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -10,14 +11,36 @@ import static org.junit.Assert.assertNotEquals;
  */
 public class AbstractDescriptionTest {
 
+    private AbstractDescription ad1, ad2, ad3;
+
+    @Before
+    public void setUp() {
+        ad1 = new AbstractDescription("a ab abc bc ac");
+        ad2 = new AbstractDescription("abc bc ab ac a");
+        ad3 = new AbstractDescription("a ad abc bc ac");
+    }
+
     @Test
     public void testToString() {
-        AbstractDescription ad1 = new AbstractDescription("a ab abc bc ac");
-        AbstractDescription ad2 = new AbstractDescription("abc bc ab ac a");
-        AbstractDescription ad3 = new AbstractDescription("a ad abc bc ac");
-
         assertEquals(ad1.toString(), ad2.toString());
         assertNotEquals(ad1.toString(), ad3.toString());
+    }
+
+    @Test
+    public void testNumZonesIn() {
+        assertEquals(4, ad1.getNumZonesIn(getCurve(ad1, "a")));
+        assertEquals(3, ad1.getNumZonesIn(getCurve(ad1, "b")));
+        assertEquals(3, ad1.getNumZonesIn(getCurve(ad1, "c")));
+    }
+
+    private AbstractCurve getCurve(AbstractDescription description, String label) {
+        for (AbstractCurve curve : description.getCurvesUnmodifiable()) {
+            if (curve.hasLabel(label)) {
+                return curve;
+            }
+        }
+
+        return null;
     }
 
     // Existing test, TODO: refactor as junit test

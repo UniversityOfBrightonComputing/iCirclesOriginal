@@ -53,6 +53,7 @@ public class AbstractDescription {
      * @param informalDescription abstract description in informal form
      */
     public AbstractDescription(String informalDescription) {
+        // TODO: this description is not sorted as in the above ctor
         this.informalDescription = informalDescription;
 
         TreeSet<AbstractBasicRegion> ad_zones = new TreeSet<>();
@@ -96,6 +97,13 @@ public class AbstractDescription {
     }
 
     /**
+     * @return abstract description in informal string form
+     */
+    public String getInformalDescription() {
+        return informalDescription;
+    }
+
+    /**
      * Returns unmodifiable set of zones of this abstract description.
      * The returned set is read-only. Use this to query/iterate over zones.
      *
@@ -110,6 +118,14 @@ public class AbstractDescription {
      */
     public int getNumZones() {
         return zones.size();
+    }
+
+    /**
+     * @param curve the curve
+     * @return number of zones the given curves passes through
+     */
+    public int getNumZonesIn(AbstractCurve curve) {
+        return (int) zones.stream().filter(z -> z.contains(curve)).count();
     }
 
     /**
@@ -162,10 +178,6 @@ public class AbstractDescription {
             }
         }
         return false;
-    }
-
-    public String getInformalDescription() {
-        return informalDescription;
     }
 
     public String toDebugString() {
