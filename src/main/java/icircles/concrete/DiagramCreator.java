@@ -67,7 +67,7 @@ public class DiagramCreator {
         List<ConcreteZone> shadedZones = createShadedZones();
         ConcreteDiagram diagram = new ConcreteDiagram(getInitialDiagram(), getFinalDiagram(),
                 new icircles.geometry.Rectangle(0, 0, size, size), circles,
-                getFinalDiagram().getCopyOfZones().stream().map(this::makeConcreteZone).collect(Collectors.toList()), shadedZones);
+                getFinalDiagram().getZonesShallowCopy().stream().map(this::makeConcreteZone).collect(Collectors.toList()), shadedZones);
 
 
         Map<AbstractCurve, List<CircleContour> > duplicates = diagram.findDuplicateContours();
@@ -94,7 +94,7 @@ public class DiagramCreator {
         contourScores = new HashMap<>();
         double totalScore = 0.0;
 
-        for (AbstractBasicRegion zone : finalDiagram.getCopyOfZones()) {
+        for (AbstractBasicRegion zone : finalDiagram.getZonesShallowCopy()) {
             double score = computeZoneScore(zone, finalDiagram);
             totalScore += score;
             zoneScores.put(zone, score);
@@ -103,7 +103,7 @@ public class DiagramCreator {
         for (AbstractCurve curve : finalDiagram.getCopyOfContours()) {
             double score = 0;
 
-            for (AbstractBasicRegion zone : finalDiagram.getCopyOfZones()) {
+            for (AbstractBasicRegion zone : finalDiagram.getZonesShallowCopy()) {
                 if (zone.contains(curve)) {
                     score += zoneScores.get(zone);
                 }
@@ -140,7 +140,7 @@ public class DiagramCreator {
         log.trace("Initial diagram zones: " + initialDiagram);
         log.trace("Final diagram zones:   " + finalDiagram);
 
-        for (AbstractBasicRegion zone : finalDiagram.getCopyOfZones()) {
+        for (AbstractBasicRegion zone : finalDiagram.getZonesShallowCopy()) {
             if (!initialDiagram.hasLabelEquivalentZone(zone)) {
                 log.trace("Extra zone: " + zone);
                 result.add(makeConcreteZone(zone));

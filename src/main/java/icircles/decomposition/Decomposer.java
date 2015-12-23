@@ -57,7 +57,7 @@ public class Decomposer {
         Set<AbstractBasicRegion> zones = new TreeSet<>();
         Map<AbstractBasicRegion, AbstractBasicRegion> zonesMoved = new TreeMap<>();
 
-        for (AbstractBasicRegion zone : ad.getCopyOfZones()) {
+        for (AbstractBasicRegion zone : ad.getZonesShallowCopy()) {
             AbstractBasicRegion newZone = zone.moveOutside(curve);
             zones.add(newZone);
             if (!zone.isLabelEquivalent(newZone)) {

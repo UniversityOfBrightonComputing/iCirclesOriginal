@@ -17,8 +17,8 @@ public class BetterDiagramCreator extends DiagramCreator {
 
 //        RecompositionStep step1 = rSteps.get(1);
 //
-//        List<AbstractBasicRegion> splitZones = new AbstractDescription("a b ab").getCopyOfZones().stream().collect(Collectors.toList());
-//        List<AbstractBasicRegion> newZones = new AbstractDescription("c ac bc abc").getCopyOfZones().stream().filter(z -> !z.getCopyOfContours().isEmpty()).collect(Collectors.toList());
+//        List<AbstractBasicRegion> splitZones = new AbstractDescription("a b ab").getZonesShallowCopy().stream().collect(Collectors.toList());
+//        List<AbstractBasicRegion> newZones = new AbstractDescription("c ac bc abc").getZonesShallowCopy().stream().filter(z -> !z.getCopyOfContours().isEmpty()).collect(Collectors.toList());
 //
 //        RecompositionData data = new RecompositionData(new AbstractCurve(CurveLabel.get("c")), splitZones, newZones);
 //
@@ -37,8 +37,8 @@ public class BetterDiagramCreator extends DiagramCreator {
 
 //        RecompositionStep step1 = rSteps.get(1);
 //
-//        List<AbstractBasicRegion> splitZones = new AbstractDescription("a c ac").getCopyOfZones().stream().collect(Collectors.toList());
-//        List<AbstractBasicRegion> newZones = new AbstractDescription("ab bc abc").getCopyOfZones().stream().filter(z -> !z.getCopyOfContours().isEmpty()).collect(Collectors.toList());
+//        List<AbstractBasicRegion> splitZones = new AbstractDescription("a c ac").getZonesShallowCopy().stream().collect(Collectors.toList());
+//        List<AbstractBasicRegion> newZones = new AbstractDescription("ab bc abc").getZonesShallowCopy().stream().filter(z -> !z.getCopyOfContours().isEmpty()).collect(Collectors.toList());
 //
 //        RecompositionData data = new RecompositionData(new AbstractCurve("b"), splitZones, newZones);
 //

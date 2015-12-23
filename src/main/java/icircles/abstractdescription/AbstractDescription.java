@@ -106,6 +106,24 @@ public class AbstractDescription {
         return zones;
     }
 
+    /**
+     * Returns a new set retaining references to original zones.
+     * The returned set is modifiable. Use this only when a new set is required.
+     * For queries/iteration use {@link #getZonesUnmodifiable()}.
+     *
+     * @return a shallow copy of zones set
+     */
+    public SortedSet<AbstractBasicRegion> getZonesShallowCopy() {
+        return new TreeSet<>(zones);
+    }
+
+    /**
+     * @return number of abstract zones, including the outside zone
+     */
+    public int getNumZones() {
+        return zones.size();
+    }
+
     public Iterator<AbstractCurve> getContourIterator() {
         return contours.iterator();
     }
@@ -118,16 +136,8 @@ public class AbstractDescription {
         return new TreeSet<>(contours);
     }
 
-    public TreeSet<AbstractBasicRegion> getCopyOfZones() {
-        return new TreeSet<>(zones);
-    }
-
     public int getNumContours() {
         return contours.size();
-    }
-
-    public int getNumZones() {
-        return zones.size();
     }
 
     public double checksum() {
