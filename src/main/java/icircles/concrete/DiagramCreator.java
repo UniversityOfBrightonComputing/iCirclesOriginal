@@ -643,7 +643,7 @@ public class DiagramCreator {
         BuildStep beforefuturebs = bs;
         while (beforefuturebs != null && beforefuturebs.next != null) {
             RecompositionData rd2 = beforefuturebs.next.recomp_data.get(0);
-            if (rd2.splitZones.size() == 1) {
+            if (rd2.isNested()) {
                 AbstractBasicRegion abr2 = rd2.splitZones.get(0);
                 if (abr.isLabelEquivalent(abr2)) {
                     log.trace("Found matching abrs " + abr + ", " + abr2);
@@ -798,7 +798,7 @@ public class DiagramCreator {
             int smallest_radius,
             double guide_rad,
             AbstractBasicRegion zone,
-            AbstractDescription last_diag,
+            AbstractDescription finalDiagram,
             List<AbstractCurve> acs) throws CannotDrawException {
 
         List<CircleContour> result = new ArrayList<>();
@@ -909,43 +909,28 @@ public class DiagramCreator {
         // look at the final diagram - find the corresponding zone
 
         if (zone.getNumContours() > 0 && acs.size() == 1) {
-            //System.out.println("look for "+zone.toDebugString()+" in "+last_diag.toDebugString());
+            //System.out.println("look for "+zone.toDebugString()+" in "+finalDiagram.toDebugString());
             // not the outside zone - locate the zone in the last diag
-            AbstractBasicRegion zoneInLast = null;
-            Iterator<AbstractBasicRegion> abrIt = last_diag.getZoneIterator();
-            while (abrIt.hasNext() && zoneInLast == null) {
-                AbstractBasicRegion abrInLast = abrIt.next();
-                if (abrInLast.isLabelEquivalent(zone)) {
-                    zoneInLast = abrInLast;
-                }
-            }
-
-            if (zoneInLast == null)
-                throw new RuntimeException("Failed to locate zone in final diagram");
+            AbstractBasicRegion zoneInLast = finalDiagram.getZonesUnmodifiable()
+                    .stream()
+                    .filter(z -> z.isLabelEquivalent(zone))
+                    .findAny()
+                    .orElseThrow(() -> new RuntimeException("Failed to locate zone in final diagram"));
 
             // how many neighbouring abrs?
-            abrIt = last_diag.getZoneIterator();
-            List<AbstractCurve> nbring_curves = new ArrayList<>();
-            while (abrIt.hasNext()) {
-                AbstractBasicRegion abrInLast = abrIt.next();
-
-                zoneInLast.getStraddledContour(abrInLast).ifPresent(curve -> {
-                    if (!curve.matchesLabel(acs.get(0))) {
-                        nbring_curves.add(curve);
-                    }
-                });
-
-
-            }
+            List<AbstractCurve> nbring_curves = finalDiagram.getZonesUnmodifiable()
+                    .stream()
+                    .map(zoneInLast::getStraddledContour)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .filter(curve -> !curve.matchesLabel(acs.get(0)))
+                    .collect(Collectors.toList());
 
             if (nbring_curves.size() == 1) {
                 //  we should use concentric circles
 
                 AbstractCurve acOutside = nbring_curves.get(0);
                 // use the centre of the relevant contour
-
-                if (acOutside == null)
-                    throw new RuntimeException("Did not find containing contour");
 
                 CircleContour ccOutside = map.get(acOutside);
 

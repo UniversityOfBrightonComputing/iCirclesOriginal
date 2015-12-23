@@ -19,7 +19,7 @@ public class AbstractDescription {
 
     // TODO: immutable data structure?
     private TreeSet<AbstractCurve> contours;
-    private TreeSet<AbstractBasicRegion> zones;
+    private SortedSet<AbstractBasicRegion> zones;
 
     /**
      * Constructs abstract description from the set of contours and set of zones.
@@ -29,7 +29,7 @@ public class AbstractDescription {
      */
     public AbstractDescription(Set<AbstractCurve> contours, Set<AbstractBasicRegion> zones) {
         this.contours = new TreeSet<>(contours);
-        this.zones = new TreeSet<>(zones);
+        this.zones = Collections.unmodifiableSortedSet(new TreeSet<>(zones));
 
         StringBuilder sb = new StringBuilder();
         for (AbstractBasicRegion zone : zones) {
@@ -79,7 +79,7 @@ public class AbstractDescription {
         }
 
         this.contours = new TreeSet<>(contours.values());
-        this.zones = new TreeSet<>(ad_zones);
+        this.zones = Collections.unmodifiableSortedSet(new TreeSet<>(ad_zones));
     }
 
     public AbstractCurve getFirstContour() {
@@ -94,6 +94,16 @@ public class AbstractDescription {
             return null;
         }
         return contours.last();
+    }
+
+    /**
+     * Returns unmodifiable set of zones of this abstract description.
+     * The returned set is read-only. Use this to query/iterate over zones.
+     *
+     * @return unmodifiable set of zones
+     */
+    public Set<AbstractBasicRegion> getZonesUnmodifiable() {
+        return zones;
     }
 
     public Iterator<AbstractCurve> getContourIterator() {
