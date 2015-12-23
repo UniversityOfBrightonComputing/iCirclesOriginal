@@ -134,12 +134,12 @@ public class Recomposer {
 
             for (AbstractBasicRegion z : cluster.zones()) {
                 split_zones.add(z);
-                AbstractBasicRegion new_zone = z.moved_in(new_cont);
+                AbstractBasicRegion new_zone = z.moveInside(new_cont);
                 new_zone_set.add(new_zone);
                 added_zones.add(new_zone);
 
                 AbstractBasicRegion decomp_z = matched_inverse.get(z);
-                matchedZones.put(decomp_z.moved_in(was_removed), new_zone);
+                matchedZones.put(decomp_z.moveInside(was_removed), new_zone);
             }
 
             added_contour_data.add(new RecompositionData(new_cont, split_zones, added_zones));

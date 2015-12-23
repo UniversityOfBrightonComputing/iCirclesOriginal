@@ -3,9 +3,7 @@ package icircles.abstractdescription;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Iterator;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * Represents a zone (basic region) at an abstract level.
@@ -20,6 +18,11 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
 
     private AbstractBasicRegion(Set<AbstractCurve> in_set) {
         theInSet = in_set;
+    }
+
+    // TODO: test this to become the normal ctor
+    public AbstractBasicRegion(AbstractCurve... curves) {
+        theInSet = new TreeSet<>(Arrays.asList(curves));
     }
 
     public static void clearLibrary() {
@@ -39,10 +42,10 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
         return result;
     }
 
-    public AbstractBasicRegion moved_in(AbstractCurve newCont) {
+    public AbstractBasicRegion moveInside(AbstractCurve newCont) {
         TreeSet<AbstractCurve> conts = new TreeSet<>(theInSet);
         conts.add(newCont);
-        return AbstractBasicRegion.get(conts);
+        return get(conts);
     }
 
     public AbstractBasicRegion moveOutside(AbstractCurve c) {
@@ -135,10 +138,24 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
      * Returns true if this zone contains the curve.
      *
      * @param curve the curve
-     * @return true iff the curve in within this zone
+     * @return true iff the curve is within this zone
      */
     public boolean contains(AbstractCurve curve) {
         return theInSet.contains(curve);
+    }
+
+    /**
+     * @param label the label
+     * @return true if the zone contains the curve with given label.
+     */
+    public boolean containsCurveWithLabel(String label) {
+        for (AbstractCurve curve : theInSet) {
+            if (curve.hasLabel(label)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public double checksum() {
@@ -151,18 +168,21 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
         return result;
     }
 
-    public boolean isLabelEquivalent(AbstractBasicRegion z) {
-        if (getNumContours() == z.getNumContours()) {
-            if (z.getNumContours() == 0) {
+    public boolean isLabelEquivalent(AbstractBasicRegion other) {
+        // TODO: if we didn't have id for curve we couldve used more natural
+        // return theInSet.equals(other.theInSet);
+
+        if (getNumContours() == other.getNumContours()) {
+            if (other.getNumContours() == 0) {
                 return true;
             } else {
-                //System.out.println(" compare zones "+toDebugString()+" and "+z.toDebugString());
+                //System.out.println(" compare zones "+toDebugString()+" and "+other.toDebugString());
                 Iterator<AbstractCurve> acIt = getContourIterator();
                 AcItLoop:
                 while (acIt.hasNext()) {
                     AbstractCurve thisAC = acIt.next();
-                    // look for an AbstractCurve in z with the same label
-                    Iterator<AbstractCurve> acIt2 = z.getContourIterator();
+                    // look for an AbstractCurve in other with the same label
+                    Iterator<AbstractCurve> acIt2 = other.getContourIterator();
                     while (acIt2.hasNext()) {
                         AbstractCurve thatAC = acIt2.next();
                         //System.out.println(" compare abstract contours "+thisAC.toDebugString()+" and "+thatAC.toDebugString());

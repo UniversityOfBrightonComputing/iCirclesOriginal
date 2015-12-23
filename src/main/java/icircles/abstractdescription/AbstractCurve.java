@@ -22,6 +22,8 @@ public class AbstractCurve implements Comparable<AbstractCurve> {
      * @param label the curve label
      */
     public AbstractCurve(String label) {
+        // TODO: check for bad labels
+
         uniqueId++;
         id = uniqueId;
         this.label = label;
