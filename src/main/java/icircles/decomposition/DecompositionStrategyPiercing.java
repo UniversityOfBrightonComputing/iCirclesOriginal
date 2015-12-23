@@ -78,7 +78,7 @@ public class DecompositionStrategyPiercing extends DecompositionStrategy {
                 while (abrit2.hasNext()) {
                     AbstractBasicRegion abr2 = abrit2.next();
                     // TODO: be careful referential check, need it?
-                    if (abr.getStraddledContour(abr2) == ac) {
+                    if (abr.getStraddledContour(abr2).orElse(null) == ac) {
                         continue abrLoop;
                     }
                 }

@@ -32,11 +32,7 @@ public class AbstractDualGraph {
                         found_node_again = true;
                     }
                 } else {
-                    AbstractCurve straddlingCurve =
-                            n.abr.getStraddledContour(n2.abr);
-                    if (straddlingCurve != null) {
-                        add_edge(n, n2, straddlingCurve);
-                    }
+                    n.abr.getStraddledContour(n2.abr).ifPresent(curve -> add_edge(n, n2, curve));
                 }
             }
         }

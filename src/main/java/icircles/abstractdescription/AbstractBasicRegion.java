@@ -58,29 +58,6 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
         }
     }
 
-    @Override
-    public int compareTo(AbstractBasicRegion other) {
-        if (other.theInSet.size() < theInSet.size()) {
-            return 1;
-        } else if (other.theInSet.size() > theInSet.size()) {
-            return -1;
-        }
-
-        // same sized in_set
-        Iterator<AbstractCurve> this_it = theInSet.iterator();
-        Iterator<AbstractCurve> other_it = other.theInSet.iterator();
-
-        while (this_it.hasNext()) {
-            AbstractCurve this_c = this_it.next();
-            AbstractCurve other_c = other_it.next();
-            int comp = this_c.compareTo(other_c);
-            if (comp != 0) {
-                return comp;
-            }
-        }
-        return 0;
-    }
-
     public Set<AbstractCurve> getCopyOfContours() {
         return new TreeSet<>(theInSet);
     }
@@ -94,44 +71,6 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
      */
     public int getNumContours() {
         return theInSet.size();
-    }
-
-    /**
-     * TODO: do not return null but optional, check usage first
-     *
-     * Checks if the other zone is topologically adjacent to this zone.
-     * If that is the case the difference curve is returned else null.
-     *
-     * @param other the other zone
-     * @return curve if zones are a cluster else null
-     */
-    public AbstractCurve getStraddledContour(AbstractBasicRegion other) {
-        int nc = getNumContours();
-        int othernc = other.getNumContours();
-
-        if (Math.abs(nc - othernc) != 1) {
-            return null;
-        } else if (nc < othernc) {
-            return other.getStraddledContour(this);
-        } else {
-            // we have one more contour than other - are we neighbours?
-            AbstractCurve result = null;
-            Iterator<AbstractCurve> it = getContourIterator();
-            while (it.hasNext()) {
-                AbstractCurve ac = it.next();
-                if (!other.contains(ac)) {
-                    if (result != null) {
-                        return null; // found two contours here absent from other
-                    } else {
-                        result = ac;
-                    }
-                }
-            }
-
-            log.trace("straddle: " + this + "->" + other + "=" + result);
-
-            return result;
-        }
     }
 
     /**
@@ -158,14 +97,43 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
         return false;
     }
 
-    public double checksum() {
-        double result = 0.0;
-        double scaling = 3.1;
-        for (AbstractCurve c : theInSet) {
-            result += c.checksum() * scaling;
-            scaling += 0.09;
+    /**
+     * Checks if the other zone is topologically adjacent to this zone.
+     * If that is the case the difference curve is returned else {@link Optional#empty()}.
+     *
+     * @param other the other zone
+     * @return curve if zones are a cluster else {@link Optional#empty()}.
+     */
+    public Optional<AbstractCurve> getStraddledContour(AbstractBasicRegion other) {
+        int nc = getNumContours();
+        int othernc = other.getNumContours();
+
+        if (Math.abs(nc - othernc) != 1) {
+            return Optional.empty();
+        } else if (nc < othernc) {
+            // delegate the computation to the other since it has 1 more contour
+            return other.getStraddledContour(this);
+        } else {
+            // we have one more contour than other - are we neighbours?
+            AbstractCurve result = null;
+            for (AbstractCurve curve : theInSet) {
+                if (!other.contains(curve)) {
+                    if (result == null) {
+                        // found first curve not in other
+                        result = curve;
+                    } else {
+                        // found second curve not in other, so we are not topologically adjacent
+                        return Optional.empty();
+                    }
+                }
+            }
+
+            log.trace("straddle: " + this + "->" + other + "=" + result);
+
+            // we have 1 more contour than other, so there is at least 1 contour not in other
+            // therefore we can guarantee that result != null
+            return Optional.of(result);
         }
-        return result;
     }
 
     public boolean isLabelEquivalent(AbstractBasicRegion other) {
@@ -198,6 +166,39 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
             }
         }
         return false;
+    }
+
+    public double checksum() {
+        double result = 0.0;
+        double scaling = 3.1;
+        for (AbstractCurve c : theInSet) {
+            result += c.checksum() * scaling;
+            scaling += 0.09;
+        }
+        return result;
+    }
+
+    @Override
+    public int compareTo(AbstractBasicRegion other) {
+        if (other.theInSet.size() < theInSet.size()) {
+            return 1;
+        } else if (other.theInSet.size() > theInSet.size()) {
+            return -1;
+        }
+
+        // same sized in_set
+        Iterator<AbstractCurve> this_it = theInSet.iterator();
+        Iterator<AbstractCurve> other_it = other.theInSet.iterator();
+
+        while (this_it.hasNext()) {
+            AbstractCurve this_c = this_it.next();
+            AbstractCurve other_c = other_it.next();
+            int comp = this_c.compareTo(other_c);
+            if (comp != 0) {
+                return comp;
+            }
+        }
+        return 0;
     }
 
     @Override

@@ -245,7 +245,7 @@ public class DiagramCreator {
         AbstractBasicRegion abr1 = rd0.splitZones.get(1);
         AbstractCurve piercingCurve = rd0.addedCurve;
 
-        AbstractCurve pierced_ac = abr0.getStraddledContour(abr1);
+        AbstractCurve pierced_ac = abr0.getStraddledContour(abr1).get();
         CircleContour pierced_cc = map.get(pierced_ac);
         ConcreteZone cz0 = makeConcreteZone(abr0);
         ConcreteZone cz1 = makeConcreteZone(abr1);
@@ -368,7 +368,7 @@ public class DiagramCreator {
             if (future_bs.recomp_data.get(0).isSinglePiercing()) {
                 AbstractBasicRegion abr0 = future_bs.recomp_data.get(0).splitZones.get(0);
                 AbstractBasicRegion abr1 = future_bs.recomp_data.get(0).splitZones.get(1);
-                AbstractCurve ac_future = abr0.getStraddledContour(abr1);
+                AbstractCurve ac_future = abr0.getStraddledContour(abr1).orElse(null);
                 if (ac_future == curve) {
                     return true;
                 }
@@ -424,7 +424,7 @@ public class DiagramCreator {
 
         AbstractBasicRegion abr0 = rd.splitZones.get(0);
         AbstractBasicRegion abr1 = rd.splitZones.get(1);
-        AbstractCurve c = abr0.getStraddledContour(abr1);
+        AbstractCurve c = abr0.getStraddledContour(abr1).get();
         CircleContour cc = map.get(c);
         ConcreteZone cz0 = makeConcreteZone(abr0);
         ConcreteZone cz1 = makeConcreteZone(abr1);
@@ -524,8 +524,10 @@ public class DiagramCreator {
         AbstractBasicRegion abr1 = rd.splitZones.get(1);
         AbstractBasicRegion abr2 = rd.splitZones.get(2);
         AbstractBasicRegion abr3 = rd.splitZones.get(3);
-        AbstractCurve c1 = abr0.getStraddledContour(abr1);
-        AbstractCurve c2 = abr0.getStraddledContour(abr2);
+
+        // are we sure the straddled curves exist?
+        AbstractCurve c1 = abr0.getStraddledContour(abr1).get();
+        AbstractCurve c2 = abr0.getStraddledContour(abr2).get();
         CircleContour cc1 = map.get(c1);
         CircleContour cc2 = map.get(c2);
 
@@ -918,19 +920,22 @@ public class DiagramCreator {
                 }
             }
 
-            //DEB.assertCondition(zoneInLast != null, "failed to locate zone in final diagram");
+            if (zoneInLast == null)
+                throw new RuntimeException("Failed to locate zone in final diagram");
 
             // how many neighbouring abrs?
             abrIt = last_diag.getZoneIterator();
             List<AbstractCurve> nbring_curves = new ArrayList<>();
             while (abrIt.hasNext()) {
                 AbstractBasicRegion abrInLast = abrIt.next();
-                AbstractCurve ac = zoneInLast.getStraddledContour(abrInLast);
-                if (ac != null) {
-                    if (!ac.matchesLabel(acs.get(0))) {
-                        nbring_curves.add(ac);
+
+                zoneInLast.getStraddledContour(abrInLast).ifPresent(curve -> {
+                    if (!curve.matchesLabel(acs.get(0))) {
+                        nbring_curves.add(curve);
                     }
-                }
+                });
+
+
             }
 
             if (nbring_curves.size() == 1) {
@@ -939,27 +944,28 @@ public class DiagramCreator {
                 AbstractCurve acOutside = nbring_curves.get(0);
                 // use the centre of the relevant contour
 
-                //DEB.assertCondition(acOutside != null, "did not find containing contour");
-                CircleContour ccOutside = map.get(acOutside);
-                //DEB.assertCondition(ccOutside != null, "did not find containing circle");
+                if (acOutside == null)
+                    throw new RuntimeException("Did not find containing contour");
 
-                if (ccOutside != null) {
-                    log.info("putting contour " + acs.get(0) + " inside " + acOutside.getLabel());
-                    double rad = Math.min(guide_rad, ccOutside.radius - smallest_radius);
-                    if (rad > 0.99 * smallest_radius) {
-                        // build a co-centric contour
-                        CircleContour attempt = new CircleContour(ccOutside.centerX, ccOutside.centerY, rad, acs.get(0));
-                        if (containedIn(attempt, a)) {
-                            // shrink the co-centric contour a bit
-                            if (rad > 2 * smallest_radius) {
-                                attempt = new CircleContour(ccOutside.centerX, ccOutside.centerY, rad - smallest_radius, acs.get(0));
-                            }
-                            result.add(attempt);
-                            return result;
+                CircleContour ccOutside = map.get(acOutside);
+
+                if (ccOutside == null)
+                    throw new RuntimeException("Did not find containing circle");
+
+                log.info("Placing contour " + acs.get(0) + " inside " + acOutside.getLabel());
+
+                double rad = Math.min(guide_rad, ccOutside.radius - smallest_radius);
+                if (rad > 0.99 * smallest_radius) {
+                    // build a co-centric contour
+                    CircleContour attempt = new CircleContour(ccOutside.centerX, ccOutside.centerY, rad, acs.get(0));
+                    if (containedIn(attempt, a)) {
+                        // shrink the co-centric contour a bit
+                        if (rad > 2 * smallest_radius) {
+                            attempt = new CircleContour(ccOutside.centerX, ccOutside.centerY, rad - smallest_radius, acs.get(0));
                         }
+                        result.add(attempt);
+                        return result;
                     }
-                } else {
-                    System.out.println("warning : did not find expected containing circle...");
                 }
             } else if (nbring_curves.size() == 2) {
                 //  we should put a circle along the line between two existing centres
