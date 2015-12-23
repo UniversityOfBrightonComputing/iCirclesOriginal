@@ -67,7 +67,7 @@ public class DiagramCreator {
         List<ConcreteZone> shadedZones = createShadedZones();
         ConcreteDiagram diagram = new ConcreteDiagram(getInitialDiagram(), getFinalDiagram(),
                 new icircles.geometry.Rectangle(0, 0, size, size), circles,
-                getFinalDiagram().getZonesShallowCopy().stream().map(this::makeConcreteZone).collect(Collectors.toList()), shadedZones);
+                getFinalDiagram().getZonesUnmodifiable().stream().map(this::makeConcreteZone).collect(Collectors.toList()), shadedZones);
 
 
         Map<AbstractCurve, List<CircleContour> > duplicates = diagram.findDuplicateContours();
@@ -94,7 +94,7 @@ public class DiagramCreator {
         contourScores = new HashMap<>();
         double totalScore = 0.0;
 
-        for (AbstractBasicRegion zone : finalDiagram.getZonesShallowCopy()) {
+        for (AbstractBasicRegion zone : finalDiagram.getZonesUnmodifiable()) {
             double score = computeZoneScore(zone, finalDiagram);
             totalScore += score;
             zoneScores.put(zone, score);
@@ -103,7 +103,7 @@ public class DiagramCreator {
         for (AbstractCurve curve : finalDiagram.getCopyOfContours()) {
             double score = 0;
 
-            for (AbstractBasicRegion zone : finalDiagram.getZonesShallowCopy()) {
+            for (AbstractBasicRegion zone : finalDiagram.getZonesUnmodifiable()) {
                 if (zone.contains(curve)) {
                     score += zoneScores.get(zone);
                 }
@@ -129,9 +129,8 @@ public class DiagramCreator {
      * @return list of shaded zones
      */
     private List<ConcreteZone> createShadedZones() {
-        List<ConcreteZone> result = new ArrayList<>();
         if (d_steps.isEmpty()) {
-            return result;
+            return new ArrayList<>();
         }
 
         AbstractDescription initialDiagram = getInitialDiagram();
@@ -140,12 +139,13 @@ public class DiagramCreator {
         log.trace("Initial diagram zones: " + initialDiagram);
         log.trace("Final diagram zones:   " + finalDiagram);
 
-        for (AbstractBasicRegion zone : finalDiagram.getZonesShallowCopy()) {
-            if (!initialDiagram.hasLabelEquivalentZone(zone)) {
-                log.trace("Extra zone: " + zone);
-                result.add(makeConcreteZone(zone));
-            }
-        }
+        List<ConcreteZone> result = finalDiagram.getZonesUnmodifiable()
+                .stream()
+                .filter(zone -> !initialDiagram.hasLabelEquivalentZone(zone))
+                .map(this::makeConcreteZone)
+                .collect(Collectors.toList());
+
+        log.trace("Extra zones: " + result);
 
         return result;
     }

@@ -107,17 +107,6 @@ public class AbstractDescription {
     }
 
     /**
-     * Returns a new set retaining references to original zones.
-     * The returned set is modifiable. Use this only when a new set is required.
-     * For queries/iteration use {@link #getZonesUnmodifiable()}.
-     *
-     * @return a shallow copy of zones set
-     */
-    public SortedSet<AbstractBasicRegion> getZonesShallowCopy() {
-        return new TreeSet<>(zones);
-    }
-
-    /**
      * @return number of abstract zones, including the outside zone
      */
     public int getNumZones() {
