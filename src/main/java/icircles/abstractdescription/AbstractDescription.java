@@ -117,10 +117,6 @@ public class AbstractDescription {
         return contours.iterator();
     }
 
-    public Iterator<AbstractBasicRegion> getZoneIterator() {
-        return zones.iterator();
-    }
-
     public TreeSet<AbstractCurve> getCopyOfContours() {
         return new TreeSet<>(contours);
     }

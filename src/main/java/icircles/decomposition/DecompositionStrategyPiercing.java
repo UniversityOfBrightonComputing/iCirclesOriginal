@@ -51,41 +51,37 @@ public class DecompositionStrategyPiercing extends DecompositionStrategy {
     private int numZonesInside(AbstractCurve ac, AbstractDescription ad) {
         int nz = 0;
 
-        Iterator<AbstractBasicRegion> abrit = ad.getZoneIterator();
-        while (abrit.hasNext()) {
-            AbstractBasicRegion abr = abrit.next();
-            if (abr.contains(ac)) {
+        for (AbstractBasicRegion zone : ad.getZonesUnmodifiable()) {
+            if (zone.contains(ac)) {
                 nz++;
             }
         }
+
         return nz;
     }
 
     private boolean isPiercingCurve(AbstractCurve ac, AbstractDescription ad) {
         // every abstract basic region in ad which is in ac
         // must have a corresponding abr which is not in ac
-        Iterator<AbstractBasicRegion> abrit = ad.getZoneIterator();
-        ArrayList<AbstractBasicRegion> zonesInContour =
-                new ArrayList<AbstractBasicRegion>();
+        ArrayList<AbstractBasicRegion> zonesInContour = new ArrayList<>();
 
         abrLoop:
-        while (abrit.hasNext()) {
-            AbstractBasicRegion abr = abrit.next();
-            if (abr.contains(ac)) {
-                zonesInContour.add(abr);
+        for (AbstractBasicRegion zone : ad.getZonesUnmodifiable()) {
+            if (zone.contains(ac)) {
+                zonesInContour.add(zone);
+
                 // look for a partner zone
-                Iterator<AbstractBasicRegion> abrit2 = ad.getZoneIterator();
-                while (abrit2.hasNext()) {
-                    AbstractBasicRegion abr2 = abrit2.next();
-                    // TODO: be careful referential check, need it?
-                    if (abr.getStraddledContour(abr2).orElse(null) == ac) {
+                for (AbstractBasicRegion zone2 : ad.getZonesUnmodifiable()) {
+                    if (zone.getStraddledContour(zone2).orElse(null) == ac) {
                         continue abrLoop;
                     }
                 }
+
                 // never found a partner zone
                 return false;
             }
         }
+
         // check that the zones in C form a cluster - we need 2^n zones
         int power = powerOfTwo(zonesInContour.size());
         if (power < 0) {
@@ -95,7 +91,7 @@ public class DecompositionStrategyPiercing extends DecompositionStrategy {
         // find the smallest zone (one in fewest contours)
         int zoneSize = Integer.MAX_VALUE;
         AbstractBasicRegion smallestZone = null;
-        abrit = zonesInContour.iterator();
+        Iterator<AbstractBasicRegion> abrit = zonesInContour.iterator();
         while (abrit.hasNext()) {
             AbstractBasicRegion abr = abrit.next();
             int numCs = abr.getNumContours();
@@ -104,6 +100,7 @@ public class DecompositionStrategyPiercing extends DecompositionStrategy {
                 smallestZone = abr;
             }
         }
+
         // every other zone in ac must be a superset of that zone
         abrit = zonesInContour.iterator();
         while (abrit.hasNext()) {
@@ -116,6 +113,7 @@ public class DecompositionStrategyPiercing extends DecompositionStrategy {
                 }
             }
         }
+
         // We have 2^n zones which are all supersets of smallestZone.
         // Check that they use exactly n contours from smallestZone.
         TreeSet<AbstractCurve> addedContours = new TreeSet<AbstractCurve>();

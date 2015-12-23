@@ -19,7 +19,7 @@ public class Decomposer {
     }
 
     public List<DecompositionStep> decompose(AbstractDescription ad) {
-        if (!ad.getZoneIterator().hasNext()) {
+        if (ad.getNumZones() <= 0) {
             throw new IllegalArgumentException("Abstraction description is empty: " + ad.toDebugString());
         }
 

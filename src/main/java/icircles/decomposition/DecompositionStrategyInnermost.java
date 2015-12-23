@@ -20,13 +20,13 @@ public class DecompositionStrategyInnermost extends DecompositionStrategy {
         while (c_it.hasNext()) {
             AbstractCurve c = c_it.next();
             int num_zones = 0;
-            Iterator<AbstractBasicRegion> z_it = ad.getZoneIterator();
-            while (z_it.hasNext()) {
-                AbstractBasicRegion z = z_it.next();
-                if (z.contains(c)) {
+
+            for (AbstractBasicRegion zone : ad.getZonesUnmodifiable()) {
+                if (zone.contains(c)) {
                     num_zones++;
                 }
             }
+
             if (num_zones < best_num_zones) {
                 best_num_zones = num_zones;
                 best_contour = c;
