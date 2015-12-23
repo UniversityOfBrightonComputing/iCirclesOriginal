@@ -42,6 +42,8 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
         return result;
     }
 
+    public static final AbstractBasicRegion OUTSIDE = get(new TreeSet<>());
+
     public AbstractBasicRegion moveInside(AbstractCurve newCont) {
         TreeSet<AbstractCurve> conts = new TreeSet<>(theInSet);
         conts.add(newCont);

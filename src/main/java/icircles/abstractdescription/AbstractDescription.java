@@ -59,7 +59,7 @@ public class AbstractDescription {
         TreeSet<AbstractBasicRegion> ad_zones = new TreeSet<>();
 
         // add the outside zone
-        ad_zones.add(AbstractBasicRegion.get(new TreeSet<>()));
+        ad_zones.add(AbstractBasicRegion.OUTSIDE);
 
         StringTokenizer st = new StringTokenizer(informalDescription);
         Map<String, AbstractCurve> contours = new HashMap<>();
