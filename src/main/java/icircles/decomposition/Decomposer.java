@@ -51,7 +51,7 @@ public class Decomposer {
     }
 
     private DecompositionStep takeStep(AbstractDescription ad, AbstractCurve curve) {
-        Set<AbstractCurve> contours = ad.getCopyOfContours();
+        Set<AbstractCurve> contours = new TreeSet<>(ad.getCurvesUnmodifiable());
         contours.remove(curve);
 
         Set<AbstractBasicRegion> zones = new TreeSet<>();

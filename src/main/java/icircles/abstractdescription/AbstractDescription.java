@@ -5,7 +5,7 @@ import java.util.*;
 /**
  * An AbstractDescription encapsulates the elements of a diagram, with no drawn information.
  * A diagram comprises a set of AbstractCurves (the contours).
- * A set of AbstractBasicRegions is given (zones which must be present.
+ * A set of AbstractBasicRegions is given (zones which must be present).
  * <p>
  * An AbstractDiagram is consistent if 
  * <p>1. the contours in each of the AbstractBasicRegions match those
@@ -17,9 +17,8 @@ public class AbstractDescription {
 
     private final String informalDescription;
 
-    // TODO: immutable data structure?
-    private TreeSet<AbstractCurve> contours;
-    private SortedSet<AbstractBasicRegion> zones;
+    private final SortedSet<AbstractCurve> contours;
+    private final SortedSet<AbstractBasicRegion> zones;
 
     /**
      * Constructs abstract description from the set of contours and set of zones.
@@ -28,7 +27,7 @@ public class AbstractDescription {
      * @param zones the zones
      */
     public AbstractDescription(Set<AbstractCurve> contours, Set<AbstractBasicRegion> zones) {
-        this.contours = new TreeSet<>(contours);
+        this.contours = Collections.unmodifiableSortedSet(new TreeSet<>(contours));
         this.zones = Collections.unmodifiableSortedSet(new TreeSet<>(zones));
 
         StringBuilder sb = new StringBuilder();
@@ -78,7 +77,7 @@ public class AbstractDescription {
             ad_zones.add(AbstractBasicRegion.get(zoneContours));
         }
 
-        this.contours = new TreeSet<>(contours.values());
+        this.contours = Collections.unmodifiableSortedSet(new TreeSet<>(contours.values()));
         this.zones = Collections.unmodifiableSortedSet(new TreeSet<>(ad_zones));
     }
 
@@ -113,14 +112,19 @@ public class AbstractDescription {
         return zones.size();
     }
 
-    public Iterator<AbstractCurve> getContourIterator() {
-        return contours.iterator();
+    /**
+     * Returns unmodifiable set of abstract curves of this abstract description.
+     * The returned set is read-only. Use this to query/iterate over curves.
+     *
+     * @return unmodifiable set of abstract curves
+     */
+    public Set<AbstractCurve> getCurvesUnmodifiable() {
+        return contours;
     }
 
-    public TreeSet<AbstractCurve> getCopyOfContours() {
-        return new TreeSet<>(contours);
-    }
-
+    /**
+     * @return number of abstract contours (curves)
+     */
     public int getNumContours() {
         return contours.size();
     }

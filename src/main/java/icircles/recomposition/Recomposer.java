@@ -123,7 +123,7 @@ public class Recomposer {
         clusters.forEach(c -> log.trace("Cluster for recomposition: " + c));
 
         Set<AbstractBasicRegion> new_zone_set = new TreeSet<>(from.getZonesUnmodifiable());
-        Set<AbstractCurve> new_cont_set = from.getCopyOfContours();
+        Set<AbstractCurve> new_cont_set = new TreeSet<>(from.getCurvesUnmodifiable());
 
         // for each cluster, make a Contour with label
         for (Cluster cluster : clusters) {

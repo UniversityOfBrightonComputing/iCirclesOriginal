@@ -15,32 +15,29 @@ public class DecompositionStrategyPiercing extends DecompositionStrategy {
         List<AbstractCurve> result = new ArrayList<>();
 
         int bestNZ = Integer.MAX_VALUE;
-        Iterator<AbstractCurve> acIt = ad.getContourIterator();
-        while (acIt.hasNext()) {
-            AbstractCurve ac = acIt.next();
-            if (isPiercingCurve(ac, ad)) {
-                int nz = numZonesInside(ac, ad);
+
+        for (AbstractCurve curve : ad.getCurvesUnmodifiable()) {
+            if (isPiercingCurve(curve, ad)) {
+                int nz = numZonesInside(curve, ad);
                 if (nz < bestNZ) {
                     result.clear();
-                    result.add(ac);
+                    result.add(curve);
                     bestNZ = nz;
                 } else if (nz == bestNZ) {
-                    result.add(ac);
+                    result.add(curve);
                 }
             }
         }
 
         if (result.isEmpty()) {
-            acIt = ad.getContourIterator();
-            while (acIt.hasNext()) {
-                AbstractCurve ac = acIt.next();
-                int nz = numZonesInside(ac, ad);
+            for (AbstractCurve curve : ad.getCurvesUnmodifiable()) {
+                int nz = numZonesInside(curve, ad);
                 if (nz < bestNZ) {
                     result.clear();
-                    result.add(ac);
+                    result.add(curve);
                     bestNZ = nz;
                 } else if (nz == bestNZ) {
-                    result.add(ac);
+                    result.add(curve);
                 }
             }
         }

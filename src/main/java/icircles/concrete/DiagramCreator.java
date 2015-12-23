@@ -100,7 +100,7 @@ public class DiagramCreator {
             zoneScores.put(zone, score);
         }
 
-        for (AbstractCurve curve : finalDiagram.getCopyOfContours()) {
+        for (AbstractCurve curve : finalDiagram.getCurvesUnmodifiable()) {
             double score = 0;
 
             for (AbstractBasicRegion zone : finalDiagram.getZonesUnmodifiable()) {
