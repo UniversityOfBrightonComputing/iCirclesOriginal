@@ -531,7 +531,7 @@ public class DiagramCreator {
         CircleContour cc1 = map.get(c1);
         CircleContour cc2 = map.get(c2);
 
-        double[][] intn_coords = intersect(cc1.centerX, cc1.centerY, cc1.radius,
+        double[][] intn_coords = intersectCircles(cc1.centerX, cc1.centerY, cc1.radius,
                 cc2.centerX, cc2.centerY, cc2.radius);
         if (intn_coords == null) {
             throw new CannotDrawException("Double piercing on non-intersecting circles");
@@ -743,6 +743,12 @@ public class DiagramCreator {
         circles.add(c);
     }
 
+    /**
+     * Determine a largish radius for a circle centered at given cx, cy which
+     * fits inside area a. Return a CircleContour with this centre, radius and
+     * labelled according to the AbstractCurve.
+     *
+     */
     private CircleContour growCircleContour(Area a, AbstractCurve ac,
             double cx, double cy,
             double suggested_radius,
@@ -1163,6 +1169,19 @@ public class DiagramCreator {
         }
     }
 
+    /**
+     * Scan an array of PotentialCentres and find out whether all in a given
+     * sub-array are flagged as "ok".
+     *
+     * @param lowi
+     * @param highi
+     * @param lowj
+     * @param highj
+     * @param ok_array
+     * @param Ni
+     * @param Nj
+     * @return
+     */
     private boolean all_ok_in(int lowi, int highi, int lowj, int highj,
                               PotentialCentre[][] ok_array, int Ni, int Nj) {
         boolean all_ok = true;
@@ -1176,8 +1195,20 @@ public class DiagramCreator {
         return all_ok;
     }
 
-    private double[][] intersect(double c1x, double c1y, double rad1,
-            double c2x, double c2y, double rad2) {
+    /**
+     * Find two points where two circles meet (null if they don't, equal points
+     * if they just touch).
+     *
+     * @param c1x
+     * @param c1y
+     * @param rad1
+     * @param c2x
+     * @param c2y
+     * @param rad2
+     * @return
+     */
+    private double[][] intersectCircles(double c1x, double c1y, double rad1,
+                                        double c2x, double c2y, double rad2) {
 
         double ret[][] = new double[2][2];
         double dx = c1x - c2x;
@@ -1208,6 +1239,14 @@ public class DiagramCreator {
         return ret;
     }
 
+    /**
+     * Is this circle in this area, including some slop for a gap. Slop is
+     * smallestRadius.
+     *
+     * @param c
+     * @param a
+     * @return
+     */
     private boolean containedIn(CircleContour c, Area a) {
         Area test = new Area(makeEllipse(c.getCenterX(), c.getCenterY(), c.getRadius() + SMALLEST_RADIUS));
         test.subtract(a);
