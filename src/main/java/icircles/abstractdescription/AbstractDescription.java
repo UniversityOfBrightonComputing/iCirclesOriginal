@@ -40,7 +40,7 @@ public class AbstractDescription {
             sb.append(" ");
         }
 
-        informalDescription = sb.toString();
+        informalDescription = sb.toString().trim();
     }
 
     /**
