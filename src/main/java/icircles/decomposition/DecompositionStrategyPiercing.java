@@ -74,16 +74,9 @@ public class DecompositionStrategyPiercing extends DecompositionStrategy {
         }
 
         // find the smallest zone (one in fewest contours)
-        int zoneSize = Integer.MAX_VALUE;
-        AbstractBasicRegion smallestZone = null;
-
-        for (AbstractBasicRegion zone : zonesInContour) {
-            int numCs = zone.getNumContours();
-            if (numCs < zoneSize) {
-                zoneSize = numCs;
-                smallestZone = zone;
-            }
-        }
+        AbstractBasicRegion smallestZone = zonesInContour.stream()
+                .reduce((zone1, zone2) -> zone1.getNumContours() <= zone2.getNumContours() ? zone1 : zone2)
+                .orElseThrow(() -> new RuntimeException("There are no zones in given contour"));
 
         // every other zone in ac must be a superset of that zone
         for (AbstractBasicRegion zone : zonesInContour) {

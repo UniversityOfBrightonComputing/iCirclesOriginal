@@ -106,6 +106,7 @@ public class AbstractDescription {
     /**
      * Returns unmodifiable set of zones of this abstract description.
      * The returned set is read-only. Use this to query/iterate over zones.
+     * Note: the zones themselves are still mutable.
      *
      * @return unmodifiable set of zones
      */

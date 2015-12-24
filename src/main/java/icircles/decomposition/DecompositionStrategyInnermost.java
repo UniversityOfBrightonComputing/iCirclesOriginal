@@ -16,7 +16,7 @@ public class DecompositionStrategyInnermost extends DecompositionStrategy {
 
         ad.getCurvesUnmodifiable()
                 .stream()
-                .reduce((curve1, curve2) -> ad.getNumZonesIn(curve1) < ad.getNumZonesIn(curve2) ? curve1 : curve2)
+                .reduce((curve1, curve2) -> ad.getNumZonesIn(curve1) <= ad.getNumZonesIn(curve2) ? curve1 : curve2)
                 .ifPresent(result::add);
 
         return result;

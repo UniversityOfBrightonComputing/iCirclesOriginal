@@ -24,7 +24,7 @@ public class DecompositionStep {
      *
      * @param from the abstract description before this step
      * @param to   the abstract description after this step
-     * @param zonesMoved ???
+     * @param zonesMoved maps zones before to zones after (only contains altered zones)
      * @param removed the curve that was removed in this step
      */
     public DecompositionStep(

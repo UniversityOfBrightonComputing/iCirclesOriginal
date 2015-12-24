@@ -31,7 +31,9 @@ public class Decomposer {
         while (true) {
             List<AbstractCurve> toRemove = strategy.getContoursToRemove(ad);
 
-            // TODO: do we know that it doesn't contain null?
+            // checking for null because of alphabetic decomposition
+            // when description is empty it returns null
+            // we probably don't even need alphabetic decomposition
             if (toRemove.isEmpty() || toRemove.contains(null)) {
                 break;
             }
