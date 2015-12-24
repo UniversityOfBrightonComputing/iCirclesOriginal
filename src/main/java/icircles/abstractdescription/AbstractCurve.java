@@ -1,7 +1,5 @@
 package icircles.abstractdescription;
 
-import java.util.Objects;
-
 /**
  * Represents a curve at an abstract level.
  * The curve has a label and a unique ID.

@@ -1,11 +1,9 @@
 package icircles.decomposition;
 
-import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
