@@ -64,12 +64,12 @@ public class CircleContour {
         return radius + nudge;
     }
 
-    private void shift(double x, double y) {
+    public void shift(double x, double y) {
         centerX += x;
         centerY += y;
     }
 
-    private void scaleAboutZero(double scale) {
+    public void scaleAboutZero(double scale) {
         centerX *= scale;
         centerY *= scale;
         radius *= scale;

@@ -9,13 +9,13 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class DecomposerTest {
+public class BasicDecomposerTest {
 
     private Decomposer decomposer;
 
     @Before
     public void setUp() {
-        decomposer = new Decomposer(DecompositionType.PIERCED_FIRST);
+        decomposer = DecomposerFactory.newDecomposer(DecompositionStrategyType.PIERCED_FIRST);
     }
 
     // TODO: create test data to check required methods (removed, from, to, etc)

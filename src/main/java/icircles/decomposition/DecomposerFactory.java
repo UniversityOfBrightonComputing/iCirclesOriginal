@@ -4,14 +4,66 @@ import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
-public class DecompositionStrategyPiercing extends DecompositionStrategy {
+/**
+ * Creates decomposers.
+ */
+public final class DecomposerFactory {
 
-    List<AbstractCurve> getContoursToRemove(AbstractDescription ad) {
+    /**
+     * Instantiates a new decomposer that will use given strategy type.
+     * The type of the decomposer is implementation-dependent.
+     *
+     * @param type strategy type
+     * @return decomposer
+     */
+    public static Decomposer newDecomposer(DecompositionStrategyType type) {
+        switch (type) {
+            case ALPHABETICAL:
+                return new BasicDecomposer(alphabetical());
+            case REVERSE_ALPHABETICAL:
+                return new BasicDecomposer(reverseAlphabetical());
+            case INNERMOST:
+                return new BasicDecomposer(innermost());
+            case PIERCED_FIRST:
+                return new BasicDecomposer(piercing());
+            default:
+                throw new IllegalArgumentException("Unknown strategy type: " + type);
+        }
+    }
+
+    /**
+     * An innermost abstract contour has the fewest abstract basic regions inside.
+     *
+     * @return innermost decomposition strategy
+     */
+    private static DecompositionStrategy innermost() {
+        return ad -> {
+            List<AbstractCurve> result = new ArrayList<>();
+
+            ad.getCurvesUnmodifiable()
+                    .stream()
+                    .reduce((curve1, curve2) -> ad.getNumZonesIn(curve1) <= ad.getNumZonesIn(curve2) ? curve1 : curve2)
+                    .ifPresent(result::add);
+
+            return result;
+        };
+    }
+
+    private static DecompositionStrategy alphabetical() {
+        return ad -> Collections.singletonList(ad.getFirstContour());
+    }
+
+    private static DecompositionStrategy reverseAlphabetical() {
+        return ad -> Collections.singletonList(ad.getLastContour());
+    }
+
+    private static DecompositionStrategy piercing() {
+        return DecomposerFactory::getContoursToRemovePiercing;
+    }
+
+    private static List<AbstractCurve> getContoursToRemovePiercing(AbstractDescription ad) {
         List<AbstractCurve> result = new ArrayList<>();
 
         int bestNZ = Integer.MAX_VALUE;
@@ -45,7 +97,7 @@ public class DecompositionStrategyPiercing extends DecompositionStrategy {
         return result;
     }
 
-    private boolean isPiercingCurve(AbstractCurve ac, AbstractDescription ad) {
+    private static boolean isPiercingCurve(AbstractCurve ac, AbstractDescription ad) {
         // every abstract basic region in ad which is in ac
         // must have a corresponding abr which is not in ac
         ArrayList<AbstractBasicRegion> zonesInContour = new ArrayList<>();
@@ -106,11 +158,12 @@ public class DecompositionStrategyPiercing extends DecompositionStrategy {
     }
 
     /**
+     * Computes log2(n).
      *
-     * @param n
-     * @return result where  n = 2^(result)
+     * @param n logarithm of
+     * @return result where n = 2^(result)
      */
-    private int powerOfTwo(int n) {
+    private static int powerOfTwo(int n) {
         int result = 0;
         while (n % 2 == 0) {
             result++;

@@ -1,17 +1,17 @@
 package icircles;
 
-import icircles.decomposition.DecompositionType;
+import icircles.decomposition.DecompositionStrategyType;
 import icircles.recomposition.RecompositionType;
 
 public class TestDatum {
 
     public String description;
-    public DecompositionType decomp_strategy;
+    public DecompositionStrategyType decomp_strategy;
     public RecompositionType recomp_strategy;
     public double expectedChecksum;
 
     public TestDatum(String string,
-                     DecompositionType decomp_strategy,
+                     DecompositionStrategyType decomp_strategy,
                      RecompositionType recomp_strategy,
                      double checksum) {
         description = string;

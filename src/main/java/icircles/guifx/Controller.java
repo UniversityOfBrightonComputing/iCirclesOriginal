@@ -3,9 +3,8 @@ package icircles.guifx;
 import icircles.abstractdescription.AbstractDescription;
 import icircles.concrete.ConcreteDiagram;
 import icircles.concrete.ConcreteZone;
-import icircles.decomposition.DecompositionType;
+import icircles.decomposition.DecompositionStrategyType;
 import icircles.recomposition.RecompositionType;
-import icircles.util.CannotDrawException;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -54,7 +53,7 @@ public class Controller {
     private AbstractDescription currentDescription = new AbstractDescription("");
 
     public void initialize() {
-        for (DecompositionType dType : DecompositionType.values()) {
+        for (DecompositionStrategyType dType : DecompositionStrategyType.values()) {
             RadioMenuItem item = new RadioMenuItem(dType.getUiName());
             item.setToggleGroup(decompositionToggle);
             item.setSelected(true);
@@ -200,7 +199,7 @@ public class Controller {
         currentDescription = description;
         int size = (int) Math.min(renderer.getWidth(), renderer.getHeight());
 
-        DecompositionType dType = (DecompositionType) decompositionToggle.getSelectedToggle().getUserData();
+        DecompositionStrategyType dType = (DecompositionStrategyType) decompositionToggle.getSelectedToggle().getUserData();
         RecompositionType rType = (RecompositionType) recompositionToggle.getSelectedToggle().getUserData();
 
         try {

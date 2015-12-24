@@ -2,9 +2,7 @@ package icircles.concrete;
 
 import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
-import icircles.decomposition.Decomposer;
-import icircles.decomposition.DecompositionStep;
-import icircles.decomposition.DecompositionType;
+import icircles.decomposition.*;
 import icircles.geometry.Rectangle;
 import icircles.recomposition.Recomposer;
 import icircles.recomposition.RecompositionStep;
@@ -50,9 +48,9 @@ public class ConcreteDiagram {
      * @throws CannotDrawException if diagram cannot be drawn with given parameters
      */
     public ConcreteDiagram(AbstractDescription description, int size,
-                           DecompositionType dType, RecompositionType rType) throws CannotDrawException {
+                           DecompositionStrategyType dType, RecompositionType rType) throws CannotDrawException {
 
-        Decomposer d = new Decomposer(dType);
+        Decomposer d = DecomposerFactory.newDecomposer(dType);
         List<DecompositionStep> dSteps = d.decompose(description);
 
         Recomposer r = new Recomposer(rType);
@@ -113,6 +111,46 @@ public class ConcreteDiagram {
      */
     public List<ConcreteZone> getAllZones() {
         return allZones;
+    }
+
+    public void setSize(int size) {
+        // work out a suitable size
+        int minX = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE;
+        int minY = Integer.MAX_VALUE;
+        int maxY = Integer.MIN_VALUE;
+        for (CircleContour cc : circles) {
+            if (cc.getMinX() < minX) {
+                minX = cc.getMinX();
+            }
+            if (cc.getMinY() < minY) {
+                minY = cc.getMinY();
+            }
+            if (cc.getMaxX() > maxX) {
+                maxX = cc.getMaxX();
+            }
+            if (cc.getMaxY() > maxY) {
+                maxY = cc.getMaxY();
+            }
+        }
+
+        double midX = (minX + maxX) * 0.5;
+        double midY = (minY + maxY) * 0.5;
+        for (CircleContour cc : circles) {
+            cc.shift(-midX, -midY);
+        }
+
+        double width = maxX - minX;
+        double height = maxY - minY;
+        double biggest_HW = Math.max(height, width);
+        double scale = (size * 0.95) / biggest_HW;
+        for (CircleContour cc : circles) {
+            cc.scaleAboutZero(scale);
+        }
+
+        for (CircleContour cc : circles) {
+            cc.shift(size * 0.5, size * 0.5);
+        }
     }
 
     /**

@@ -6,9 +6,7 @@ import icircles.abstractdescription.AbstractDescription;
 import icircles.concrete.CircleContour;
 import icircles.concrete.ConcreteDiagram;
 import icircles.concrete.DiagramCreator;
-import icircles.decomposition.Decomposer;
-import icircles.decomposition.DecompositionStep;
-import icircles.decomposition.DecompositionType;
+import icircles.decomposition.*;
 import icircles.guiswing.SwingRenderer;
 import icircles.recomposition.Recomposer;
 import icircles.recomposition.RecompositionStep;
@@ -327,9 +325,9 @@ public class TestCode {
             ArrayList<DecompositionStep> d_steps,
             ArrayList<RecompositionStep> r_steps,
             int size) throws CannotDrawException {
-        DecompositionType decomp_strategy = TestData.test_data[test_num].decomp_strategy;
+        DecompositionStrategyType decomp_strategy = TestData.test_data[test_num].decomp_strategy;
         RecompositionType recomp_strategy = TestData.test_data[test_num].recomp_strategy;
-        Decomposer d = new Decomposer(decomp_strategy);
+        Decomposer d = DecomposerFactory.newDecomposer(decomp_strategy);
         d_steps.addAll(d.decompose(new AbstractDescription(TestData.test_data[test_num].description)));
 
         Recomposer r = new Recomposer(recomp_strategy);
@@ -340,7 +338,7 @@ public class TestCode {
     }
 
     private static void printFreshTestData(int test_num, double checksum_found) {
-        DecompositionType decomp_strategy = TestData.test_data[test_num].decomp_strategy;
+        DecompositionStrategyType decomp_strategy = TestData.test_data[test_num].decomp_strategy;
         RecompositionType recomp_strategy = TestData.test_data[test_num].recomp_strategy;
         String desc = TestData.test_data[test_num].description;
 

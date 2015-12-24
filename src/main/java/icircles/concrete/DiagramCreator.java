@@ -24,8 +24,8 @@ public class DiagramCreator {
 
     private static final int SMALLEST_RADIUS = 3;
 
-    private final List<DecompositionStep> d_steps;
-    private final List<RecompositionStep> r_steps;
+    private List<DecompositionStep> d_steps;
+    private List<RecompositionStep> r_steps;
 
     private Map<AbstractBasicRegion, Double> zoneScores;
     private Map<AbstractCurve, Double> contourScores;
@@ -50,6 +50,10 @@ public class DiagramCreator {
      */
     private List<CircleContour> circles;
 
+    public DiagramCreator() {
+
+    }
+
     public DiagramCreator(List<DecompositionStep> d_steps, List<RecompositionStep> r_steps) {
         this.d_steps = d_steps;
         this.r_steps = r_steps;
@@ -61,6 +65,7 @@ public class DiagramCreator {
 
         circles = new ArrayList<>();
         createCircles();
+
 
         CircleContour.fitCirclesToSize(circles, size);
 
