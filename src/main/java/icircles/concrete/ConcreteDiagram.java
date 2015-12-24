@@ -4,9 +4,7 @@ import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
 import icircles.decomposition.*;
 import icircles.geometry.Rectangle;
-import icircles.recomposition.Recomposer;
-import icircles.recomposition.RecompositionStep;
-import icircles.recomposition.RecompositionType;
+import icircles.recomposition.*;
 import icircles.util.CannotDrawException;
 
 import java.util.Iterator;
@@ -48,12 +46,12 @@ public class ConcreteDiagram {
      * @throws CannotDrawException if diagram cannot be drawn with given parameters
      */
     public ConcreteDiagram(AbstractDescription description, int size,
-                           DecompositionStrategyType dType, RecompositionType rType) throws CannotDrawException {
+                           DecompositionStrategyType dType, RecompositionStrategyType rType) throws CannotDrawException {
 
         Decomposer d = DecomposerFactory.newDecomposer(dType);
         List<DecompositionStep> dSteps = d.decompose(description);
 
-        Recomposer r = new Recomposer(rType);
+        Recomposer r = RecomposerFactory.newRecomposer(rType);
         List<RecompositionStep> rSteps = r.recompose(dSteps);
 
         DiagramCreator dc = new DiagramCreator(dSteps, rSteps);

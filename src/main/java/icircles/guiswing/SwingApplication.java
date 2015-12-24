@@ -3,7 +3,7 @@ package icircles.guiswing;
 import icircles.abstractdescription.AbstractDescription;
 import icircles.concrete.ConcreteDiagram;
 import icircles.decomposition.DecompositionStrategyType;
-import icircles.recomposition.RecompositionType;
+import icircles.recomposition.RecompositionStrategyType;
 import icircles.util.CannotDrawException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -72,10 +72,10 @@ public final class SwingApplication extends JFrame {
                 settingsPanel.getRecompStrategy());
     }
 
-    private void goDraw(String description, DecompositionStrategyType decompositionStrategyType, RecompositionType recompositionType) {
+    private void goDraw(String description, DecompositionStrategyType decompositionStrategyType, RecompositionStrategyType recompositionStrategyType) {
         try {
             ConcreteDiagram diagram = new ConcreteDiagram(new AbstractDescription(description),
-                    size, decompositionStrategyType, recompositionType);
+                    size, decompositionStrategyType, recompositionStrategyType);
             resultPanel.show(diagram);
         } catch (CannotDrawException e) {
             resultPanel.showError(e.getMessage());
@@ -209,8 +209,8 @@ public final class SwingApplication extends JFrame {
             return DecompositionStrategyType.values()[decompList.getSelectedIndex()];
         }
 
-        RecompositionType getRecompStrategy() {
-            return RecompositionType.values()[recompList.getSelectedIndex()];
+        RecompositionStrategyType getRecompStrategy() {
+            return RecompositionStrategyType.values()[recompList.getSelectedIndex()];
         }
 
         JPanel getPanel() {

@@ -1,7 +1,6 @@
 package icircles.recomposition;
 
 import icircles.abstractdescription.AbstractDescription;
-import icircles.decomposition.BasicDecomposer;
 import icircles.decomposition.DecomposerFactory;
 import icircles.decomposition.DecompositionStep;
 import icircles.decomposition.DecompositionStrategyType;
@@ -22,7 +21,7 @@ public class RecomposerTest {
 
     @Before
     public void setUp() {
-        recomposer = new Recomposer(RecompositionType.DOUBLY_PIERCED);
+        recomposer = RecomposerFactory.newRecomposer(RecompositionStrategyType.DOUBLY_PIERCED);
     }
 
     @Test

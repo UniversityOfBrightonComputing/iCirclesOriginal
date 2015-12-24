@@ -4,7 +4,7 @@ import icircles.abstractdescription.AbstractDescription;
 import icircles.concrete.ConcreteDiagram;
 import icircles.concrete.ConcreteZone;
 import icircles.decomposition.DecompositionStrategyType;
-import icircles.recomposition.RecompositionType;
+import icircles.recomposition.RecompositionStrategyType;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -64,7 +64,7 @@ public class Controller {
 
         drTypes.getItems().add(new SeparatorMenuItem());
 
-        for (RecompositionType rType : RecompositionType.values()) {
+        for (RecompositionStrategyType rType : RecompositionStrategyType.values()) {
             RadioMenuItem item = new RadioMenuItem(rType.getUiName());
             item.setToggleGroup(recompositionToggle);
             item.setSelected(true);
@@ -200,7 +200,7 @@ public class Controller {
         int size = (int) Math.min(renderer.getWidth(), renderer.getHeight());
 
         DecompositionStrategyType dType = (DecompositionStrategyType) decompositionToggle.getSelectedToggle().getUserData();
-        RecompositionType rType = (RecompositionType) recompositionToggle.getSelectedToggle().getUserData();
+        RecompositionStrategyType rType = (RecompositionStrategyType) recompositionToggle.getSelectedToggle().getUserData();
 
         try {
             ConcreteDiagram diagram = new ConcreteDiagram(description, size, dType, rType);
