@@ -218,7 +218,7 @@ public class Controller {
                     ((Shape)zone).setFill(Color.TRANSPARENT);
                 });
             });
-        } catch (CannotDrawException e) {
+        } catch (Exception e) {
             showError(e);
         }
     }
