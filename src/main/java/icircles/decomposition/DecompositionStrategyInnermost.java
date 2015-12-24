@@ -8,31 +8,18 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * An innermost abstract contour has the fewest abstract basic regions inside
+ */
 public class DecompositionStrategyInnermost extends DecompositionStrategy {
 
     List<AbstractCurve> getContoursToRemove(AbstractDescription ad) {
         List<AbstractCurve> result = new ArrayList<>();
 
-        // an innermost abstract contour has the fewest abstract basic regions inside
-        int best_num_zones = ad.getNumZones() + 1;
-        AbstractCurve best_contour = null;
-
-        for (AbstractCurve curve : ad.getCurvesUnmodifiable()) {
-            int numZones = 0;
-
-            for (AbstractBasicRegion zone : ad.getZonesUnmodifiable()) {
-                if (zone.contains(curve)) {
-                    numZones++;
-                }
-            }
-
-            if (numZones < best_num_zones) {
-                best_num_zones = numZones;
-                best_contour = curve;
-            }
-        }
-
-        result.add(best_contour);
+        ad.getCurvesUnmodifiable()
+                .stream()
+                .reduce((curve1, curve2) -> ad.getNumZonesIn(curve1) < ad.getNumZonesIn(curve2) ? curve1 : curve2)
+                .ifPresent(result::add);
 
         return result;
     }
