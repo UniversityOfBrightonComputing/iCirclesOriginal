@@ -25,7 +25,7 @@ public class ConcreteDiagram {
 
     private AbstractDescription original, actual;
 
-    public ConcreteDiagram(AbstractDescription original, AbstractDescription actual,
+    ConcreteDiagram(AbstractDescription original, AbstractDescription actual,
                            Rectangle box, List<CircleContour> circles,
                            List<ConcreteZone> allZones, List<ConcreteZone> shadedZones) {
         this.original = original;
@@ -45,25 +45,25 @@ public class ConcreteDiagram {
      * @param rType recomposition type
      * @throws CannotDrawException if diagram cannot be drawn with given parameters
      */
-    public ConcreteDiagram(AbstractDescription description, int size,
-                           DecompositionStrategyType dType, RecompositionStrategyType rType) throws CannotDrawException {
-
-        Decomposer d = DecomposerFactory.newDecomposer(dType);
-        List<DecompositionStep> dSteps = d.decompose(description);
-
-        Recomposer r = RecomposerFactory.newRecomposer(rType);
-        List<RecompositionStep> rSteps = r.recompose(dSteps);
-
-        DiagramCreator dc = new DiagramCreator(dSteps, rSteps);
-        ConcreteDiagram diagram = dc.createDiagram(size);
-
-        this.box = diagram.box;
-        this.circles = diagram.circles;
-        this.shadedZones = diagram.shadedZones;
-        this.original = diagram.original;
-        this.actual = diagram.actual;
-        this.allZones = diagram.allZones;
-    }
+//    public ConcreteDiagram(AbstractDescription description, int size,
+//                           DecompositionStrategyType dType, RecompositionStrategyType rType) throws CannotDrawException {
+//
+//        Decomposer d = DecomposerFactory.newDecomposer(dType);
+//        List<DecompositionStep> dSteps = d.decompose(description);
+//
+//        Recomposer r = RecomposerFactory.newRecomposer(rType);
+//        List<RecompositionStep> rSteps = r.recompose(dSteps);
+//
+//        DiagramCreator dc = new DiagramCreator(dSteps, rSteps);
+//        ConcreteDiagram diagram = dc.createDiagram(size);
+//
+//        this.box = diagram.box;
+//        this.circles = diagram.circles;
+//        this.shadedZones = diagram.shadedZones;
+//        this.original = diagram.original;
+//        this.actual = diagram.actual;
+//        this.allZones = diagram.allZones;
+//    }
 
     /**
      * @return bounding box of the whole diagram

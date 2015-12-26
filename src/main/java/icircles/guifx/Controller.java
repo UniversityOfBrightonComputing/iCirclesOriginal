@@ -3,7 +3,10 @@ package icircles.guifx;
 import icircles.abstractdescription.AbstractDescription;
 import icircles.concrete.ConcreteDiagram;
 import icircles.concrete.ConcreteZone;
+import icircles.concrete.DiagramCreator;
+import icircles.decomposition.DecomposerFactory;
 import icircles.decomposition.DecompositionStrategyType;
+import icircles.recomposition.RecomposerFactory;
 import icircles.recomposition.RecompositionStrategyType;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
@@ -203,7 +206,9 @@ public class Controller {
         RecompositionStrategyType rType = (RecompositionStrategyType) recompositionToggle.getSelectedToggle().getUserData();
 
         try {
-            ConcreteDiagram diagram = new ConcreteDiagram(description, size, dType, rType);
+            ConcreteDiagram diagram = new DiagramCreator(DecomposerFactory.newDecomposer(dType), RecomposerFactory.newRecomposer(rType))
+                .createDiagram(description, size);
+
             renderer.draw(diagram);
 
             // highlighting

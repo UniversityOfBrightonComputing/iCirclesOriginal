@@ -326,13 +326,18 @@ public class TestCode {
         DecompositionStrategyType decomp_strategy = TestData.test_data[test_num].decomp_strategy;
         RecompositionStrategyType recomp_strategy = TestData.test_data[test_num].recomp_strategy;
         Decomposer d = DecomposerFactory.newDecomposer(decomp_strategy);
-        d_steps.addAll(d.decompose(new AbstractDescription(TestData.test_data[test_num].description)));
+        //d_steps.addAll(d.decompose(new AbstractDescription(TestData.test_data[test_num].description)));
 
         Recomposer r = RecomposerFactory.newRecomposer(recomp_strategy);
-        r_steps.addAll(r.recompose(d_steps));
-        DiagramCreator dc = new DiagramCreator(d_steps, r_steps);
+        //r_steps.addAll(r.recompose(d_steps));
+        DiagramCreator dc = new DiagramCreator(d, r);
 
-        return dc.createDiagram(size);
+        ConcreteDiagram diagram = dc.createDiagram(new AbstractDescription(TestData.test_data[test_num].description), size);
+
+        d_steps.addAll(dc.getDSteps());
+        r_steps.addAll(dc.getRSteps());
+
+        return diagram;
     }
 
     private static void printFreshTestData(int test_num, double checksum_found) {

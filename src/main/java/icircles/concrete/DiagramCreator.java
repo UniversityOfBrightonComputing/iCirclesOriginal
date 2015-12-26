@@ -3,9 +3,11 @@ package icircles.concrete;
 import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
+import icircles.decomposition.Decomposer;
+import icircles.decomposition.DecomposerFactory;
 import icircles.decomposition.DecompositionStep;
-import icircles.recomposition.RecompositionData;
-import icircles.recomposition.RecompositionStep;
+import icircles.decomposition.DecompositionStrategyType;
+import icircles.recomposition.*;
 import icircles.util.CannotDrawException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,8 +26,19 @@ public class DiagramCreator {
 
     private static final int SMALLEST_RADIUS = 3;
 
-    private List<DecompositionStep> d_steps;
-    private List<RecompositionStep> r_steps;
+    private Decomposer decomposer;
+    private Recomposer recomposer;
+
+    private List<DecompositionStep> dSteps;
+    private List<RecompositionStep> rSteps;
+
+    public List<DecompositionStep> getDSteps() {
+        return dSteps;
+    }
+
+    public List<RecompositionStep> getRSteps() {
+        return rSteps;
+    }
 
     private Map<AbstractBasicRegion, Double> zoneScores;
     private Map<AbstractCurve, Double> contourScores;
@@ -50,16 +63,33 @@ public class DiagramCreator {
      */
     private List<CircleContour> circles;
 
+    /**
+     * Constructs a diagram creator with default settings.
+     */
     public DiagramCreator() {
-
+        this(DecomposerFactory.newDecomposer(DecompositionStrategyType.PIERCED_FIRST),
+                RecomposerFactory.newRecomposer(RecompositionStrategyType.DOUBLY_PIERCED));
     }
 
-    public DiagramCreator(List<DecompositionStep> d_steps, List<RecompositionStep> r_steps) {
-        this.d_steps = d_steps;
-        this.r_steps = r_steps;
+    /**
+     * Constructs a diagram creator with given decomposer and recomposer.
+     *
+     * @param decomposer the decomposer
+     * @param recomposer the recomposer
+     */
+    public DiagramCreator(Decomposer decomposer, Recomposer recomposer) {
+        this.decomposer = decomposer;
+        this.recomposer = recomposer;
     }
 
-    public ConcreteDiagram createDiagram(int size) throws CannotDrawException {
+    public ConcreteDiagram createDiagram(AbstractDescription description, int size) throws CannotDrawException {
+        dSteps = decomposer.decompose(description);
+        rSteps = recomposer.recompose(dSteps);
+
+        return createDiagram(size);
+    }
+
+    private ConcreteDiagram createDiagram(int size) throws CannotDrawException {
         // also computes zone scores
         makeGuideSizes();
 
@@ -89,7 +119,7 @@ public class DiagramCreator {
 
     private void makeGuideSizes() {
         guideSizes = new HashMap<>();
-        if (r_steps.isEmpty()) {
+        if (rSteps.isEmpty()) {
             return;
         }
 
@@ -134,7 +164,7 @@ public class DiagramCreator {
      * @return list of shaded zones
      */
     private List<ConcreteZone> createShadedZones() {
-        if (d_steps.isEmpty()) {
+        if (dSteps.isEmpty()) {
             return new ArrayList<>();
         }
 
@@ -178,7 +208,7 @@ public class DiagramCreator {
         BuildStep head = null;
         BuildStep tail = null;
 
-        for (RecompositionStep rs : r_steps) {
+        for (RecompositionStep rs : rSteps) {
             Iterator<RecompositionData> it = rs.getRecompIterator();
             while (it.hasNext()) {
                 RecompositionData rd = it.next();
@@ -1259,20 +1289,20 @@ public class DiagramCreator {
     }
 
     private AbstractDescription getInitialDiagram() {
-        if (d_steps.isEmpty())
+        if (dSteps.isEmpty())
             return new AbstractDescription("");
 
-        return d_steps.get(0).from();
+        return dSteps.get(0).from();
     }
 
     /**
      * @return target abstract description of the last recomposition step
      */
     private AbstractDescription getFinalDiagram() {
-        if (r_steps.isEmpty())
+        if (rSteps.isEmpty())
             return new AbstractDescription("");
 
-        return r_steps.get(r_steps.size() - 1).to();
+        return rSteps.get(rSteps.size() - 1).to();
     }
 
     private Area computeArea(ConcreteZone zone, Rectangle2D.Double box) {
