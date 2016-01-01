@@ -3,8 +3,13 @@ package icircles.abstractdescription;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Set;
+import java.util.TreeSet;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertThat;
+import static org.hamcrest.CoreMatchers.*;
 
 /**
  * @author Almas Baimagambetov (AlmasB) (almaslvl@gmail.com)
@@ -15,19 +20,134 @@ public class AbstractDescriptionTest {
 
     @Before
     public void setUp() {
+        AbstractCurve.resetIdCounter();
+        AbstractBasicRegion.clearLibrary();
+    }
+
+    private void manualSetUp() {
         ad1 = new AbstractDescription("a ab abc bc ac");
         ad2 = new AbstractDescription("abc bc ab ac a");
         ad3 = new AbstractDescription("a ad abc bc ac");
     }
 
     @Test
+    public void testConstructorCondition1Valid() {
+        Set<AbstractCurve> curves = new TreeSet<>();
+        Set<AbstractBasicRegion> zones = new TreeSet<>();
+
+        AbstractCurve curve1 = new AbstractCurve("a");
+        AbstractCurve curve2 = new AbstractCurve("b");
+
+        curves.add(curve1);
+        curves.add(curve2);
+
+        zones.add(AbstractBasicRegion.get(curves));
+        zones.add(AbstractBasicRegion.OUTSIDE);
+
+        // Condition 1 holds
+        //curves.remove(curve2);
+
+        new AbstractDescription(curves, zones);
+    }
+
+    @Test
+    public void testConstructorCondition1Invalid() {
+        Set<AbstractCurve> curves = new TreeSet<>();
+        Set<AbstractBasicRegion> zones = new TreeSet<>();
+
+        AbstractCurve curve1 = new AbstractCurve("a");
+        AbstractCurve curve2 = new AbstractCurve("b");
+
+        curves.add(curve1);
+        curves.add(curve2);
+
+        zones.add(AbstractBasicRegion.get(curves));
+
+        // Condition 1 fails because we have zones with curves not in the curve set
+        curves.remove(curve2);
+
+        String error = "";
+        try {
+            new AbstractDescription(curves, zones);
+        } catch (IllegalArgumentException e) {
+            error = e.getMessage();
+        }
+
+        assertThat(error, containsString("Condition1"));
+    }
+
+    @Test
+    public void testConstructorCondition2Invalid() {
+        Set<AbstractCurve> curves = new TreeSet<>();
+        Set<AbstractBasicRegion> zones = new TreeSet<>();
+
+        AbstractCurve curve1 = new AbstractCurve("a");
+        AbstractCurve curve2 = new AbstractCurve("b");
+
+        curves.add(curve1);
+        curves.add(curve2);
+
+        zones.add(AbstractBasicRegion.get(curves));
+
+        // Condition 2 fails because we have no outside zones
+        //zones.add(AbstractBasicRegion.OUTSIDE);
+
+        String error = "";
+        try {
+            new AbstractDescription(curves, zones);
+        } catch (IllegalArgumentException e) {
+            error = e.getMessage();
+        }
+
+        assertThat(error, containsString("Condition2"));
+    }
+
+    @Test
+    public void testConstructorCondition3Invalid() {
+        Set<AbstractCurve> curves = new TreeSet<>();
+        Set<AbstractBasicRegion> zones = new TreeSet<>();
+
+        AbstractCurve curve1 = new AbstractCurve("a");
+        AbstractCurve curve2 = new AbstractCurve("b");
+        AbstractCurve curve3 = new AbstractCurve("c");
+
+        curves.add(curve1);
+        curves.add(curve2);
+
+        zones.add(AbstractBasicRegion.get(curves));
+        zones.add(AbstractBasicRegion.OUTSIDE);
+
+        // Condition 3 fails because we have curves but no corresponding zones
+        curves.add(curve3);
+
+        String error = "";
+        try {
+            new AbstractDescription(curves, zones);
+        } catch (IllegalArgumentException e) {
+            error = e.getMessage();
+        }
+
+        assertThat(error, containsString("Condition3"));
+    }
+
+    @Test
+    public void testGetInformalDescription() {
+        manualSetUp();
+        assertEquals("a ab ac bc abc", ad1.getInformalDescription());
+        assertEquals("a ab ac bc abc", ad2.getInformalDescription());
+        assertEquals("a ac ad bc abc", ad3.getInformalDescription());
+    }
+
+    @Test
     public void testToString() {
+        manualSetUp();
         assertEquals(ad1.toString(), ad2.toString());
         assertNotEquals(ad1.toString(), ad3.toString());
     }
 
     @Test
     public void testNumZonesIn() {
+        manualSetUp();
         assertEquals(4, ad1.getNumZonesIn(getCurve(ad1, "a")));
         assertEquals(3, ad1.getNumZonesIn(getCurve(ad1, "b")));
         assertEquals(3, ad1.getNumZonesIn(getCurve(ad1, "c")));
