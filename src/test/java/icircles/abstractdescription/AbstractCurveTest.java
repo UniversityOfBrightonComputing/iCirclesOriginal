@@ -9,6 +9,39 @@ import static org.junit.Assert.*;
  */
 public class AbstractCurveTest {
 
+    private static final String alphanum = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
+
+    @Test
+    public void testConstructorValid() {
+        for (char c : alphanum.toCharArray()) {
+            new AbstractCurve(String.valueOf(c));
+        }
+    }
+
+    @Test
+    public void testConstructorInvalid() {
+        int count = 0;
+
+        for (char c = Character.MIN_VALUE; c < Character.MAX_VALUE; c++) {
+            if (alphanum.contains(String.valueOf(c)))
+                continue;
+
+            try {
+                new AbstractCurve(String.valueOf(c));
+            } catch (IllegalArgumentException e) {
+                count++;
+            }
+        }
+
+        assertEquals(Character.MAX_VALUE - alphanum.length(), count);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructorNullLabel() {
+        String label = null;
+        new AbstractCurve(label);
+    }
+
     @Test
     public void testToString() {
         AbstractCurve curve1 = new AbstractCurve("a");

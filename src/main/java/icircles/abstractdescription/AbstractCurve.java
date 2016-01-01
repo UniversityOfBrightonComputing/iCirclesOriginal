@@ -6,6 +6,8 @@ package icircles.abstractdescription;
  */
 public class AbstractCurve implements Comparable<AbstractCurve> {
 
+    private static final String alphanum = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
+
     private static int uniqueId = 0;
     private final String label;
     private final int id;
@@ -20,7 +22,8 @@ public class AbstractCurve implements Comparable<AbstractCurve> {
      * @param label the curve label
      */
     public AbstractCurve(String label) {
-        // TODO: check for bad labels
+        if (label == null || !isValidLabel(label))
+            throw new IllegalArgumentException("Label: " + label + " is invalid");
 
         uniqueId++;
         id = uniqueId;
@@ -79,6 +82,16 @@ public class AbstractCurve implements Comparable<AbstractCurve> {
         }
 
         return result * id;
+    }
+
+    private boolean isValidLabel(String label) {
+        for (char c : label.toCharArray()) {
+            if (!alphanum.contains(String.valueOf(c))) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
 //    /**
