@@ -46,7 +46,7 @@ public class TestCode {
                     + RecompositionStep.checksum(r_steps)
                     + ConcreteDiagram.checksum(circles);
 
-            assertEquals("Test: " + testNumber, datum.expectedChecksum, actualChecksum, 3);
+            assertEquals("Test: " + testNumber, datum.expectedChecksum, actualChecksum, 0.0001);
         } catch (CannotDrawException e) {
             fail(e.getMessage());
         }
