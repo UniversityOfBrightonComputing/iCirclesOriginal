@@ -16,13 +16,13 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
     private Set<AbstractCurve> theInSet;
     private static Set<AbstractBasicRegion> library = new TreeSet<>();
 
-    private AbstractBasicRegion(Set<AbstractCurve> in_set) {
-        theInSet = in_set;
+    private AbstractBasicRegion(SortedSet<AbstractCurve> in_set) {
+        theInSet = Collections.unmodifiableSortedSet(in_set);
     }
 
     // TODO: test this to become the normal ctor
     public AbstractBasicRegion(AbstractCurve... curves) {
-        theInSet = new TreeSet<>(Arrays.asList(curves));
+        this(new TreeSet<>(Arrays.asList(curves)));
     }
 
     public static void clearLibrary() {
@@ -36,8 +36,7 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
             }
         }
 
-        Set<AbstractCurve> tmp = new TreeSet<>(in_set);
-        AbstractBasicRegion result = new AbstractBasicRegion(tmp);
+        AbstractBasicRegion result = new AbstractBasicRegion(new TreeSet<>(in_set));
         library.add(result);
         return result;
     }
@@ -60,18 +59,17 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
         }
     }
 
-    public Set<AbstractCurve> getCopyOfContours() {
-        return new TreeSet<>(theInSet);
-    }
-
-    public Iterator<AbstractCurve> getContourIterator() {
-        return theInSet.iterator();
+    /**
+     * @return unmodifiable set of curves ('in' set of this zone)
+     */
+    public Set<AbstractCurve> getCurvesUnmodifiable() {
+        return theInSet;
     }
 
     /**
-     * @return number of contours within this zone
+     * @return number of curves within this zone
      */
-    public int getNumContours() {
+    public int getNumCurves() {
         return theInSet.size();
     }
 
@@ -107,8 +105,8 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
      * @return curve if zones are a cluster else {@link Optional#empty()}.
      */
     public Optional<AbstractCurve> getStraddledContour(AbstractBasicRegion other) {
-        int nc = getNumContours();
-        int othernc = other.getNumContours();
+        int nc = getNumCurves();
+        int othernc = other.getNumCurves();
 
         if (Math.abs(nc - othernc) != 1) {
             return Optional.empty();
@@ -140,30 +138,25 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
 
     public boolean isLabelEquivalent(AbstractBasicRegion other) {
         // TODO: if we didn't have id for curve we couldve used more natural
-        // return theInSet.equals(other.theInSet);
+        //return theInSet.equals(other.theInSet);
 
-        if (getNumContours() == other.getNumContours()) {
-            if (other.getNumContours() == 0) {
+        if (getNumCurves() == other.getNumCurves()) {
+            // TODO: we could check for this == OUTSIDE, would be clearer
+            if (other.getNumCurves() == 0) {
                 return true;
             } else {
-                //System.out.println(" compare zones "+toDebugString()+" and "+other.toDebugString());
-                Iterator<AbstractCurve> acIt = getContourIterator();
-                AcItLoop:
-                while (acIt.hasNext()) {
-                    AbstractCurve thisAC = acIt.next();
-                    // look for an AbstractCurve in other with the same label
-                    Iterator<AbstractCurve> acIt2 = other.getContourIterator();
-                    while (acIt2.hasNext()) {
-                        AbstractCurve thatAC = acIt2.next();
-                        //System.out.println(" compare abstract contours "+thisAC.toDebugString()+" and "+thatAC.toDebugString());
-                        if (thisAC.matchesLabel(thatAC)) {
-                            //System.out.println(" got match ");
-                            continue AcItLoop;
+
+                outerLoop:
+                for (AbstractCurve curve1 : theInSet) {
+                    for (AbstractCurve curve2 : other.theInSet) {
+                        if (curve1.matchesLabel(curve2)) {
+                            continue outerLoop;
                         }
                     }
-                    //System.out.println(" no match for "+thisAC.toDebugString());
+
                     return false;
                 }
+
                 return true;
             }
         }

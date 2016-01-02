@@ -25,9 +25,9 @@ public class AbstractBasicRegionTest {
 
     @Test
     public void testGetNumContours() throws Exception {
-        assertEquals(1, zone1.getNumContours());
-        assertEquals(2, zone2.getNumContours());
-        assertEquals(1, zone3.getNumContours());
+        assertEquals(1, zone1.getNumCurves());
+        assertEquals(2, zone2.getNumCurves());
+        assertEquals(1, zone3.getNumCurves());
     }
 
     @Test

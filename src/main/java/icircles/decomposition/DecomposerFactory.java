@@ -127,12 +127,12 @@ public final class DecomposerFactory {
 
         // find the smallest zone (one in fewest contours)
         AbstractBasicRegion smallestZone = zonesInContour.stream()
-                .reduce((zone1, zone2) -> zone1.getNumContours() <= zone2.getNumContours() ? zone1 : zone2)
+                .reduce((zone1, zone2) -> zone1.getNumCurves() <= zone2.getNumCurves() ? zone1 : zone2)
                 .orElseThrow(() -> new RuntimeException("There are no zones in given contour"));
 
         // every other zone in ac must be a superset of that zone
         for (AbstractBasicRegion zone : zonesInContour) {
-            for (AbstractCurve curve : smallestZone.getCopyOfContours()) {
+            for (AbstractCurve curve : smallestZone.getCurvesUnmodifiable()) {
                 if (!zone.contains(curve)) {
                     return false;
                 }
@@ -144,7 +144,7 @@ public final class DecomposerFactory {
         Set<AbstractCurve> addedContours = new TreeSet<>();
 
         for (AbstractBasicRegion zone : zonesInContour) {
-            for (AbstractCurve curve : zone.getCopyOfContours()) {
+            for (AbstractCurve curve : zone.getCurvesUnmodifiable()) {
                 if (!smallestZone.contains(curve)) {
                     addedContours.add(curve);
                     if (addedContours.size() > power) {

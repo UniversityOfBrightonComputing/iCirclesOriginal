@@ -157,7 +157,7 @@ public class DiagramCreator {
         List<CircleContour> includingCircles = new ArrayList<>();
         List<CircleContour> excludingCircles = new ArrayList<>(circles);
 
-        for (AbstractCurve curve : zone.getCopyOfContours()) {
+        for (AbstractCurve curve : zone.getCurvesUnmodifiable()) {
             CircleContour contour = curveToContour.get(curve);
             excludingCircles.remove(contour);
             includingCircles.add(contour);
@@ -399,7 +399,7 @@ public class DiagramCreator {
             throw new CannotDrawException("Cannot place nested contour");
         }
 
-        if (willPierce && rd.splitZones.get(0).getNumContours() > 0) {
+        if (willPierce && rd.splitZones.get(0).getNumCurves() > 0) {
             // nudge to the left
             contour.centerX -= contour.radius * 0.5;
 
@@ -824,7 +824,7 @@ public class DiagramCreator {
             return result;
         }
 
-        if (zone.getNumContours() == 0) {
+        if (zone.getNumCurves() == 0) {
             // adding a contour outside everything else
             double minx = Double.MAX_VALUE;
             double maxx = Double.MIN_VALUE;
@@ -911,7 +911,7 @@ public class DiagramCreator {
         // special case : one contour inside another with no other interference between
         // look at the final diagram - find the corresponding zone
 
-        if (zone.getNumContours() > 0 && acs.size() == 1) {
+        if (zone.getNumCurves() > 0 && acs.size() == 1) {
             //System.out.println("look for "+zone.toDebugString()+" in "+finalDiagram.toDebugString());
             // not the outside zone - locate the zone in the last diag
             AbstractBasicRegion zoneInLast = finalDiagram.getZonesUnmodifiable()

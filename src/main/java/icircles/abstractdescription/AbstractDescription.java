@@ -73,7 +73,7 @@ public class AbstractDescription {
     private void validate() {
         // Condition 1
         for (AbstractBasicRegion zone : zones) {
-            for (AbstractCurve curve : zone.getCopyOfContours()) {
+            for (AbstractCurve curve : zone.getCurvesUnmodifiable()) {
                 if (!curves.contains(curve)) {
                     throw new IllegalArgumentException("Invalid AbstractDescription (Condition1): " + toDebugString());
                 }
@@ -116,7 +116,7 @@ public class AbstractDescription {
     public String getInformalDescription() {
         StringBuilder sb = new StringBuilder();
         for (AbstractBasicRegion zone : zones) {
-            for (AbstractCurve curve : zone.getCopyOfContours()) {
+            for (AbstractCurve curve : zone.getCurvesUnmodifiable()) {
                 sb.append(curve.getLabel());
             }
 

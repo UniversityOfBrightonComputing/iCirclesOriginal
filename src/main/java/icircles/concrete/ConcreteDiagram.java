@@ -84,7 +84,7 @@ public class ConcreteDiagram {
         List<CircleContour> includingCircles = new ArrayList<>();
         List<CircleContour> excludingCircles = new ArrayList<>(circles);
 
-        for (AbstractCurve curve : zone.getCopyOfContours()) {
+        for (AbstractCurve curve : zone.getCurvesUnmodifiable()) {
             CircleContour contour = curveToContour.get(curve);
             excludingCircles.remove(contour);
             includingCircles.add(contour);
