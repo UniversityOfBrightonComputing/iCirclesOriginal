@@ -1,6 +1,7 @@
 package icircles.abstractdescription;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * An AbstractDescription encapsulates the elements of a diagram, with no drawn information.
@@ -103,6 +104,8 @@ public class AbstractDescription {
         }
     }
 
+    // these are needed for alphabetic / reverse decomposition
+    // TODO: do we need those strategies?
     public AbstractCurve getFirstContour() {
         if (curves.size() == 0) {
             return null;
@@ -157,6 +160,14 @@ public class AbstractDescription {
      */
     public int getNumZonesIn(AbstractCurve curve) {
         return (int) zones.stream().filter(z -> z.contains(curve)).count();
+    }
+
+    /**
+     * @param curve the curve
+     * @return sorted set of zones the given curve passes through
+     */
+    public Set<AbstractBasicRegion> getZonesIn(AbstractCurve curve) {
+        return zones.stream().filter(z -> z.contains(curve)).sorted().collect(Collectors.toSet());
     }
 
     /**

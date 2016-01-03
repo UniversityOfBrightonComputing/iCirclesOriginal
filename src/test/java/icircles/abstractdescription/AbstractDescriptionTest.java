@@ -3,8 +3,10 @@ package icircles.abstractdescription;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -153,6 +155,45 @@ public class AbstractDescriptionTest {
         assertEquals(3, ad1.getNumZonesIn(getCurve(ad1, "c")));
     }
 
+    @Test
+    public void testZonesIn() {
+        manualSetUp();
+
+        // A
+        Set<AbstractBasicRegion> actualZonesInA = ad1.getZonesIn(getCurve(ad1, "a"));
+
+        Set<AbstractBasicRegion> expectedZonesInA = new TreeSet<>();
+        expectedZonesInA.add(getZone(ad1, "a"));
+        expectedZonesInA.add(getZone(ad1, "ab"));
+        expectedZonesInA.add(getZone(ad1, "ac"));
+        expectedZonesInA.add(getZone(ad1, "abc"));
+
+        assertEquals(expectedZonesInA, actualZonesInA);
+        assertEquals(4, actualZonesInA.size());
+
+        // B
+        Set<AbstractBasicRegion> actualZonesInB = ad1.getZonesIn(getCurve(ad1, "b"));
+
+        Set<AbstractBasicRegion> expectedZonesInB = new TreeSet<>();
+        expectedZonesInB.add(getZone(ad1, "ab"));
+        expectedZonesInB.add(getZone(ad1, "bc"));
+        expectedZonesInB.add(getZone(ad1, "abc"));
+
+        assertEquals(expectedZonesInB, actualZonesInB);
+        assertEquals(3, actualZonesInB.size());
+
+        // C
+        Set<AbstractBasicRegion> actualZonesInC = ad1.getZonesIn(getCurve(ad1, "c"));
+
+        Set<AbstractBasicRegion> expectedZonesInC = new TreeSet<>();
+        expectedZonesInC.add(getZone(ad1, "ac"));
+        expectedZonesInC.add(getZone(ad1, "bc"));
+        expectedZonesInC.add(getZone(ad1, "abc"));
+
+        assertEquals(expectedZonesInC, actualZonesInC);
+        assertEquals(3, actualZonesInC.size());
+    }
+
     private AbstractCurve getCurve(AbstractDescription description, String label) {
         for (AbstractCurve curve : description.getCurvesUnmodifiable()) {
             if (curve.hasLabel(label)) {
@@ -160,7 +201,18 @@ public class AbstractDescriptionTest {
             }
         }
 
-        return null;
+        throw new IllegalArgumentException("No curve with label: " + label + " in "
+            + description);
+    }
+
+    private AbstractBasicRegion getZone(AbstractDescription description, String zoneLabel) {
+        Set<AbstractCurve> curves = Arrays.stream(zoneLabel.split(""))
+                .map(String::valueOf)
+                .map(curveLabel -> getCurve(description, curveLabel))
+                .sorted()
+                .collect(Collectors.toSet());
+
+        return AbstractBasicRegion.get(curves);
     }
 
     // Existing test, TODO: refactor as junit test
