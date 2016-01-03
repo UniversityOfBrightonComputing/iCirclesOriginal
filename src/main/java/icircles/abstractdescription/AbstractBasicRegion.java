@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Represents a zone (basic region) at an abstract level.
@@ -210,15 +211,10 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("{");
-        theInSet.forEach(curve -> sb.append(curve).append(","));
-        sb.append("}");
+        List<String> curveLabels = theInSet.stream()
+                .map(AbstractCurve::toString)
+                .collect(Collectors.toList());
 
-        int lastIndex = sb.lastIndexOf(",");
-        if (lastIndex != -1) {
-            sb.deleteCharAt(lastIndex);
-        }
-
-        return sb.toString();
+        return "{" + String.join(",", curveLabels) + "}";
     }
 }

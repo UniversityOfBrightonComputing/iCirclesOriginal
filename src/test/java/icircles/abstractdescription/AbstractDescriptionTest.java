@@ -145,6 +145,10 @@ public class AbstractDescriptionTest {
         manualSetUp();
         assertEquals(ad1.toString(), ad2.toString());
         assertNotEquals(ad1.toString(), ad3.toString());
+
+        assertEquals("{},{a},{a,b},{a,c},{b,c},{a,b,c}", ad1.toString());
+        assertEquals("{},{a},{a,b},{a,c},{b,c},{a,b,c}", ad2.toString());
+        assertEquals("{},{a},{a,c},{a,d},{b,c},{a,b,c}", ad3.toString());
     }
 
     @Test

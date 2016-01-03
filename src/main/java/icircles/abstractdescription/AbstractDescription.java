@@ -236,15 +236,11 @@ public class AbstractDescription {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        zones.forEach(zone -> sb.append(zone).append(","));
+        List<String> zoneLabels = zones.stream()
+                .map(AbstractBasicRegion::toString)
+                .collect(Collectors.toList());
 
-        int lastIndex = sb.lastIndexOf(",");
-        if (lastIndex != -1) {
-            sb.deleteCharAt(lastIndex);
-        }
-
-        return sb.toString();
+        return String.join(",", zoneLabels);
     }
 
     public boolean hasSameAbstractDescription(AbstractDescription description) {
