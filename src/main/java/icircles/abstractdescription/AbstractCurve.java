@@ -3,8 +3,11 @@ package icircles.abstractdescription;
 /**
  * Represents a curve at an abstract level.
  * The curve has a label and a unique ID.
+ * <p>
+ *     <b>Immutable.</b>
+ * </p>
  */
-public class AbstractCurve implements Comparable<AbstractCurve> {
+public final class AbstractCurve implements Comparable<AbstractCurve> {
 
     private static final String alphanum = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
 

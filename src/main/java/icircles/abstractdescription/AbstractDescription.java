@@ -14,6 +14,10 @@ import java.util.*;
  *     <li>Every valid diagram includes the "outside" zone ({@link AbstractBasicRegion#OUTSIDE}).</li>
  *     <li>Every curve must have a zone inside it (label).</li>
  * </ol>
+ *
+ * <p>
+ *     <b>Currently NOT immutable because of AbstractBasicRegion.</b>
+ * </p>
  */
 public class AbstractDescription {
 
@@ -27,6 +31,8 @@ public class AbstractDescription {
      * @param zones the zones
      */
     public AbstractDescription(Set<AbstractCurve> curves, Set<AbstractBasicRegion> zones) {
+        // unmodifiable collections are read-through,
+        // so we wrap given sets with our own to ensure immutability
         this.curves = Collections.unmodifiableSortedSet(new TreeSet<>(curves));
         this.zones = Collections.unmodifiableSortedSet(new TreeSet<>(zones));
 
@@ -44,28 +50,29 @@ public class AbstractDescription {
      * @param informalDescription abstract description in informal form
      */
     public AbstractDescription(String informalDescription) {
-        TreeSet<AbstractBasicRegion> ad_zones = new TreeSet<>();
-        ad_zones.add(AbstractBasicRegion.OUTSIDE);
+        SortedSet<AbstractBasicRegion> tmpZones = new TreeSet<>();
+        tmpZones.add(AbstractBasicRegion.OUTSIDE);
 
-        StringTokenizer st = new StringTokenizer(informalDescription);
-        Map<String, AbstractCurve> contours = new HashMap<>();
+        Map<String, AbstractCurve> curves = new HashMap<>();
 
-        while (st.hasMoreTokens()) {
-            String word = st.nextToken();
-            TreeSet<AbstractCurve> zoneContours = new TreeSet<>();
+        for (String zoneName : informalDescription.split(" +")) {
+            Set<AbstractCurve> zoneCurves = new TreeSet<>();
 
-            for (int i = 0; i < word.length(); i++) {
-                String label = "" + word.charAt(i);
-                if (!contours.containsKey(label)) {
-                    contours.put(label, new AbstractCurve(label));
+            for (char c : zoneName.toCharArray()) {
+                String label = String.valueOf(c);
+
+                // we have to do this because of curve id equality
+                if (!curves.containsKey(label)) {
+                    curves.put(label, new AbstractCurve(label));
                 }
-                zoneContours.add(contours.get(label));
+                zoneCurves.add(curves.get(label));
             }
-            ad_zones.add(AbstractBasicRegion.get(zoneContours));
-        }
 
-        this.curves = Collections.unmodifiableSortedSet(new TreeSet<>(contours.values()));
-        this.zones = Collections.unmodifiableSortedSet(new TreeSet<>(ad_zones));
+            tmpZones.add(AbstractBasicRegion.get(zoneCurves));
+        }
+        
+        this.curves = Collections.unmodifiableSortedSet(new TreeSet<>(curves.values()));
+        this.zones = Collections.unmodifiableSortedSet(tmpZones);
 
         validate();
     }
