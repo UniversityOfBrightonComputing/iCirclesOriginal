@@ -1,33 +1,43 @@
 package icircles.abstractdescription;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * An AbstractDescription encapsulates the elements of a diagram, with no drawn information.
- * A diagram comprises a set of AbstractCurves (the contours).
- * A set of AbstractBasicRegions is given (zones which must be present.
+ * A diagram comprises a set of AbstractCurves (the curves) and
+ * a set of AbstractBasicRegions (zones which must be present).
  * <p>
- * An AbstractDiagram is consistent if 
- * <p>1. the contours in each of the AbstractBasicRegions match those
- * in contours.
- * <p>2. every valid diagram includes the "outside" zone. 
- * TODO add a coherence check on these internal checks.
+ * An AbstractDescription is consistent if
+ *
+ * <ol>
+ *     <li>The curves in each of the AbstractBasicRegions match those in the curves set.</li>
+ *     <li>Every valid diagram includes the "outside" zone ({@link AbstractBasicRegion#OUTSIDE}).</li>
+ *     <li>Every curve must have a zone inside it (label).</li>
+ * </ol>
+ *
+ * <p>
+ *     <b>Currently NOT immutable because of AbstractBasicRegion.</b>
+ * </p>
  */
 public class AbstractDescription {
 
-    // TODO: immutable data structure?
-    private TreeSet<AbstractCurve> contours;
-    private TreeSet<AbstractBasicRegion> zones;
+    private final SortedSet<AbstractCurve> curves;
+    private final SortedSet<AbstractBasicRegion> zones;
 
     /**
-     * Constructs abstract description from the set of contours and set of zones.
+     * Constructs abstract description from the set of curves and set of zones.
      *
-     * @param contours the contours
+     * @param curves the curves
      * @param zones the zones
      */
-    public AbstractDescription(Set<AbstractCurve> contours, Set<AbstractBasicRegion> zones) {
-        this.contours = new TreeSet<>(contours);
-        this.zones = new TreeSet<>(zones);
+    public AbstractDescription(Set<AbstractCurve> curves, Set<AbstractBasicRegion> zones) {
+        // unmodifiable collections are read-through,
+        // so we wrap given sets with our own to ensure immutability
+        this.curves = Collections.unmodifiableSortedSet(new TreeSet<>(curves));
+        this.zones = Collections.unmodifiableSortedSet(new TreeSet<>(zones));
+
+        validate();
     }
 
     /**
@@ -41,75 +51,146 @@ public class AbstractDescription {
      * @param informalDescription abstract description in informal form
      */
     public AbstractDescription(String informalDescription) {
-        TreeSet<AbstractBasicRegion> ad_zones = new TreeSet<>();
+        SortedSet<AbstractBasicRegion> tmpZones = new TreeSet<>();
+        tmpZones.add(AbstractBasicRegion.OUTSIDE);
 
-        // add the outside zone
-        ad_zones.add(AbstractBasicRegion.get(new TreeSet<>()));
+        Map<String, AbstractCurve> curves = new HashMap<>();
 
-        StringTokenizer st = new StringTokenizer(informalDescription);
-        Map<CurveLabel, AbstractCurve> contours = new HashMap<>();
+        for (String zoneName : informalDescription.split(" +")) {
+            Set<AbstractCurve> zoneCurves = new TreeSet<>();
 
-        while (st.hasMoreTokens()) {
-            String word = st.nextToken();
-            TreeSet<AbstractCurve> zoneContours = new TreeSet<>();
+            for (char c : zoneName.toCharArray()) {
+                String label = String.valueOf(c);
 
-            for (int i = 0; i < word.length(); i++) {
-                String character = "" + word.charAt(i);
-                CurveLabel cl = CurveLabel.get(character);
-                if (!contours.containsKey(cl)) {
-                    contours.put(cl, new AbstractCurve(cl));
+                // we have to do this because of curve id equality
+                if (!curves.containsKey(label)) {
+                    curves.put(label, new AbstractCurve(label));
                 }
-                zoneContours.add(contours.get(cl));
+                zoneCurves.add(curves.get(label));
             }
-            ad_zones.add(AbstractBasicRegion.get(zoneContours));
-        }
 
-        this.contours = new TreeSet<>(contours.values());
-        this.zones = new TreeSet<>(ad_zones);
+            tmpZones.add(AbstractBasicRegion.get(zoneCurves));
+        }
+        
+        this.curves = Collections.unmodifiableSortedSet(new TreeSet<>(curves.values()));
+        this.zones = Collections.unmodifiableSortedSet(tmpZones);
+
+        validate();
     }
 
+    private void validate() {
+        // Condition 1
+        for (AbstractBasicRegion zone : zones) {
+            for (AbstractCurve curve : zone.getCurvesUnmodifiable()) {
+                if (!curves.contains(curve)) {
+                    throw new IllegalArgumentException("Invalid AbstractDescription (Condition1): " + toDebugString());
+                }
+            }
+        }
+
+        // Condition 2
+        if (!zones.contains(AbstractBasicRegion.OUTSIDE))
+            throw new IllegalArgumentException("Invalid AbstractDescription (Condition2): " + toDebugString());
+
+        // Condition 3
+        curveLoop:
+        for (AbstractCurve curve : curves) {
+            for (AbstractBasicRegion zone : zones) {
+                if (zone.contains(curve))
+                    continue curveLoop;
+            }
+
+            throw new IllegalArgumentException("Invalid AbstractDescription (Condition3): " + toDebugString());
+        }
+    }
+
+    // these are needed for alphabetic / reverse decomposition
+    // TODO: do we need those strategies?
     public AbstractCurve getFirstContour() {
-        if (contours.size() == 0) {
+        if (curves.size() == 0) {
             return null;
         }
-        return contours.first();
+        return curves.first();
     }
 
     public AbstractCurve getLastContour() {
-        if (contours.size() == 0) {
+        if (curves.size() == 0) {
             return null;
         }
-        return contours.last();
+        return curves.last();
     }
 
-    public Iterator<AbstractCurve> getContourIterator() {
-        return contours.iterator();
+    /**
+     * @return abstract description in informal string form
+     */
+    public String getInformalDescription() {
+        StringBuilder sb = new StringBuilder();
+        for (AbstractBasicRegion zone : zones) {
+            for (AbstractCurve curve : zone.getCurvesUnmodifiable()) {
+                sb.append(curve.getLabel());
+            }
+
+            sb.append(" ");
+        }
+
+        return sb.toString().trim();
     }
 
-    public Iterator<AbstractBasicRegion> getZoneIterator() {
-        return zones.iterator();
+    /**
+     * Returns unmodifiable set of zones of this abstract description.
+     * The returned set is read-only. Use this to query/iterate over zones.
+     * Note: the zones themselves are still mutable.
+     *
+     * @return unmodifiable set of zones
+     */
+    public Set<AbstractBasicRegion> getZonesUnmodifiable() {
+        return zones;
     }
 
-    public TreeSet<AbstractCurve> getCopyOfContours() {
-        return new TreeSet<>(contours);
-    }
-
-    public TreeSet<AbstractBasicRegion> getCopyOfZones() {
-        return new TreeSet<>(zones);
-    }
-
-    public int getNumContours() {
-        return contours.size();
-    }
-
+    /**
+     * @return number of abstract zones, including the outside zone
+     */
     public int getNumZones() {
         return zones.size();
+    }
+
+    /**
+     * @param curve the curve
+     * @return number of zones the given curves passes through
+     */
+    public int getNumZonesIn(AbstractCurve curve) {
+        return (int) zones.stream().filter(z -> z.contains(curve)).count();
+    }
+
+    /**
+     * @param curve the curve
+     * @return sorted set of zones the given curve passes through
+     */
+    public Set<AbstractBasicRegion> getZonesIn(AbstractCurve curve) {
+        return zones.stream().filter(z -> z.contains(curve)).sorted().collect(Collectors.toSet());
+    }
+
+    /**
+     * Returns unmodifiable set of abstract curves of this abstract description.
+     * The returned set is read-only. Use this to query/iterate over curves.
+     *
+     * @return unmodifiable set of abstract curves
+     */
+    public Set<AbstractCurve> getCurvesUnmodifiable() {
+        return curves;
+    }
+
+    /**
+     * @return number of abstract curves (curves)
+     */
+    public int getNumContours() {
+        return curves.size();
     }
 
     public double checksum() {
         double scaling = 2.1;
         double result = 0.0;
-        for (AbstractCurve c : contours) {
+        for (AbstractCurve c : curves) {
             result += c.checksum() * scaling;
             scaling += 0.07;
             scaling += 0.05;
@@ -123,9 +204,9 @@ public class AbstractDescription {
         return result;
     }
 
-    public boolean includesLabel(CurveLabel l) {
-        for (AbstractCurve c : contours) {
-            if (c.getLabel() == l) {
+    public boolean includesLabel(String label) {
+        for (AbstractCurve curve : curves) {
+            if (curve.hasLabel(label)) {
                 return true;
             }
         }
@@ -143,7 +224,7 @@ public class AbstractDescription {
 
     public String toDebugString() {
         StringBuilder sb = new StringBuilder("AD[curves=");
-        contours.forEach(curve -> sb.append(curve.toDebugString()).append(","));
+        curves.forEach(curve -> sb.append(curve.toDebugString()).append(","));
 
         int lastIndex = sb.lastIndexOf(",");
         if (lastIndex != -1) {
@@ -155,15 +236,11 @@ public class AbstractDescription {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        zones.forEach(zone -> sb.append(zone).append(","));
+        List<String> zoneLabels = zones.stream()
+                .map(AbstractBasicRegion::toString)
+                .collect(Collectors.toList());
 
-        int lastIndex = sb.lastIndexOf(",");
-        if (lastIndex != -1) {
-            sb.deleteCharAt(lastIndex);
-        }
-
-        return sb.toString();
+        return String.join(",", zoneLabels);
     }
 
     public boolean hasSameAbstractDescription(AbstractDescription description) {

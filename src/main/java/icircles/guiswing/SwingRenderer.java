@@ -85,7 +85,7 @@ public class SwingRenderer extends JPanel implements Renderer {
 
         // draw label
         g.setColor(Color.BLACK);
-        g.drawString(contour.ac.getLabel().getLabel(), (int) contour.getLabelXPosition(), (int) contour.getLabelYPosition());
+        g.drawString(contour.getCurve().getLabel(), (int) contour.getLabelXPosition(), (int) contour.getLabelYPosition());
     }
 
     private Rectangle2D.Double toSwingRectangle(Rectangle rectangle) {

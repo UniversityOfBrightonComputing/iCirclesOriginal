@@ -3,19 +3,13 @@ package icircles;
 import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
-import icircles.abstractdescription.CurveLabel;
 import icircles.concrete.CircleContour;
 import icircles.concrete.ConcreteDiagram;
 import icircles.concrete.DiagramCreator;
-import icircles.decomposition.Decomposer;
-import icircles.decomposition.DecompositionStep;
-import icircles.decomposition.DecompositionType;
+import icircles.decomposition.*;
 import icircles.guiswing.SwingRenderer;
-import icircles.recomposition.Recomposer;
-import icircles.recomposition.RecompositionStep;
-import icircles.recomposition.RecompositionType;
+import icircles.recomposition.*;
 import icircles.util.CannotDrawException;
-
 import org.junit.Test;
 
 import javax.swing.*;
@@ -40,7 +34,6 @@ public class TestCode {
 
         AbstractCurve.resetIdCounter();
         AbstractBasicRegion.clearLibrary();
-        CurveLabel.clearLibrary();
 
         try {
             ArrayList<DecompositionStep> d_steps = new ArrayList<>();
@@ -53,7 +46,7 @@ public class TestCode {
                     + RecompositionStep.checksum(r_steps)
                     + ConcreteDiagram.checksum(circles);
 
-            assertEquals("Test: " + testNumber, datum.expectedChecksum, actualChecksum, 3);
+            assertEquals("Test: " + testNumber, datum.expectedChecksum, actualChecksum, 0.0001);
         } catch (CannotDrawException e) {
             fail(e.getMessage());
         }
@@ -249,7 +242,6 @@ public class TestCode {
         if (!view_failure) {
             AbstractCurve.resetIdCounter();
             AbstractBasicRegion.clearLibrary();
-            CurveLabel.clearLibrary();
         }
         String desc = TestData.test_data[test_num].description;
 //        if (DEB.level > 0) {
@@ -331,21 +323,26 @@ public class TestCode {
             ArrayList<DecompositionStep> d_steps,
             ArrayList<RecompositionStep> r_steps,
             int size) throws CannotDrawException {
-        DecompositionType decomp_strategy = TestData.test_data[test_num].decomp_strategy;
-        RecompositionType recomp_strategy = TestData.test_data[test_num].recomp_strategy;
-        Decomposer d = new Decomposer(decomp_strategy);
-        d_steps.addAll(d.decompose(new AbstractDescription(TestData.test_data[test_num].description)));
+        DecompositionStrategyType decomp_strategy = TestData.test_data[test_num].decomp_strategy;
+        RecompositionStrategyType recomp_strategy = TestData.test_data[test_num].recomp_strategy;
+        Decomposer d = DecomposerFactory.newDecomposer(decomp_strategy);
+        //d_steps.addAll(d.decompose(new AbstractDescription(TestData.test_data[test_num].description)));
 
-        Recomposer r = new Recomposer(recomp_strategy);
-        r_steps.addAll(r.recompose(d_steps));
-        DiagramCreator dc = new DiagramCreator(d_steps, r_steps);
+        Recomposer r = RecomposerFactory.newRecomposer(recomp_strategy);
+        //r_steps.addAll(r.recompose(d_steps));
+        DiagramCreator dc = new DiagramCreator(d, r);
 
-        return dc.createDiagram(size);
+        ConcreteDiagram diagram = dc.createDiagram(new AbstractDescription(TestData.test_data[test_num].description), size);
+
+        d_steps.addAll(dc.getDSteps());
+        r_steps.addAll(dc.getRSteps());
+
+        return diagram;
     }
 
     private static void printFreshTestData(int test_num, double checksum_found) {
-        DecompositionType decomp_strategy = TestData.test_data[test_num].decomp_strategy;
-        RecompositionType recomp_strategy = TestData.test_data[test_num].recomp_strategy;
+        DecompositionStrategyType decomp_strategy = TestData.test_data[test_num].decomp_strategy;
+        RecompositionStrategyType recomp_strategy = TestData.test_data[test_num].recomp_strategy;
         String desc = TestData.test_data[test_num].description;
 
         System.out.println("/*" + test_num

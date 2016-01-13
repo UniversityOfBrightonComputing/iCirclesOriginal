@@ -1,16 +1,11 @@
 package icircles.concrete;
 
+import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
-import icircles.abstractdescription.CurveLabel;
-import icircles.decomposition.Decomposer;
-import icircles.decomposition.DecompositionStep;
-import icircles.decomposition.DecompositionType;
 import icircles.geometry.Rectangle;
-import icircles.recomposition.Recomposer;
-import icircles.recomposition.RecompositionStep;
-import icircles.recomposition.RecompositionType;
-import icircles.util.CannotDrawException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -21,50 +16,81 @@ import java.util.stream.Collectors;
  */
 public class ConcreteDiagram {
 
+    private static final Logger log = LogManager.getLogger(ConcreteDiagram.class);
+
     private final Rectangle box;
     private final List<CircleContour> circles;
     private final List<ConcreteZone> shadedZones, allZones;
 
-    private AbstractDescription original, actual;
+    private final AbstractDescription original, actual;
+    private final Map<AbstractCurve, CircleContour> curveToContour;
 
-    public ConcreteDiagram(AbstractDescription original, AbstractDescription actual,
-                           Rectangle box, List<CircleContour> circles,
-                           List<ConcreteZone> allZones, List<ConcreteZone> shadedZones) {
+    ConcreteDiagram(AbstractDescription original, AbstractDescription actual,
+                    List<CircleContour> circles,
+                    Map<AbstractCurve, CircleContour> curveToContour, int size) {
         this.original = original;
         this.actual = actual;
-        this.box = box;
+        this.box = new Rectangle(0, 0, size, size);
+        this.curveToContour = curveToContour;
         this.circles = circles;
-        this.shadedZones = shadedZones;
-        this.allZones = allZones;
+
+        setSize(size);
+
+        log.trace("Initial diagram: " + original);
+        log.trace("Final diagram  : " + actual);
+
+        this.shadedZones = createShadedZones();
+        this.allZones = actual.getZonesUnmodifiable()
+                .stream()
+                .map(this::makeConcreteZone)
+                .collect(Collectors.toList());
+
+        Map<AbstractCurve, List<CircleContour> > duplicates = findDuplicateContours();
+
+        log.trace("Duplicates: " + duplicates);
+        duplicates.values().forEach(contours -> {
+            for (CircleContour contour : contours) {
+                log.trace("Contour " + contour + " is in " + getZonesContainingContour(contour));
+            }
+        });
     }
 
     /**
-     * Constructs a concrete form of an abstract diagram.
+     * Creates shaded (extra) zones based on the difference
+     * between the initial diagram and final diagram.
+     * In other words, finds which zones in final diagram were not in initial diagram.
      *
-     * @param description the description to be drawn
-     * @param size the size of the concrete diagram
-     * @param dType decomposition type
-     * @param rType recomposition type
-     * @throws CannotDrawException if diagram cannot be drawn with given parameters
+     * @return list of shaded zones
      */
-    public ConcreteDiagram(AbstractDescription description, int size,
-                           DecompositionType dType, RecompositionType rType) throws CannotDrawException {
+    private List<ConcreteZone> createShadedZones() {
+        List<ConcreteZone> result = actual.getZonesUnmodifiable()
+                .stream()
+                .filter(zone -> !original.hasLabelEquivalentZone(zone))
+                .map(this::makeConcreteZone)
+                .collect(Collectors.toList());
 
-        Decomposer d = new Decomposer(dType);
-        List<DecompositionStep> dSteps = d.decompose(description);
+        log.trace("Extra zones: " + result);
 
-        Recomposer r = new Recomposer(rType);
-        List<RecompositionStep> rSteps = r.recompose(dSteps);
+        return result;
+    }
 
-        DiagramCreator dc = new DiagramCreator(dSteps, rSteps);
-        ConcreteDiagram diagram = dc.createDiagram(size);
+    /**
+     * Creates a concrete zone out of an abstract zone.
+     *
+     * @param zone the abstract zone
+     * @return the concrete zone
+     */
+    private ConcreteZone makeConcreteZone(AbstractBasicRegion zone) {
+        List<CircleContour> includingCircles = new ArrayList<>();
+        List<CircleContour> excludingCircles = new ArrayList<>(circles);
 
-        this.box = diagram.box;
-        this.circles = diagram.circles;
-        this.shadedZones = diagram.shadedZones;
-        this.original = diagram.original;
-        this.actual = diagram.actual;
-        this.allZones = diagram.allZones;
+        for (AbstractCurve curve : zone.getCurvesUnmodifiable()) {
+            CircleContour contour = curveToContour.get(curve);
+            excludingCircles.remove(contour);
+            includingCircles.add(contour);
+        }
+
+        return new ConcreteZone(zone, includingCircles, excludingCircles);
     }
 
     /**
@@ -113,6 +139,46 @@ public class ConcreteDiagram {
         return allZones;
     }
 
+    public void setSize(int size) {
+        // work out a suitable size
+        int minX = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE;
+        int minY = Integer.MAX_VALUE;
+        int maxY = Integer.MIN_VALUE;
+        for (CircleContour cc : circles) {
+            if (cc.getMinX() < minX) {
+                minX = cc.getMinX();
+            }
+            if (cc.getMinY() < minY) {
+                minY = cc.getMinY();
+            }
+            if (cc.getMaxX() > maxX) {
+                maxX = cc.getMaxX();
+            }
+            if (cc.getMaxY() > maxY) {
+                maxY = cc.getMaxY();
+            }
+        }
+
+        double midX = (minX + maxX) * 0.5;
+        double midY = (minY + maxY) * 0.5;
+        for (CircleContour cc : circles) {
+            cc.shift(-midX, -midY);
+        }
+
+        double width = maxX - minX;
+        double height = maxY - minY;
+        double biggest_HW = Math.max(height, width);
+        double scale = (size * 0.95) / biggest_HW;
+        for (CircleContour cc : circles) {
+            cc.scaleAboutZero(scale);
+        }
+
+        for (CircleContour cc : circles) {
+            cc.shift(size * 0.5, size * 0.5);
+        }
+    }
+
     /**
      * Returns a map, where keys are abstract curves that map to all concrete contours
      * for that curve. The map only contains duplicates, i.e. it won't contain a curve
@@ -122,12 +188,12 @@ public class ConcreteDiagram {
      */
     public Map<AbstractCurve, List<CircleContour> > findDuplicateContours() {
         Map<String, List<CircleContour> > groups = circles.stream()
-                .collect(Collectors.groupingBy(contour -> contour.ac.getLabel().getLabel()));
+                .collect(Collectors.groupingBy(contour -> contour.getCurve().getLabel()));
 
         Map<AbstractCurve, List<CircleContour> > duplicates = new TreeMap<>();
         groups.forEach((label, contours) -> {
             if (contours.size() > 1)
-                duplicates.put(new AbstractCurve(CurveLabel.get(label)), contours);
+                duplicates.put(new AbstractCurve(label), contours);
         });
 
         return duplicates;
@@ -154,7 +220,7 @@ public class ConcreteDiagram {
         Iterator<CircleContour> cIt = circles.iterator();
         while (cIt.hasNext()) {
             CircleContour c = cIt.next();
-            result += c.centerX * 0.345 + c.centerY * 0.456 + c.radius * 0.567 + c.ac.checksum() * 0.555;
+            result += c.centerX * 0.345 + c.centerY * 0.456 + c.radius * 0.567 + c.getCurve().checksum() * 0.555;
             result *= 1.2;
         }
         return result;

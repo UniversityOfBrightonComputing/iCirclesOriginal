@@ -17,7 +17,7 @@ public class Cluster {
     public Cluster(AbstractBasicRegion z1,
             AbstractBasicRegion z2) {
 
-        if (z1.getStraddledContour(z2) == null)
+        if (!z1.getStraddledContour(z2).isPresent())
             throw new IllegalArgumentException("Non-adjacent cluster pair");
 
         zones = new ArrayList<>();
@@ -30,14 +30,15 @@ public class Cluster {
             AbstractBasicRegion z3,
             AbstractBasicRegion z4) {
 
-        if (z1.getStraddledContour(z2) == null)
+        if (!z1.getStraddledContour(z2).isPresent())
             throw new IllegalArgumentException("Non-adjacent cluster pair");
-        if (z1.getStraddledContour(z3) == null)
+        if (!z1.getStraddledContour(z3).isPresent())
             throw new IllegalArgumentException("Non-adjacent cluster pair");
 
-        if (z2.getStraddledContour(z4) != z1.getStraddledContour(z3))
+        // TODO: check references?
+        if (z2.getStraddledContour(z4).orElse(null) != z1.getStraddledContour(z3).orElse(null))
             throw new IllegalArgumentException("Non-adjacent cluster pair");
-        if (z3.getStraddledContour(z4) != z1.getStraddledContour(z2))
+        if (z3.getStraddledContour(z4).orElse(null) != z1.getStraddledContour(z2).orElse(null))
             throw new IllegalArgumentException("Non-adjacent cluster pair");
 
         zones = new ArrayList<>();

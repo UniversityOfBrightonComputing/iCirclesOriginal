@@ -3,11 +3,16 @@ package icircles.abstractdescription;
 /**
  * Represents a curve at an abstract level.
  * The curve has a label and a unique ID.
+ * <p>
+ *     <b>Immutable.</b>
+ * </p>
  */
-public class AbstractCurve implements Comparable<AbstractCurve> {
+public final class AbstractCurve implements Comparable<AbstractCurve> {
+
+    private static final String alphanum = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
 
     private static int uniqueId = 0;
-    private final CurveLabel label;
+    private final String label;
     private final int id;
 
     public static void resetIdCounter() {
@@ -19,7 +24,10 @@ public class AbstractCurve implements Comparable<AbstractCurve> {
      *
      * @param label the curve label
      */
-    public AbstractCurve(CurveLabel label) {
+    public AbstractCurve(String label) {
+        if (label == null || !isValidLabel(label))
+            throw new IllegalArgumentException("Label: " + label + " is invalid");
+
         uniqueId++;
         id = uniqueId;
         this.label = label;
@@ -38,7 +46,7 @@ public class AbstractCurve implements Comparable<AbstractCurve> {
     /**
      * @return curve label
      */
-    public CurveLabel getLabel() {
+    public String getLabel() {
         return label;
     }
 
@@ -52,20 +60,76 @@ public class AbstractCurve implements Comparable<AbstractCurve> {
         return (id < other.id) ? -1 : (id == other.id) ? 0 : 1;
     }
 
-    public boolean matches_label(AbstractCurve c) {
-        return label == c.label;
+    /**
+     * @param c other cure
+     * @return true iff given curve's label is the same as this curve's
+     */
+    public boolean matchesLabel(AbstractCurve c) {
+        return label.equals(c.label);
+    }
+
+    /**
+     * @param label the label
+     * @return true iff the curve has given label
+     */
+    public boolean hasLabel(String label) {
+        return this.label.equals(label);
     }
 
     public double checksum() {
-        return label.checksum() * id;
+        double result = 0.0;
+        double scaling = 1.1;
+        for (int i = 0; i < label.length(); i++) {
+            result += (int) (label.charAt(i)) * scaling;
+            scaling += 0.01;
+        }
+
+        return result * id;
     }
+
+    private boolean isValidLabel(String label) {
+        for (char c : label.toCharArray()) {
+            if (!alphanum.contains(String.valueOf(c))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+//    /**
+//     * Checks if the same object.
+//     *
+//     * @param obj other object
+//     * @return true iff both are the same object
+//     */
+//    @Override
+//    public boolean equals(Object obj) {
+//        if (!(obj instanceof AbstractCurve))
+//            return false;
+//
+//        AbstractCurve other = (AbstractCurve) obj;
+//        return label.equals(other.label) && id == other.id;
+//    }
+//
+
+
+//    @Override
+//    public boolean equals(Object obj) {
+//        return matchesLabel((AbstractCurve)(obj));
+//    }
+//
+//    @Override
+//    public int hashCode() {
+//        return Objects.hash(label);
+//    }
 
     @Override
     public String toString() {
-        return label.getLabel();
+        return label;
     }
 
     public String toDebugString() {
-        return "[id=" + id + ",label=" + label.getLabel() + "]";
+        return "[id=" + id + ",label=" + label + "]";
     }
 }

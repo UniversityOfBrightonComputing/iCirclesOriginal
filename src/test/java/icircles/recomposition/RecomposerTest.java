@@ -1,9 +1,9 @@
 package icircles.recomposition;
 
 import icircles.abstractdescription.AbstractDescription;
-import icircles.decomposition.Decomposer;
+import icircles.decomposition.DecomposerFactory;
 import icircles.decomposition.DecompositionStep;
-import icircles.decomposition.DecompositionType;
+import icircles.decomposition.DecompositionStrategyType;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -21,12 +21,14 @@ public class RecomposerTest {
 
     @Before
     public void setUp() {
-        recomposer = new Recomposer(RecompositionType.DOUBLY_PIERCED);
+        recomposer = RecomposerFactory.newRecomposer(RecompositionStrategyType.DOUBLY_PIERCED);
     }
 
     @Test
     public void recompose() {
-        List<DecompositionStep> decompositionSteps = new Decomposer(DecompositionType.PIERCED_FIRST).decompose(new AbstractDescription("a b ab"));
+        List<DecompositionStep> decompositionSteps = DecomposerFactory
+                .newDecomposer(DecompositionStrategyType.PIERCED_FIRST)
+                .decompose(new AbstractDescription("a b ab"));
         List<RecompositionStep> steps = recomposer.recompose(decompositionSteps);
 
         // 0 + b -> b

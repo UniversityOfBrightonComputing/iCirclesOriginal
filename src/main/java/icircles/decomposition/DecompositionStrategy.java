@@ -5,7 +5,17 @@ import icircles.abstractdescription.AbstractDescription;
 
 import java.util.List;
 
-public abstract class DecompositionStrategy {
+/**
+ * Defines a strategy used to choose which curves to remove in the next step
+ * given abstract description.
+ */
+public interface DecompositionStrategy {
 
-    abstract List<AbstractCurve> getContoursToRemove(AbstractDescription ad);
+    /**
+     * Returns a list of curves to be removed from abstract description in the next step.
+     *
+     * @param description the abstract description
+     * @return list of curves to remove
+     */
+    List<AbstractCurve> curvesToRemove(AbstractDescription description);
 }

@@ -2,8 +2,11 @@ package icircles.guiswing;
 
 import icircles.abstractdescription.AbstractDescription;
 import icircles.concrete.ConcreteDiagram;
-import icircles.decomposition.DecompositionType;
-import icircles.recomposition.RecompositionType;
+import icircles.concrete.DiagramCreator;
+import icircles.decomposition.DecomposerFactory;
+import icircles.decomposition.DecompositionStrategyType;
+import icircles.recomposition.RecomposerFactory;
+import icircles.recomposition.RecompositionStrategyType;
 import icircles.util.CannotDrawException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,7 +27,7 @@ public final class SwingApplication extends JFrame {
     private int size = 200;
 
     public SwingApplication() {
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         populateFrame();
         pack();
         setVisible(true);
@@ -72,10 +75,10 @@ public final class SwingApplication extends JFrame {
                 settingsPanel.getRecompStrategy());
     }
 
-    private void goDraw(String description, DecompositionType decompositionType, RecompositionType recompositionType) {
+    private void goDraw(String description, DecompositionStrategyType dType, RecompositionStrategyType rType) {
         try {
-            ConcreteDiagram diagram = new ConcreteDiagram(new AbstractDescription(description),
-                    size, decompositionType, recompositionType);
+            ConcreteDiagram diagram = new DiagramCreator(DecomposerFactory.newDecomposer(dType), RecomposerFactory.newRecomposer(rType))
+                    .createDiagram(new AbstractDescription(description), size);
             resultPanel.show(diagram);
         } catch (CannotDrawException e) {
             resultPanel.showError(e.getMessage());
@@ -158,8 +161,8 @@ public final class SwingApplication extends JFrame {
     class SettingsPanel {
         String[] decompStrings = new String[] {"TYPE1", "TYPE2", "TYPE3", "TYPE4"};
         String[] recompStrings = new String[] {"TYPE1", "TYPE2", "TYPE3"};
-        final JComboBox decompList = new JComboBox(decompStrings);
-        final JComboBox recompList = new JComboBox(recompStrings);
+        final JComboBox<String> decompList = new JComboBox<>(decompStrings);
+        final JComboBox<String> recompList = new JComboBox<>(recompStrings);
         final JTextField testJTF = new JTextField("");
         final static String ENTER_ACTION = "go-draw-test";
         final JPanel p = new JPanel();
@@ -205,12 +208,12 @@ public final class SwingApplication extends JFrame {
 //            examplePanel.add(prev);
         }
 
-        DecompositionType getDecompStrategy() {
-            return DecompositionType.values()[decompList.getSelectedIndex()];
+        DecompositionStrategyType getDecompStrategy() {
+            return DecompositionStrategyType.values()[decompList.getSelectedIndex()];
         }
 
-        RecompositionType getRecompStrategy() {
-            return RecompositionType.values()[recompList.getSelectedIndex()];
+        RecompositionStrategyType getRecompStrategy() {
+            return RecompositionStrategyType.values()[recompList.getSelectedIndex()];
         }
 
         JPanel getPanel() {

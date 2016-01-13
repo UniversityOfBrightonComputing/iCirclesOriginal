@@ -1,7 +1,6 @@
 package icircles.decomposition;
 
 import icircles.abstractdescription.AbstractDescription;
-import icircles.abstractdescription.CurveLabel;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -10,13 +9,13 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class DecomposerTest {
+public class BasicDecomposerTest {
 
     private Decomposer decomposer;
 
     @Before
     public void setUp() {
-        decomposer = new Decomposer(DecompositionType.PIERCED_FIRST);
+        decomposer = DecomposerFactory.newDecomposer(DecompositionStrategyType.PIERCED_FIRST);
     }
 
     // TODO: create test data to check required methods (removed, from, to, etc)
@@ -35,12 +34,12 @@ public class DecomposerTest {
         assertEquals(2, steps.size());
 
         DecompositionStep step1 = steps.get(0);
-        assertTrue(step1.removed().getLabel().getLabel().equals(CurveLabel.get("a").getLabel()));
+        assertTrue(step1.removed().hasLabel("a"));
         assertTrue(step1.from().hasSameAbstractDescription(new AbstractDescription("a b ab")));
         assertTrue(step1.to().hasSameAbstractDescription(new AbstractDescription("b")));
 
         DecompositionStep step2 = steps.get(1);
-        assertTrue(step2.removed().getLabel().getLabel().equals(CurveLabel.get("b").getLabel()));
+        assertTrue(step2.removed().hasLabel("b"));
         assertTrue(step2.from().hasSameAbstractDescription(new AbstractDescription("b")));
         assertTrue(step2.to().hasSameAbstractDescription(new AbstractDescription(" ")));
 
