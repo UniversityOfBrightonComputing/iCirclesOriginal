@@ -48,31 +48,29 @@ public final class RecomposerFactory {
         return zonesToSplit -> seekDoublePiercings(zonesToSplit);
     }
 
-    private static List<Cluster> seekNestedPiercings(AbstractDualGraph adg) {
-        List<Cluster> result = new ArrayList<>();
-        Iterator<AbstractDualNode> nIt = adg.getNodeIterator();
-        while (nIt.hasNext()) {
-            AbstractDualNode n = nIt.next();
-            result.add(new Cluster(n.abr));
-
-            log.trace("Adding nested cluster: " + n.abr);
-        }
-        return result;
+    private static List<Cluster> seekNestedPiercings(AbstractDualGraph graph) {
+        return graph.getNodes()
+                .stream()
+                .map(node -> {
+                    log.trace("Adding nested cluster: " + node.getZone());
+                    return new Cluster(node.getZone());
+                })
+                .collect(Collectors.toList());
     }
 
     private static List<Cluster> seekSinglePiercings(AbstractDualGraph adg) {
         List<Cluster> result = new ArrayList<>();
         for (AbstractDualEdge e = adg.getLowDegreeEdge(); e != null; e = adg.getLowDegreeEdge()) {
-            Cluster c = new Cluster(e.from.abr, e.to.abr);
+            Cluster c = new Cluster(e.from.getZone(), e.to.getZone());
             result.add(c);
 
             log.trace("Made single-pierced cluster: " + c);
-            log.trace("Graph before trimming for cluster: " + adg.debug());
+            log.trace("Graph before trimming for cluster: " + adg);
 
             adg.remove(e.from);
             adg.remove(e.to);
 
-            log.trace("Graph after trimming for cluster: " + adg.debug());
+            log.trace("Graph after trimming for cluster: " + adg);
         }
 
         if (adg.getNumEdges() != 0)
@@ -96,21 +94,21 @@ public final class RecomposerFactory {
                 break;
             }
 
-            Cluster c = new Cluster(nodes.get(0).abr,
-                    nodes.get(1).abr,
-                    nodes.get(2).abr,
-                    nodes.get(3).abr);
+            Cluster c = new Cluster(nodes.get(0).getZone(),
+                    nodes.get(1).getZone(),
+                    nodes.get(2).getZone(),
+                    nodes.get(3).getZone());
             result.add(c);
 
             log.trace("Made cluster: " + c);
-            log.trace("Graph before trimming for cluster: " + (adg.debug()));
+            log.trace("Graph before trimming for cluster: " + adg);
 
             adg.remove(nodes.get(0));
             adg.remove(nodes.get(1));
             adg.remove(nodes.get(2));
             adg.remove(nodes.get(3));
 
-            log.trace("Graph after trimming for cluster: " + adg.debug());
+            log.trace("Graph after trimming for cluster: " + adg);
         }
 
         result.addAll(seekSinglePiercings(adg));
