@@ -1,6 +1,7 @@
 package icircles.guifx;
 
 import icircles.abstractdescription.AbstractDescription;
+import icircles.concrete.BetterDiagramCreator;
 import icircles.concrete.ConcreteDiagram;
 import icircles.concrete.ConcreteZone;
 import icircles.concrete.DiagramCreator;
@@ -8,6 +9,8 @@ import icircles.decomposition.DecomposerFactory;
 import icircles.decomposition.DecompositionStrategyType;
 import icircles.recomposition.RecomposerFactory;
 import icircles.recomposition.RecompositionStrategyType;
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -190,7 +193,7 @@ public class Controller {
         alert.show();
     }
 
-    private void showError(Exception e) {
+    private void showError(Throwable e) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Ooops");
         alert.setContentText(e.getMessage());
@@ -202,12 +205,36 @@ public class Controller {
         currentDescription = description;
         int size = (int) Math.min(renderer.getWidth(), renderer.getHeight());
 
-        DecompositionStrategyType dType = (DecompositionStrategyType) decompositionToggle.getSelectedToggle().getUserData();
-        RecompositionStrategyType rType = (RecompositionStrategyType) recompositionToggle.getSelectedToggle().getUserData();
+        Thread t = new Thread(new CreateDiagramTask(description, size));
+        t.start();
+    }
 
-        try {
-            ConcreteDiagram diagram = new DiagramCreator(DecomposerFactory.newDecomposer(dType), RecomposerFactory.newRecomposer(rType))
-                .createDiagram(description, size);
+    /**
+     * A task of creating a diagram and subsequently drawing it on the screen.
+     */
+    private class CreateDiagramTask extends Task<ConcreteDiagram> {
+
+        private AbstractDescription description;
+        private int size;
+
+        public CreateDiagramTask(AbstractDescription description, int size) {
+            this.description = description;
+            this.size = size;
+        }
+
+        @Override
+        protected ConcreteDiagram call() throws Exception {
+            DecompositionStrategyType dType = (DecompositionStrategyType) decompositionToggle.getSelectedToggle().getUserData();
+            RecompositionStrategyType rType = (RecompositionStrategyType) recompositionToggle.getSelectedToggle().getUserData();
+
+
+            return new DiagramCreator(DecomposerFactory.newDecomposer(dType), RecomposerFactory.newRecomposer(rType))
+                    .createDiagram(description, size);
+        }
+
+        @Override
+        protected void succeeded() {
+            ConcreteDiagram diagram = getValue();
 
             renderer.draw(diagram);
 
@@ -222,8 +249,11 @@ public class Controller {
                     ((Shape)zone).setFill(Color.TRANSPARENT);
                 });
             });
-        } catch (Exception e) {
-            showError(e);
+        }
+
+        @Override
+        protected void failed() {
+            showError(getException());
         }
     }
 }
