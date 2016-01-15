@@ -67,8 +67,8 @@ public final class RecomposerFactory {
             log.trace("Made single-pierced cluster: " + c);
             log.trace("Graph before trimming for cluster: " + adg);
 
-            adg.remove(e.from);
-            adg.remove(e.to);
+            adg.removeNode(e.from);
+            adg.removeNode(e.to);
 
             log.trace("Graph after trimming for cluster: " + adg);
         }
@@ -103,10 +103,10 @@ public final class RecomposerFactory {
             log.trace("Made cluster: " + c);
             log.trace("Graph before trimming for cluster: " + adg);
 
-            adg.remove(nodes.get(0));
-            adg.remove(nodes.get(1));
-            adg.remove(nodes.get(2));
-            adg.remove(nodes.get(3));
+            adg.removeNode(nodes.get(0));
+            adg.removeNode(nodes.get(1));
+            adg.removeNode(nodes.get(2));
+            adg.removeNode(nodes.get(3));
 
             log.trace("Graph after trimming for cluster: " + adg);
         }
