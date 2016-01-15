@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  * </ol>
  *
  * <p>
- *     <b>Currently NOT immutable because of AbstractBasicRegion.</b>
+ *     <b>Immutable.</b>
  * </p>
  */
 public class AbstractDescription {
