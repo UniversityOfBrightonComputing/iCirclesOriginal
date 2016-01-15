@@ -213,6 +213,25 @@ public class AbstractDescription {
         return false;
     }
 
+    /**
+     * In the original abstract description there can only be 1 curve with given label.
+     * Hence if the label exists, the correct curve is returned.
+     * This is NOT true for the generated (actual) abstract description,
+     * because of split curves we have more than 1 curve with same label.
+     *
+     * @param label curve label
+     * @return curve or {@link Optional#empty()} if no such label is in description
+     */
+    public Optional<AbstractCurve> getCurveByLabel(String label) {
+        for (AbstractCurve curve : curves) {
+            if (curve.hasLabel(label)) {
+                return Optional.of(curve);
+            }
+        }
+
+        return Optional.empty();
+    }
+
     public boolean hasLabelEquivalentZone(AbstractBasicRegion z) {
         for (AbstractBasicRegion zone : zones) {
             if (zone.isLabelEquivalent(z)) {
@@ -243,6 +262,8 @@ public class AbstractDescription {
         return String.join(",", zoneLabels);
     }
 
+    // TODO: what do we mean by has same?
+    // original and actual are different, so are informal and rest
     public boolean hasSameAbstractDescription(AbstractDescription description) {
         return toString().equals(description.toString());
     }
