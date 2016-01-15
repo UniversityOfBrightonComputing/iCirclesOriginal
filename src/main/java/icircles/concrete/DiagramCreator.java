@@ -82,6 +82,11 @@ public class DiagramCreator {
         this.recomposer = recomposer;
     }
 
+    public DiagramCreator(List<DecompositionStep> dSteps, List<RecompositionStep> rSteps) {
+        this.dSteps = dSteps;
+        this.rSteps = rSteps;
+    }
+
     /**
      * Creates a concrete diagram out of given abstract description with specified size.
      * Once created, the diagram's size can be changed by calling {@link ConcreteDiagram#setSize(int)}
@@ -93,8 +98,10 @@ public class DiagramCreator {
      * @throws CannotDrawException
      */
     public ConcreteDiagram createDiagram(AbstractDescription description, int size) throws CannotDrawException {
-        dSteps = decomposer.decompose(description);
-        rSteps = recomposer.recompose(dSteps);
+        if (dSteps == null) {
+            dSteps = decomposer.decompose(description);
+            rSteps = recomposer.recompose(dSteps);
+        }
 
         curveToContour = new HashMap<>();
         zoneAreas = new HashMap<>();
@@ -523,6 +530,8 @@ public class DiagramCreator {
         AbstractBasicRegion abr3 = rd.splitZones.get(3);
 
         // are we sure the straddled curves exist?
+        log.debug("abr0: " + abr0 + " abr1: " + abr1 + " abr2: " + abr2 + " abr3: " + abr3);
+
         AbstractCurve c1 = abr0.getStraddledContour(abr1).get();
         AbstractCurve c2 = abr0.getStraddledContour(abr2).get();
         CircleContour cc1 = curveToContour.get(c1);
