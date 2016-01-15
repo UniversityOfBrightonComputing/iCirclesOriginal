@@ -5,37 +5,61 @@ import icircles.abstractdescription.AbstractDescription;
 import java.util.Iterator;
 import java.util.List;
 
-public class RecompositionStep {
+/**
+ * Single recomposition step. A valid step has following features:
+ *
+ * <ul>
+ *     <li>The added contour data cannot be empty, so each step adds at least 1 curve</li>
+ *     <li>Added curves (if more than 1) have to have same label</li>
+ *     <li>Added curve must NOT be present in previous description and must be present in the next one</li>
+ * </ul>
+ *
+ * Note: the last feature implies that all components (duplicates) of the curve are added in 1 step.
+ * This in turn means number of steps == number of curves.
+ */
+public final class RecompositionStep {
 
-    private AbstractDescription from;
-    private AbstractDescription to;
-    private List<RecompositionData> addedContourData;
+    private final AbstractDescription from;
+    private final AbstractDescription to;
+    private final List<RecompositionData> addedContourData;
 
-    public RecompositionStep(AbstractDescription from,
-            AbstractDescription to,
-            List<RecompositionData> added_contour_data) {
+    public RecompositionStep(AbstractDescription from, AbstractDescription to, List<RecompositionData> addedContourData) {
         this.from = from;
         this.to = to;
-        addedContourData = added_contour_data;
+        this.addedContourData = addedContourData;
 
-        if (addedContourData.isEmpty()) {
+        if (this.addedContourData.isEmpty()) {
             throw new IllegalArgumentException("No added curve in recomp");
         }
 
-        String cl = added_contour_data.get(0).addedCurve.getLabel();
-        for (RecompositionData rp : added_contour_data) {
-            if (!rp.addedCurve.hasLabel(cl))
+        String label = addedContourData.get(0).addedCurve.getLabel();
+        for (RecompositionData data : addedContourData) {
+            if (!data.addedCurve.hasLabel(label))
                 throw new IllegalArgumentException("Mixed curves added in recomp");
         }
 
-        if (from.includesLabel(cl))
+        if (from.includesLabel(label))
             throw new IllegalArgumentException("Added curve already present");
-        if (!to.includesLabel(cl))
+        if (!to.includesLabel(label))
             throw new IllegalArgumentException("Added curve not present in next description");
     }
 
+    /**
+     * @return abstract description before this step
+     */
+    public AbstractDescription from() {
+        return from;
+    }
+
+    /**
+     * @return abstract description after this step
+     */
     public AbstractDescription to() {
         return to;
+    }
+
+    public List<RecompositionData> getAddedContourData() {
+        return addedContourData;
     }
 
     public Iterator<RecompositionData> getRecompIterator() {
