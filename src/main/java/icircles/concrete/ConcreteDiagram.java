@@ -193,7 +193,7 @@ public class ConcreteDiagram {
         Map<AbstractCurve, List<CircleContour> > duplicates = new TreeMap<>();
         groups.forEach((label, contours) -> {
             if (contours.size() > 1)
-                duplicates.put(new AbstractCurve(label), contours);
+                duplicates.put(original.getCurveByLabel(label).get(), contours);
         });
 
         return duplicates;
