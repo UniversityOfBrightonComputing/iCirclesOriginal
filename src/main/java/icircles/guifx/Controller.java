@@ -253,7 +253,10 @@ public class Controller {
 
         @Override
         protected void failed() {
-            showError(getException());
+            Throwable error = getException();
+            if (error == null || error.getMessage() == null || error.getMessage().isEmpty())
+                error = new RuntimeException("NullPointerException");
+            showError(error);
         }
     }
 }
