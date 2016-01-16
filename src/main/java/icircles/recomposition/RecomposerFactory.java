@@ -1,6 +1,7 @@
 package icircles.recomposition;
 
 import icircles.abstractdescription.AbstractBasicRegion;
+import icircles.abstractdescription.AbstractDescription;
 import icircles.abstractdual.AbstractDualEdge;
 import icircles.abstractdual.AbstractDualGraph;
 import icircles.abstractdual.AbstractDualNode;
@@ -27,13 +28,15 @@ public final class RecomposerFactory {
                 return new BasicRecomposer(singlyPierced());
             case DOUBLY_PIERCED:
                 return new BasicRecomposer(doublyPierced());
+            case DOUBLY_PIERCED_EXTRA_ZONES:
+                return new BasicRecomposer(doublyPiercedExtraZones());
             default:
                 throw new IllegalArgumentException("Unknown strategy type: " + type);
         }
     }
 
     private static RecompositionStrategy nested() {
-        return zonesToSplit -> zonesToSplit.stream()
+        return (zonesToSplit, ad) -> zonesToSplit.stream()
                 .map(Cluster::new)
                 .collect(Collectors.toList());
     }
@@ -41,11 +44,15 @@ public final class RecomposerFactory {
     // Look for pairs of AbstractBasicRegions which differ by just a
     // single AbstractCurve - these pairs are potential double-clusters
     private static RecompositionStrategy singlyPierced() {
-        return zonesToSplit -> seekSinglePiercings(new AbstractDualGraph(zonesToSplit));
+        return (zonesToSplit, ad) -> seekSinglePiercings(new AbstractDualGraph(zonesToSplit));
     }
 
     private static RecompositionStrategy doublyPierced() {
-        return zonesToSplit -> seekDoublePiercings(zonesToSplit);
+        return (zonesToSplit, ad) -> seekDoublePiercings(zonesToSplit, ad);
+    }
+
+    private static RecompositionStrategy doublyPiercedExtraZones() {
+        return (zonesToSplit, ad) -> seekDoublePiercingsExtraZones(zonesToSplit, ad);
     }
 
     private static List<Cluster> seekNestedPiercings(AbstractDualGraph graph) {
@@ -80,7 +87,7 @@ public final class RecomposerFactory {
         return result;
     }
 
-    private static List<Cluster> seekDoublePiercings(List<AbstractBasicRegion> zonesToSplit) {
+    private static List<Cluster> seekDoublePiercings(List<AbstractBasicRegion> zonesToSplit, AbstractDescription ad) {
         // Look for four-tuples of AbstractBasicRegions which differ by
         // two AbstractCurves - these four-tuples are potential double-clusters
         List<Cluster> result = new ArrayList<>();
@@ -101,6 +108,66 @@ public final class RecomposerFactory {
             result.add(c);
 
             log.trace("Made cluster: " + c);
+            log.trace("Graph before trimming for cluster: " + adg);
+
+            adg.removeNode(nodes.get(0));
+            adg.removeNode(nodes.get(1));
+            adg.removeNode(nodes.get(2));
+            adg.removeNode(nodes.get(3));
+
+            log.trace("Graph after trimming for cluster: " + adg);
+        }
+
+        result.addAll(seekSinglePiercings(adg));
+
+        return result;
+    }
+
+    private static List<Cluster> seekDoublePiercingsExtraZones(List<AbstractBasicRegion> zonesToSplit, AbstractDescription ad) {
+        // Look for four-tuples of AbstractBasicRegions which differ by
+        // two AbstractCurves - these four-tuples are potential double-clusters
+        List<Cluster> result = new ArrayList<>();
+
+        AbstractDualGraph adg = new AbstractDualGraph(zonesToSplit);
+
+        log.trace("Zones to split: " + zonesToSplit);
+
+        for (List<AbstractDualNode> nodes = adg.getFourTuple(); nodes != null; nodes = adg.getFourTuple()) {
+            if (nodes.isEmpty()) {
+                break;
+            }
+
+            Cluster c = new Cluster(nodes.get(0).getZone(),
+                    nodes.get(1).getZone(),
+                    nodes.get(2).getZone(),
+                    nodes.get(3).getZone());
+            result.add(c);
+
+            log.trace("Made cluster: " + c);
+            log.trace("Graph before trimming for cluster: " + adg);
+
+            adg.removeNode(nodes.get(0));
+            adg.removeNode(nodes.get(1));
+            adg.removeNode(nodes.get(2));
+            adg.removeNode(nodes.get(3));
+
+            log.trace("Graph after trimming for cluster: " + adg);
+        }
+
+        // Search 3 node graph and add extra zone
+
+        for (List<AbstractDualNode> nodes = adg.getPotentialFourTuple(ad.getZonesUnmodifiable()); nodes != null; nodes = adg.getPotentialFourTuple(ad.getZonesUnmodifiable())) {
+            if (nodes.isEmpty()) {
+                break;
+            }
+
+            Cluster c = new Cluster(nodes.get(0).getZone(),
+                    nodes.get(1).getZone(),
+                    nodes.get(2).getZone(),
+                    nodes.get(3).getZone());
+            result.add(c);
+
+            log.trace("Made cluster from potential: " + c);
             log.trace("Graph before trimming for cluster: " + adg);
 
             adg.removeNode(nodes.get(0));

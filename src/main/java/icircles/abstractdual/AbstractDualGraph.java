@@ -155,6 +155,74 @@ public class AbstractDualGraph {
         return null;
     }
 
+    public List<AbstractDualNode> getPotentialFourTuple(Set<AbstractBasicRegion> zones) {
+        List<AbstractDualNode> result = new ArrayList<>();
+
+        // if n == 3 and e == 2 then we have a connected graph
+        // so search for the node (zone) that might form 4 tuple
+        if (graph.vertexSet().size() == 3 && getNumEdges() == 2) {
+
+
+
+            Iterator<AbstractDualEdge> it = graph.edgeSet().iterator();
+
+            AbstractDualEdge edge1 = it.next();
+            AbstractDualEdge edge2 = it.next();
+
+
+            Iterator<AbstractDualNode> it2 = graph.vertexSet().iterator();
+            AbstractDualNode n1 = it2.next(), n2 = it2.next(), n3 = it2.next();
+
+            if (isAdjacent(n1, n2) && isAdjacent(n1, n3)) {
+                result.add(n1);
+                result.add(n2);
+                result.add(n3);
+                getMissingZone(n2.getZone(), n3.getZone(), n1.getZone(), zones).ifPresent(zone -> {
+                    result.add(new AbstractDualNode(zone));
+                });
+            }
+
+            if (isAdjacent(n2, n1) && isAdjacent(n2, n3)) {
+                result.add(n2);
+                result.add(n1);
+                result.add(n3);
+                getMissingZone(n1.getZone(), n3.getZone(), n2.getZone(), zones).ifPresent(zone -> {
+                    result.add(new AbstractDualNode(zone));
+                });
+            }
+
+            if (isAdjacent(n3, n1) && isAdjacent(n3, n2)) {
+                result.add(n3);
+                result.add(n1);
+                result.add(n2);
+                getMissingZone(n1.getZone(), n2.getZone(), n3.getZone(), zones).ifPresent(zone -> {
+                    result.add(new AbstractDualNode(zone));
+                });
+            }
+
+
+
+//            if (edge1.from == edge2.from) {
+//                getMissingZone(edge1.to.getZone(), edge2.to.getZone(), edge1.from.getZone(), zones);
+//            } else if (edge1.from == edge2.to) {
+//                getMissingZone(edge1.to.getZone(), edge2.from.getZone(), edge1.from.getZone(), zones);
+//            } else if (edge1.to == edge2.from) {
+//
+//            } else if (edge1.to == edge2.to) {
+//
+//            }
+        }
+
+        if (result.size() == 4)
+            return result;
+
+        return null;
+    }
+
+    private boolean isAdjacent(AbstractDualNode node1, AbstractDualNode node2) {
+        return graph.getEdge(node1, node2) != null;
+    }
+
     // EXPERIMENTAL BEGIN
     public Optional<AbstractBasicRegion> getMissingZone(Set<AbstractBasicRegion> zones) {
 //        AbstractDualNode node1 = nodes.get(0);

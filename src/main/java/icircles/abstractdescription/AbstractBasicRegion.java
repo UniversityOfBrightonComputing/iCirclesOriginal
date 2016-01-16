@@ -133,9 +133,6 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
             // delegate the computation to the other since it has 1 more contour
             return other.getStraddledContour(this);
         } else {
-//            if (other == OUTSIDE) {
-//                return Optional.of(theInSet.iterator().next());
-//            }
 
             // we have one more contour than other - are we neighbours?
             AbstractCurve result = null;
