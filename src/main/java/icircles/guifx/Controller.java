@@ -9,6 +9,8 @@ import icircles.decomposition.DecomposerFactory;
 import icircles.decomposition.DecompositionStrategyType;
 import icircles.recomposition.RecomposerFactory;
 import icircles.recomposition.RecompositionStrategyType;
+import icircles.util.ExampleData;
+import icircles.util.ExampleDiagram;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
@@ -50,6 +52,9 @@ public class Controller {
 
     @FXML
     private TextArea areaInfo;
+
+    @FXML
+    private Spinner<Integer> spinnerExample;
 
     private ToggleGroup decompositionToggle = new ToggleGroup();
     private ToggleGroup recompositionToggle = new ToggleGroup();
@@ -105,6 +110,27 @@ public class Controller {
         MenuItem itemVenn = new MenuItem("Venn3");
         itemVenn.setOnAction(e -> visualize(new AbstractDescription("a b c abc ab ac bc")));
         menuDiagrams.getItems().addAll(itemVenn);
+
+        spinnerExample.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, ExampleData.exampleDiagrams.length - 1));
+        spinnerExample.valueProperty().addListener((o, oldValue, newValue) -> {
+            ExampleDiagram diagram = ExampleData.exampleDiagrams[newValue];
+
+            for (Toggle toggle : decompositionToggle.getToggles()) {
+                if (toggle.getUserData() == diagram.decompStrategy) {
+                    toggle.setSelected(true);
+                    break;
+                }
+            }
+
+            for (Toggle toggle : recompositionToggle.getToggles()) {
+                if (toggle.getUserData() == diagram.recompStrategy) {
+                    toggle.setSelected(true);
+                    break;
+                }
+            }
+
+            visualize(new AbstractDescription(diagram.description));
+        });
     }
 
     @FXML
