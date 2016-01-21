@@ -94,12 +94,12 @@ public class BetterDiagramCreator extends DiagramCreator {
 
             AbstractDualGraph graph = new AbstractDualGraph(new ArrayList<>(zones));
 
-            graph.getMissingZone(original.getZonesUnmodifiable()).ifPresent(zone -> {
-                splitZones.add(zone);
-                newZones.add(zone.moveInside(curve));
-
-                log.debug("4 Cluster is present: " + zone);
-            });
+//            graph.getMissingZone(original.getZonesUnmodifiable()).ifPresent(zone -> {
+//                splitZones.add(zone);
+//                newZones.add(zone.moveInside(curve));
+//
+//                log.debug("4 Cluster is present: " + zone);
+//            });
 
 
             if (splitZones.size() == 4) {

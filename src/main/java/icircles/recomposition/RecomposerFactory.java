@@ -132,28 +132,6 @@ public final class RecomposerFactory {
 
         log.trace("Zones to split: " + zonesToSplit);
 
-        for (List<AbstractDualNode> nodes = adg.getFourTuple(); nodes != null; nodes = adg.getFourTuple()) {
-            if (nodes.isEmpty()) {
-                break;
-            }
-
-            Cluster c = new Cluster(nodes.get(0).getZone(),
-                    nodes.get(1).getZone(),
-                    nodes.get(2).getZone(),
-                    nodes.get(3).getZone());
-            result.add(c);
-
-            log.trace("Made cluster: " + c);
-            log.trace("Graph before trimming for cluster: " + adg);
-
-            adg.removeNode(nodes.get(0));
-            adg.removeNode(nodes.get(1));
-            adg.removeNode(nodes.get(2));
-            adg.removeNode(nodes.get(3));
-
-            log.trace("Graph after trimming for cluster: " + adg);
-        }
-
         // Search 3 node graph and add extra zone
 
         for (List<AbstractDualNode> nodes = adg.getPotentialFourTuple(ad.getZonesUnmodifiable()); nodes != null; nodes = adg.getPotentialFourTuple(ad.getZonesUnmodifiable())) {
