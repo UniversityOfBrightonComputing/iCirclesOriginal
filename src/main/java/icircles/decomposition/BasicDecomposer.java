@@ -44,7 +44,7 @@ public class BasicDecomposer implements Decomposer {
         }
 
         log.info("Decomposition begin");
-        result.forEach(log::trace);
+        result.forEach(log::info);
         log.info("Decomposition end");
 
         return result;

@@ -71,8 +71,7 @@ public class DecompositionStep {
 
     @Override
     public String toString() {
-        return "D_Step[From=" + from + " To=" + to +
-                ". Zones Moved=" + zonesMoved.toString().replace("=", "->") +
-                ". Removed=" + removed + "]";
+        return "D_Step[Removed=" + removed + ". From=" + from + " To=" + to +
+                ". Zones Moved=" + zonesMoved.toString().replace("=", "->") + "]";
     }
 }

@@ -36,7 +36,7 @@ public class BasicRecomposer implements Recomposer {
         }
 
         log.info("Recomposition begin");
-        result.forEach(log::trace);
+        result.forEach(log::info);
         log.trace("Matched zones: " + matchedZones);
         log.info("Recomposition end");
 

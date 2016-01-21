@@ -36,8 +36,8 @@ public class ConcreteDiagram {
 
         setSize(size);
 
-        log.trace("Initial diagram: " + original);
-        log.trace("Final diagram  : " + actual);
+        log.info("Initial diagram: " + original);
+        log.info("Final diagram  : " + actual);
 
         this.shadedZones = createShadedZones();
         this.allZones = actual.getZonesUnmodifiable()
@@ -47,10 +47,10 @@ public class ConcreteDiagram {
 
         Map<AbstractCurve, List<CircleContour> > duplicates = findDuplicateContours();
 
-        log.trace("Duplicates: " + duplicates);
+        log.info("Duplicates: " + duplicates);
         duplicates.values().forEach(contours -> {
             for (CircleContour contour : contours) {
-                log.trace("Contour " + contour + " is in " + getZonesContainingContour(contour));
+                log.info("Contour " + contour + " is in " + getZonesContainingContour(contour));
             }
         });
     }
@@ -69,7 +69,7 @@ public class ConcreteDiagram {
                 .map(this::makeConcreteZone)
                 .collect(Collectors.toList());
 
-        log.trace("Extra zones: " + result);
+        log.info("Extra zones: " + result);
 
         return result;
     }
