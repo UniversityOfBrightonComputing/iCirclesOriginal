@@ -5,32 +5,6 @@ import icircles.recomposition.RecompositionStrategyType;
 
 public class TestData {
 
-    // possible actions
-    public static final int RUN_ALL_TESTS = 0;
-    public static final int RUN_TEST_LIST = 1;
-    public static final int VIEW_TEST_LIST = 2;
-    public static final int VIEW_ALL_TESTS = 3;
-
-    public static boolean GENERATE_ALL_TEST_DATA = false;
-    public static boolean TEST_BEST_STRATEGIES = true;
-    public static boolean TEST_EULER_THREE = false;
-    
-    public static boolean DO_VIEW_FAILURES = false;
-    public static int TEST_DEBUG_LEVEL = 3;
-    // settings for view-list or view-all
-    //public static final int VIEW_PANEL_SIZE = 280; // test checksum size
-    public static final int VIEW_PANEL_SIZE = 160; // small panel, good for viewing multiple
-    //public static final int VIEW_PANEL_SIZE = 480; // large panel, good for single, complex diagrams
-    public static final int FAIL_VIEW_PANEL_SIZE = 180;
-    public static final int GRID_WIDTH = 7;
-    public static int[] test_list = {
-        263//,224
-    };  // a set of tests of particular interest
-    //public static int TASK = RUN_TEST_LIST;
-    //public static int TASK = VIEW_TEST_LIST;
-    public static int TASK = RUN_ALL_TESTS;
-    //public static int TASK = VIEW_ALL_TESTS;
-    
     public static TestDatum[] test_data = {
     	/*0*/new TestDatum( "a", DecompositionStrategyType.PIERCED_FIRST, RecompositionStrategyType.NESTED, 79888.5857461763),
     	/*1*/new TestDatum( "a", DecompositionStrategyType.PIERCED_FIRST, RecompositionStrategyType.SINGLY_PIERCED, 79888.5857461763),
