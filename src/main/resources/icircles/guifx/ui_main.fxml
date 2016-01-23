@@ -41,11 +41,6 @@
     <left>
         <VBox prefWidth="200" spacing="10">
             <TextArea fx:id="areaInfo" editable="false" />
-
-            <HBox spacing="5">
-                <Label text="Examples" />
-                <Spinner fx:id="spinnerExample" prefWidth="75" editable="true" />
-            </HBox>
         </VBox>
     </left>
 </BorderPane>

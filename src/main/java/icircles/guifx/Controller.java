@@ -1,7 +1,6 @@
 package icircles.guifx;
 
 import icircles.abstractdescription.AbstractDescription;
-import icircles.concrete.BetterDiagramCreator;
 import icircles.concrete.ConcreteDiagram;
 import icircles.concrete.ConcreteZone;
 import icircles.concrete.DiagramCreator;
@@ -11,7 +10,7 @@ import icircles.recomposition.RecomposerFactory;
 import icircles.recomposition.RecompositionStrategyType;
 import icircles.util.ExampleData;
 import icircles.util.ExampleDiagram;
-import javafx.concurrent.Service;
+import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
@@ -53,8 +52,7 @@ public class Controller {
     @FXML
     private TextArea areaInfo;
 
-    @FXML
-    private Spinner<Integer> spinnerExample;
+    private Alert progressDialog = new Alert(Alert.AlertType.INFORMATION);
 
     private ToggleGroup decompositionToggle = new ToggleGroup();
     private ToggleGroup recompositionToggle = new ToggleGroup();
@@ -107,30 +105,37 @@ public class Controller {
                 visualize(currentDescription);
         });
 
+        initMenuDiagrams();
+
+        progressDialog.setTitle("Working...");
+
+        ProgressIndicator progressIndicator = new ProgressIndicator();
+        progressDialog.getDialogPane().setContent(progressIndicator);
+    }
+
+    private void initMenuDiagrams() {
         MenuItem itemVenn = new MenuItem("Venn3");
         itemVenn.setOnAction(e -> visualize(new AbstractDescription("a b c abc ab ac bc")));
-        menuDiagrams.getItems().addAll(itemVenn);
 
-        spinnerExample.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, ExampleData.exampleDiagrams.length - 1));
-        spinnerExample.valueProperty().addListener((o, oldValue, newValue) -> {
-            ExampleDiagram diagram = ExampleData.exampleDiagrams[newValue];
+        MenuItem itemExamples = new MenuItem("Examples");
+        itemExamples.setOnAction(e -> {
+            Alert dialog = new Alert(Alert.AlertType.INFORMATION);
 
-            for (Toggle toggle : decompositionToggle.getToggles()) {
-                if (toggle.getUserData() == diagram.decompStrategy) {
-                    toggle.setSelected(true);
-                    break;
+            ListView<ExampleDiagram> list = new ListView<>(FXCollections.observableArrayList(ExampleData.exampleDiagrams));
+
+            ScrollPane scrollPane = new ScrollPane(list);
+
+            dialog.getDialogPane().setContent(scrollPane);
+
+            dialog.showAndWait().ifPresent(buttonType -> {
+                ExampleDiagram diagram = list.getSelectionModel().getSelectedItem();
+                if (diagram != null) {
+                    visualize(new AbstractDescription(diagram.description));
                 }
-            }
-
-            for (Toggle toggle : recompositionToggle.getToggles()) {
-                if (toggle.getUserData() == diagram.recompStrategy) {
-                    toggle.setSelected(true);
-                    break;
-                }
-            }
-
-            visualize(new AbstractDescription(diagram.description));
+            });
         });
+
+        menuDiagrams.getItems().addAll(itemVenn, itemExamples);
     }
 
     @FXML
@@ -227,11 +232,15 @@ public class Controller {
     }
 
     private void visualize(AbstractDescription description) {
+        progressDialog.show();
+
         fieldInput.setText(description.getInformalDescription());
         currentDescription = description;
         int size = (int) Math.min(renderer.getWidth(), renderer.getHeight());
 
-        Thread t = new Thread(new CreateDiagramTask(description, size));
+        Task<ConcreteDiagram> task = new CreateDiagramTask(description, size);
+
+        Thread t = new Thread(task);
         t.start();
     }
 
@@ -252,7 +261,6 @@ public class Controller {
         protected ConcreteDiagram call() throws Exception {
             DecompositionStrategyType dType = (DecompositionStrategyType) decompositionToggle.getSelectedToggle().getUserData();
             RecompositionStrategyType rType = (RecompositionStrategyType) recompositionToggle.getSelectedToggle().getUserData();
-
 
             return new DiagramCreator(DecomposerFactory.newDecomposer(dType), RecomposerFactory.newRecomposer(rType))
                     .createDiagram(description, size);
@@ -275,10 +283,14 @@ public class Controller {
                     ((Shape)zone).setFill(Color.TRANSPARENT);
                 });
             });
+
+            progressDialog.hide();
         }
 
         @Override
         protected void failed() {
+            progressDialog.hide();
+
             Throwable error = getException();
             if (error == null || error.getMessage() == null || error.getMessage().isEmpty())
                 error = new RuntimeException("NullPointerException");

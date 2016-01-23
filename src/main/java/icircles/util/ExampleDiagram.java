@@ -19,4 +19,9 @@ public class ExampleDiagram {
         this.recompStrategy = recompStrategy;
         expectedChecksum = checksum;
     }
+
+    @Override
+    public String toString() {
+        return description;
+    }
 }
