@@ -76,6 +76,23 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
         }
     }
 
+    public AbstractBasicRegion moveOutsideLabel(String label) {
+        if (containsCurveWithLabel(label)) {
+            Set<AbstractCurve> contours = new TreeSet<>(theInSet);
+
+            for (Iterator<AbstractCurve> it = contours.iterator(); it.hasNext(); ) {
+                if (it.next().hasLabel(label)) {
+                    it.remove();
+                    break;
+                }
+            }
+
+            return get(contours);
+        } else {
+            return this;
+        }
+    }
+
     /**
      * @return unmodifiable set of curves ('in' set of this zone)
      */

@@ -7,6 +7,7 @@ import org.apache.logging.log4j.Logger;
 import org.jgrapht.EdgeFactory;
 import org.jgrapht.Graph;
 import org.jgrapht.UndirectedGraph;
+import org.jgrapht.alg.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.SimpleGraph;
 
@@ -85,6 +86,10 @@ public class AbstractDualGraph {
      */
     public void removeNode(AbstractDualNode node) {
         graph.removeVertex(node);
+    }
+
+    public List<AbstractDualEdge> findShortestPath(AbstractDualNode start, AbstractDualNode target) {
+        return DijkstraShortestPath.findPathBetween(graph, start, target);
     }
 
     /**

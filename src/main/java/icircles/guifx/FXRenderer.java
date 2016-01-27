@@ -1,8 +1,10 @@
 package icircles.guifx;
 
+import icircles.concrete.ArbitraryContour;
 import icircles.concrete.CircleContour;
 import icircles.concrete.ConcreteDiagram;
 import icircles.concrete.ConcreteZone;
+import icircles.geometry.Point2D;
 import icircles.gui.Renderer;
 import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
@@ -11,11 +13,13 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Almas Baimagambetov (AlmasB) (almaslvl@gmail.com)
@@ -58,6 +62,9 @@ public class FXRenderer extends Pane implements Renderer {
 
         for (CircleContour contour : diagram.getCircles())
             drawContour(contour);
+
+        for (ArbitraryContour contour : diagram.getContours())
+            drawArbitraryContour(contour);
     }
 
     private void drawShadedZone(ConcreteZone zone, Rectangle bbox) {
@@ -106,6 +113,22 @@ public class FXRenderer extends Pane implements Renderer {
 
         g.strokeOval(x, y, w, h);
         g.fillText(contour.getCurve().getLabel(), contour.getLabelXPosition(), contour.getLabelYPosition());
+    }
+
+    private void drawArbitraryContour(ArbitraryContour contour) {
+        g.setStroke(Color.BLUE);
+
+        double[] xPoints = new double[contour.getCriticalPoints().size()];
+        double[] yPoints = new double[contour.getCriticalPoints().size()];
+
+        int i = 0;
+        for (Point2D p : contour.getCriticalPoints()) {
+            xPoints[i] = p.x;
+            yPoints[i] = p.y;
+            i++;
+        };
+
+        g.strokePolygon(xPoints, yPoints, xPoints.length);
     }
 
     private void clearRenderer() {

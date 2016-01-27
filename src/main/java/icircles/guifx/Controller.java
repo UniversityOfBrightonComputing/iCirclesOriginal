@@ -1,6 +1,7 @@
 package icircles.guifx;
 
 import icircles.abstractdescription.AbstractDescription;
+import icircles.concrete.BetterDiagramCreator;
 import icircles.concrete.ConcreteDiagram;
 import icircles.concrete.ConcreteZone;
 import icircles.concrete.DiagramCreator;
@@ -262,12 +263,13 @@ public class Controller {
             DecompositionStrategyType dType = (DecompositionStrategyType) decompositionToggle.getSelectedToggle().getUserData();
             RecompositionStrategyType rType = (RecompositionStrategyType) recompositionToggle.getSelectedToggle().getUserData();
 
-            return new DiagramCreator(DecomposerFactory.newDecomposer(dType), RecomposerFactory.newRecomposer(rType))
+            return new BetterDiagramCreator(DecomposerFactory.newDecomposer(dType), RecomposerFactory.newRecomposer(rType))
                     .createDiagram(description, size);
         }
 
         @Override
         protected void succeeded() {
+            // TODO: handle any drawing errors
             ConcreteDiagram diagram = getValue();
 
             renderer.draw(diagram);

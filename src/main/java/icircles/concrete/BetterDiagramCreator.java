@@ -3,7 +3,9 @@ package icircles.concrete;
 import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
+import icircles.abstractdual.AbstractDualEdge;
 import icircles.abstractdual.AbstractDualGraph;
+import icircles.abstractdual.AbstractDualNode;
 import icircles.decomposition.Decomposer;
 import icircles.decomposition.DecompositionStep;
 import icircles.recomposition.Recomposer;
@@ -26,26 +28,6 @@ public class BetterDiagramCreator extends DiagramCreator {
     public BetterDiagramCreator(Decomposer decomposer, Recomposer recomposer) {
         super(decomposer, recomposer);
 
-        // this is a specific solution to "a b ab ac bc abc" which originally results in a split curve
-        // can we generify the solution?
-
-//        RecompositionStep step1 = rSteps.get(1);
-//
-//        List<AbstractBasicRegion> splitZones = new AbstractDescription("a b ab").getZonesShallowCopy().stream().collect(Collectors.toList());
-//        List<AbstractBasicRegion> newZones = new AbstractDescription("c ac bc abc").getZonesShallowCopy().stream().filter(z -> !z.getCopyOfContours().isEmpty()).collect(Collectors.toList());
-//
-//        RecompositionData data = new RecompositionData(new AbstractCurve(CurveLabel.get("c")), splitZones, newZones);
-//
-//        rSteps.remove(2);
-//        RecompositionStep step2 = new RecompositionStep(step1.to(), new AbstractDescription("a b ab ac bc abc c"),
-//                Arrays.asList(data));
-//        rSteps.add(step2);
-//
-//        System.out.println(step2);
-
-
-
-
         // solution for a ab abc ac bc abd ad
         // but iCircles currently doesn't know how to add with TP (triple point) so it adds like a 2-piercing
 
@@ -60,13 +42,13 @@ public class BetterDiagramCreator extends DiagramCreator {
 //                Arrays.asList(data));
 //        rSteps.set(2, step2);
 
-
-
+        // a b c ab bc abd bcd
     }
 
     @Override
     public ConcreteDiagram createDiagram(AbstractDescription description, int size) throws CannotDrawException {
-        AbstractBasicRegion.clearLibrary();
+        //AbstractCurve.resetIdCounter();
+        //AbstractBasicRegion.clearLibrary();
 
         ConcreteDiagram iCirclesDiagram = super.createDiagram(description, size);
 
@@ -75,91 +57,50 @@ public class BetterDiagramCreator extends DiagramCreator {
             return iCirclesDiagram;
 
         for (AbstractCurve curve : duplicates.keySet()) {
-            // TODO: maybe actual, not original?
-            AbstractDescription original = iCirclesDiagram.getOriginalDescription();
+            AbstractDescription ad = iCirclesDiagram.getActualDescription();
+            List<AbstractBasicRegion> zones = ad.getZonesUnmodifiable().stream()
+                    .filter(z -> z.containsCurveWithLabel(curve.getLabel()))
+                    .collect(Collectors.toList());
 
-            Set<AbstractBasicRegion> zones = original.getZonesIn(curve);
-            if (zones.size() != 3) { // >= 4
-                // if the curve runs over 4 or more zones we give up for now...
-                continue;
-            }
+            log.debug("Zones in " + curve + ":" + zones.toString());
 
-            List<AbstractBasicRegion> newZones = new ArrayList<>(zones);
+            zones = zones.stream()
+                    .map(z -> z.moveOutsideLabel(curve.getLabel()))
+                    .collect(Collectors.toList());
 
-            zones = zones.stream().map(zone -> zone.moveOutside(curve)).collect(Collectors.toSet());
-            List<AbstractBasicRegion> splitZones = new ArrayList<>(zones);
+            log.debug("Zones that will be in " + curve + ":" + zones.toString());
 
+            AbstractDualGraph graph = new AbstractDualGraph(new ArrayList<>(ad.getZonesUnmodifiable()));
 
-            log.trace("Cluster zones: " + zones.toString());
+            // let's assume we found nodes which need to be connected to get a connected graph
 
-            AbstractDualGraph graph = new AbstractDualGraph(new ArrayList<>(zones));
+            AbstractBasicRegion zoneStart = zones.get(0);
+            AbstractBasicRegion zoneTarget = zones.get(1);
 
-//            graph.getMissingZone(original.getZonesUnmodifiable()).ifPresent(zone -> {
-//                splitZones.add(zone);
-//                newZones.add(zone.moveInside(curve));
-//
-//                log.debug("4 Cluster is present: " + zone);
-//            });
+            AbstractDualNode nodeStart = null, nodeTarget = null;
 
-
-            if (splitZones.size() == 4) {
-                int index = 0;
-
-                RecompositionStep newStep = null;
-
-                loop:
-                for (RecompositionStep step : getRSteps()) {
-
-
-                    for (RecompositionData data : step.getAddedContourData()) {
-                        if (data.addedCurve.matchesLabel(curve)) {
-
-                            Collections.sort(splitZones);
-
-                            log.debug("SPLIT ZONES: " + splitZones);
-                            log.debug("NEW ZONES:   " + newZones);
-
-                            RecompositionData newData = new RecompositionData(curve, splitZones, newZones);
-
-                            AbstractDescription from = getRSteps().get(index - 1).to();
-                            Set<AbstractBasicRegion> zz = new TreeSet<>(from.getZonesUnmodifiable());
-                            //zz.removeAll(splitZones);
-                            zz.addAll(newZones);
-
-                            if (!zz.contains(AbstractBasicRegion.OUTSIDE)) {
-                                zz.add(AbstractBasicRegion.OUTSIDE);
-                            }
-
-                            Set<AbstractCurve> contours = new TreeSet<>(from.getCurvesUnmodifiable());
-                            contours.add(curve);
-
-                            AbstractDescription to = new AbstractDescription(contours, zz);
-
-                            newStep = new RecompositionStep(from, to, Collections.singletonList(newData));
-
-                            if (index + 1 < getRSteps().size()) {
-                                RecompositionStep oldStep = getRSteps().get(index + 1);
-
-                                getRSteps().set(index + 1, new RecompositionStep(to, oldStep.to(), oldStep.getAddedContourData()));
-                            }
-
-                            log.debug("From: " + from + " TO: " + to);
-
-                            break loop;
-                        }
-                    }
-
-                    index++;
+            for (AbstractDualNode node : graph.getNodes()) {
+                if (node.getZone() == zoneStart) {
+                    nodeStart = node;
+                } else if (node.getZone() == zoneTarget) {
+                    nodeTarget = node;
                 }
-
-
-                List<RecompositionStep> newSteps = new ArrayList<>(getRSteps());
-                newSteps.set(index, newStep);
-
-                log.debug("CREATING NEW DIAGRAM");
-
-                return new DiagramCreator(getDSteps(), newSteps).createDiagram(description, size);
             }
+
+            List<AbstractDualEdge> path = graph.findShortestPath(nodeStart, nodeTarget);
+
+            path.forEach(e -> {
+                log.debug(e.from + " -> " + e.to);
+                graph.removeEdge(e);
+            });
+
+            path = graph.findShortestPath(nodeStart, nodeTarget);
+
+            log.debug("Cycle?:");
+
+            path.forEach(e -> {
+                log.debug(e.from + " -> " + e.to);
+            });
         }
 
         return iCirclesDiagram;

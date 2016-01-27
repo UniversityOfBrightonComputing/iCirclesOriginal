@@ -20,6 +20,7 @@ public class ConcreteDiagram {
 
     private final Rectangle box;
     private final List<CircleContour> circles;
+    private final List<ArbitraryContour> contours;
     private final List<ConcreteZone> shadedZones, allZones;
 
     private final AbstractDescription original, actual;
@@ -27,12 +28,13 @@ public class ConcreteDiagram {
 
     ConcreteDiagram(AbstractDescription original, AbstractDescription actual,
                     List<CircleContour> circles,
-                    Map<AbstractCurve, CircleContour> curveToContour, int size) {
+                    Map<AbstractCurve, CircleContour> curveToContour, int size, ArbitraryContour... contours) {
         this.original = original;
         this.actual = actual;
         this.box = new Rectangle(0, 0, size, size);
         this.curveToContour = curveToContour;
         this.circles = circles;
+        this.contours = Arrays.asList(contours);
 
         setSize(size);
 
@@ -48,8 +50,8 @@ public class ConcreteDiagram {
         Map<AbstractCurve, List<CircleContour> > duplicates = findDuplicateContours();
 
         log.info("Duplicates: " + duplicates);
-        duplicates.values().forEach(contours -> {
-            for (CircleContour contour : contours) {
+        duplicates.values().forEach(contourList -> {
+            for (CircleContour contour : contourList) {
                 log.info("Contour " + contour + " is in " + getZonesContainingContour(contour));
             }
         });
@@ -101,10 +103,17 @@ public class ConcreteDiagram {
     }
 
     /**
-     * @return diagram contours
+     * @return diagram circle contours
      */
     public List<CircleContour> getCircles() {
         return circles;
+    }
+
+    /**
+     * @return diagram arbitrary shape contours
+     */
+    public List<ArbitraryContour> getContours() {
+        return contours;
     }
 
     /**
@@ -193,7 +202,7 @@ public class ConcreteDiagram {
         Map<AbstractCurve, List<CircleContour> > duplicates = new TreeMap<>();
         groups.forEach((label, contours) -> {
             if (contours.size() > 1)
-                duplicates.put(original.getCurveByLabel(label).get(), contours);
+                duplicates.put(actual.getCurveByLabel(label).get(), contours);
         });
 
         return duplicates;
