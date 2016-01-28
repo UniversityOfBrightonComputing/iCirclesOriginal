@@ -102,6 +102,10 @@ public class ConcreteDiagram {
         return box;
     }
 
+    public Map<AbstractCurve, CircleContour> getCurveToContour() {
+        return curveToContour;
+    }
+
     /**
      * @return diagram circle contours
      */

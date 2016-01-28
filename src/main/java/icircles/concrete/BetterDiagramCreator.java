@@ -8,6 +8,8 @@ import icircles.abstractdual.AbstractDualGraph;
 import icircles.abstractdual.AbstractDualNode;
 import icircles.decomposition.Decomposer;
 import icircles.decomposition.DecompositionStep;
+import icircles.geometry.Point2D;
+import icircles.geometry.Rectangle;
 import icircles.recomposition.Recomposer;
 import icircles.recomposition.RecompositionData;
 import icircles.recomposition.RecompositionStep;
@@ -89,8 +91,13 @@ public class BetterDiagramCreator extends DiagramCreator {
 
             List<AbstractDualEdge> path = graph.findShortestPath(nodeStart, nodeTarget);
 
+            // these are abstract zones we know the curve will go through now
+            Set<AbstractBasicRegion> zonesToSplit = new TreeSet<>();
+
             path.forEach(e -> {
                 log.debug(e.from + " -> " + e.to);
+                zonesToSplit.add(e.from.getZone());
+                zonesToSplit.add(e.to.getZone());
                 graph.removeEdge(e);
             });
 
@@ -100,7 +107,45 @@ public class BetterDiagramCreator extends DiagramCreator {
 
             path.forEach(e -> {
                 log.debug(e.from + " -> " + e.to);
+                zonesToSplit.add(e.from.getZone());
+                zonesToSplit.add(e.to.getZone());
             });
+
+
+
+
+            log.debug("Zones to split: " + zonesToSplit);
+
+
+            List<ConcreteZone> concreteZones = iCirclesDiagram.getAllZones()
+                    .stream()
+                    .filter(zone -> {
+                        for (AbstractBasicRegion abr : zonesToSplit) {
+                            if (abr == zone.getAbstractZone()) {
+                                return true;
+                            }
+                        }
+
+                        return false;
+                    }).collect(Collectors.toList());
+
+            List<Point2D> points = concreteZones.stream()
+                    .map(zone -> zone.getCenter())
+//                    .map(zone -> {
+//                        Rectangle rect = zone.getBoundingBox();
+//
+//                        return new Point2D(rect.getX() + rect.getWidth() / 2, rect.getY() + rect.getHeight() / 2);
+//                    })
+                    .collect(Collectors.toList());
+
+            ArbitraryContour contour = new ArbitraryContour(curve, points);
+
+            List<CircleContour> circles = iCirclesDiagram.getCircles();
+            circles.removeAll(duplicates.get(curve));
+
+            // TODO: actual desc is different
+            return new ConcreteDiagram(iCirclesDiagram.getOriginalDescription(), iCirclesDiagram.getActualDescription(),
+                    circles, iCirclesDiagram.getCurveToContour(), size, contour);
         }
 
         return iCirclesDiagram;
