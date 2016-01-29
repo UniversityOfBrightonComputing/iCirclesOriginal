@@ -263,8 +263,11 @@ public class Controller {
             DecompositionStrategyType dType = (DecompositionStrategyType) decompositionToggle.getSelectedToggle().getUserData();
             RecompositionStrategyType rType = (RecompositionStrategyType) recompositionToggle.getSelectedToggle().getUserData();
 
-            return new BetterDiagramCreator(DecomposerFactory.newDecomposer(dType), RecomposerFactory.newRecomposer(rType))
-                    .createDiagram(description, size);
+            DiagramCreator creator = rType == RecompositionStrategyType.DOUBLY_PIERCED_EXTRA_ZONES
+                    ? new BetterDiagramCreator(DecomposerFactory.newDecomposer(dType), RecomposerFactory.newRecomposer(rType))
+                    : new DiagramCreator(DecomposerFactory.newDecomposer(dType), RecomposerFactory.newRecomposer(rType));
+
+            return creator.createDiagram(description, size);
         }
 
         @Override

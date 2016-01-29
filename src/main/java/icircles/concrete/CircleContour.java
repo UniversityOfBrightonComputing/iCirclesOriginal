@@ -1,20 +1,17 @@
 package icircles.concrete;
 
 import icircles.abstractdescription.AbstractCurve;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Shape;
 
 /**
  * Concrete form of AbstractCurve.
  */
-public class CircleContour {
+public class CircleContour extends Contour {
     double centerX;
     double centerY;
     double radius;
     private double nudge = 0.1;
-
-    /**
-     * Abstract representation of this concrete contour.
-     */
-    private final AbstractCurve curve;
 
     /**
      * Constructs a contour from abstract curve and geometric values.
@@ -25,17 +22,10 @@ public class CircleContour {
      * @param curve abstract curve
      */
     public CircleContour(double centerX, double centerY, double radius, AbstractCurve curve) {
+        super(curve);
         this.centerX = centerX;
         this.centerY = centerY;
         this.radius = radius;
-        this.curve = curve;
-    }
-
-    /**
-     * @return abstract curve associated with this contour
-     */
-    public AbstractCurve getCurve() {
-        return curve;
     }
 
     /**
@@ -99,13 +89,20 @@ public class CircleContour {
         return (int) (centerY + radius) + 1;
     }
 
+    @Override
+    public Shape getShape() {
+        // big for containing intersect
+        // small for exluding subtract
+        return new Circle(getCenterX(), getCenterY(), getBigRadius());
+    }
+
     public String toDebugString() {
         return String.format("CircleCountour[center=(%.0f,%.0f),radius=%.0f,curve=%s]",
-                centerX, centerY, radius, curve);
+                centerX, centerY, radius, getCurve());
     }
 
     @Override
     public String toString() {
-        return curve.toString();
+        return getCurve().toString();
     }
 }

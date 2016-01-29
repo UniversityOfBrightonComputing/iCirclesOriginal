@@ -54,7 +54,7 @@ public class DiagramCreator {
      * K - AbstractCurve
      * V - CircleCountour representing AbstractCurve
      */
-    private Map<AbstractCurve, CircleContour> curveToContour;
+    private Map<AbstractCurve, Contour> curveToContour;
 
     private Map<ConcreteZone, Area> zoneAreas;
 
@@ -161,11 +161,11 @@ public class DiagramCreator {
      * @return the concrete zone
      */
     private ConcreteZone makeConcreteZone(AbstractBasicRegion zone) {
-        List<CircleContour> includingCircles = new ArrayList<>();
-        List<CircleContour> excludingCircles = new ArrayList<>(circles);
+        List<Contour> includingCircles = new ArrayList<>();
+        List<Contour> excludingCircles = new ArrayList<>(circles);
 
         for (AbstractCurve curve : zone.getCurvesUnmodifiable()) {
-            CircleContour contour = curveToContour.get(curve);
+            Contour contour = curveToContour.get(curve);
             excludingCircles.remove(contour);
             includingCircles.add(contour);
         }
@@ -250,7 +250,7 @@ public class DiagramCreator {
         AbstractCurve piercingCurve = rd0.addedCurve;
 
         AbstractCurve pierced_ac = abr0.getStraddledContour(abr1).get();
-        CircleContour pierced_cc = curveToContour.get(pierced_ac);
+        CircleContour pierced_cc = (CircleContour) curveToContour.get(pierced_ac);
         ConcreteZone cz0 = makeConcreteZone(abr0);
         ConcreteZone cz1 = makeConcreteZone(abr1);
         Area a = new Area(computeArea(cz0, outerBox));
@@ -430,7 +430,7 @@ public class DiagramCreator {
         AbstractBasicRegion abr0 = rd.splitZones.get(0);
         AbstractBasicRegion abr1 = rd.splitZones.get(1);
         AbstractCurve c = abr0.getStraddledContour(abr1).get();
-        CircleContour cc = curveToContour.get(c);
+        CircleContour cc = (CircleContour) curveToContour.get(c);
         ConcreteZone cz0 = makeConcreteZone(abr0);
         ConcreteZone cz1 = makeConcreteZone(abr1);
         Area a = new Area(computeArea(cz0, outerBox));
@@ -535,8 +535,8 @@ public class DiagramCreator {
 
         AbstractCurve c1 = abr0.getStraddledContour(abr1).get();
         AbstractCurve c2 = abr0.getStraddledContour(abr2).get();
-        CircleContour cc1 = curveToContour.get(c1);
-        CircleContour cc2 = curveToContour.get(c2);
+        CircleContour cc1 = (CircleContour) curveToContour.get(c1);
+        CircleContour cc2 = (CircleContour) curveToContour.get(c2);
 
         double[][] intn_coords = intersectCircles(cc1.centerX, cc1.centerY, cc1.radius,
                 cc2.centerX, cc2.centerY, cc2.radius);
@@ -945,7 +945,7 @@ public class DiagramCreator {
                 AbstractCurve acOutside = nbring_curves.get(0);
                 // use the centre of the relevant contour
 
-                CircleContour ccOutside = curveToContour.get(acOutside);
+                CircleContour ccOutside = (CircleContour) curveToContour.get(acOutside);
 
                 if (ccOutside == null)
                     throw new RuntimeException("Did not find containing circle");
@@ -970,8 +970,8 @@ public class DiagramCreator {
                 AbstractCurve ac1 = nbring_curves.get(0);
                 AbstractCurve ac2 = nbring_curves.get(1);
 
-                CircleContour cc1 = curveToContour.get(ac1);
-                CircleContour cc2 = curveToContour.get(ac2);
+                CircleContour cc1 = (CircleContour) curveToContour.get(ac1);
+                CircleContour cc2 = (CircleContour) curveToContour.get(ac2);
 
                 if (cc1 != null && cc2 != null) {
                     boolean in1 = zone.contains(ac1);
@@ -1284,12 +1284,18 @@ public class DiagramCreator {
 
         Area area = new Area(box);
 
-        for (CircleContour c : zone.getContainingCircles()) {
-            area.intersect(new Area(makeEllipse(c.getCenterX(), c.getCenterY(), c.getBigRadius())));
+        for (Contour contour : zone.getContainingContours()) {
+            if (contour instanceof CircleContour) {
+                CircleContour c = (CircleContour) contour;
+                area.intersect(new Area(makeEllipse(c.getCenterX(), c.getCenterY(), c.getBigRadius())));
+            }
         }
 
-        for (CircleContour c : zone.getExcludingCircles()) {
-            area.subtract(new Area(makeEllipse(c.getCenterX(), c.getCenterY(), c.getSmallRadius())));
+        for (Contour contour : zone.getExcludingContours()) {
+            if (contour instanceof CircleContour) {
+                CircleContour c = (CircleContour) contour;
+                area.subtract(new Area(makeEllipse(c.getCenterX(), c.getCenterY(), c.getSmallRadius())));
+            }
         }
 
         zoneAreas.put(zone, area);

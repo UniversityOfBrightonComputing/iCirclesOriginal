@@ -58,13 +58,13 @@ public class SwingRenderer extends JPanel implements Renderer {
     private void drawShadedZone(ConcreteZone zone, Rectangle2D.Double bbox) {
         Area area = new Area(bbox);
 
-        for (CircleContour c : zone.getContainingCircles()) {
-            area.intersect(new Area(makeEllipse(c.getCenterX(), c.getCenterY(), c.getBigRadius())));
-        }
-
-        for (CircleContour c : zone.getExcludingCircles()) {
-            area.subtract(new Area(makeEllipse(c.getCenterX(), c.getCenterY(), c.getSmallRadius())));
-        }
+//        for (CircleContour c : zone.getContainingContours()) {
+//            area.intersect(new Area(makeEllipse(c.getCenterX(), c.getCenterY(), c.getBigRadius())));
+//        }
+//
+//        for (CircleContour c : zone.getExcludingContours()) {
+//            area.subtract(new Area(makeEllipse(c.getCenterX(), c.getCenterY(), c.getSmallRadius())));
+//        }
 
         g.setColor(Color.LIGHT_GRAY);
         g.fill(area);

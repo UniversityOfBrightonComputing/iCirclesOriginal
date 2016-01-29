@@ -1,9 +1,6 @@
 package icircles.guifx;
 
-import icircles.concrete.ArbitraryContour;
-import icircles.concrete.CircleContour;
-import icircles.concrete.ConcreteDiagram;
-import icircles.concrete.ConcreteZone;
+import icircles.concrete.*;
 import icircles.geometry.Point2D;
 import icircles.gui.Renderer;
 import javafx.scene.Node;
@@ -13,13 +10,11 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Almas Baimagambetov (AlmasB) (almaslvl@gmail.com)
@@ -55,27 +50,27 @@ public class FXRenderer extends Pane implements Renderer {
 
         List<ConcreteZone> normalZones = new ArrayList<>(diagram.getAllZones());
         normalZones.removeAll(diagram.getShadedZones());
-        normalZones.removeIf(z -> z.getContainingCircles().isEmpty());
+        normalZones.removeIf(z -> z.getContainingContours().isEmpty());
 
         for (ConcreteZone zone : normalZones)
             drawNormalZone(zone, bbox);
 
         for (CircleContour contour : diagram.getCircles())
-            drawContour(contour);
+            drawCircleContour(contour);
 
-        for (ArbitraryContour contour : diagram.getContours())
-            drawArbitraryContour(contour);
+        for (PolygonContour contour : diagram.getContours())
+            drawPolygonContour(contour);
     }
 
     private void drawShadedZone(ConcreteZone zone, Rectangle bbox) {
         Shape shape = bbox;
 
-        for (CircleContour contour : zone.getContainingCircles()) {
-            shape = Shape.intersect(shape, new Circle(contour.getCenterX(), contour.getCenterY(), contour.getBigRadius()));
+        for (Contour contour : zone.getContainingContours()) {
+            shape = Shape.intersect(shape, contour.getShape());
         }
 
-        for (CircleContour contour : zone.getExcludingCircles()) {
-            shape = Shape.subtract(shape, new Circle(contour.getCenterX(), contour.getCenterY(), contour.getSmallRadius()));
+        for (Contour contour : zone.getExcludingContours()) {
+            shape = Shape.subtract(shape, contour.getShape());
         }
 
         Tooltip.install(shape, new Tooltip(zone.toDebugString()));
@@ -87,12 +82,12 @@ public class FXRenderer extends Pane implements Renderer {
     private void drawNormalZone(ConcreteZone zone, Rectangle bbox) {
         Shape shape = bbox;
 
-        for (CircleContour contour : zone.getContainingCircles()) {
-            shape = Shape.intersect(shape, new Circle(contour.getCenterX(), contour.getCenterY(), contour.getBigRadius()));
+        for (Contour contour : zone.getContainingContours()) {
+            shape = Shape.intersect(shape, contour.getShape());
         }
 
-        for (CircleContour contour : zone.getExcludingCircles()) {
-            shape = Shape.subtract(shape, new Circle(contour.getCenterX(), contour.getCenterY(), contour.getSmallRadius()));
+        for (Contour contour : zone.getExcludingContours()) {
+            shape = Shape.subtract(shape, contour.getShape());
         }
 
         Tooltip.install(shape, new Tooltip(zone.toDebugString()));
@@ -101,7 +96,7 @@ public class FXRenderer extends Pane implements Renderer {
         rootShadedZones.getChildren().add(shape);
     }
 
-    private void drawContour(CircleContour contour) {
+    private void drawCircleContour(CircleContour contour) {
         g.setFill(Color.BLACK);
         g.setStroke(Color.BLUE);
 
@@ -115,7 +110,7 @@ public class FXRenderer extends Pane implements Renderer {
         g.fillText(contour.getCurve().getLabel(), contour.getLabelXPosition(), contour.getLabelYPosition());
     }
 
-    private void drawArbitraryContour(ArbitraryContour contour) {
+    private void drawPolygonContour(PolygonContour contour) {
         g.setStroke(Color.BLUE);
 
         double[] xPoints = new double[contour.getCriticalPoints().size()];
@@ -127,7 +122,7 @@ public class FXRenderer extends Pane implements Renderer {
             yPoints[i] = p.y;
             i++;
 
-            System.out.println("Points: " + p.x + " " + p.y);
+            //System.out.println("Points: " + p.x + " " + p.y);
         };
 
         g.strokePolygon(xPoints, yPoints, xPoints.length);

@@ -20,15 +20,15 @@ public class ConcreteDiagram {
 
     private final Rectangle box;
     private final List<CircleContour> circles;
-    private final List<ArbitraryContour> contours;
+    private final List<PolygonContour> contours;
     private final List<ConcreteZone> shadedZones, allZones;
 
     private final AbstractDescription original, actual;
-    private final Map<AbstractCurve, CircleContour> curveToContour;
+    private final Map<AbstractCurve, Contour> curveToContour;
 
     ConcreteDiagram(AbstractDescription original, AbstractDescription actual,
                     List<CircleContour> circles,
-                    Map<AbstractCurve, CircleContour> curveToContour, int size, ArbitraryContour... contours) {
+                    Map<AbstractCurve, Contour> curveToContour, int size, PolygonContour... contours) {
         this.original = original;
         this.actual = actual;
         this.box = new Rectangle(0, 0, size, size);
@@ -83,11 +83,12 @@ public class ConcreteDiagram {
      * @return the concrete zone
      */
     private ConcreteZone makeConcreteZone(AbstractBasicRegion zone) {
-        List<CircleContour> includingCircles = new ArrayList<>();
-        List<CircleContour> excludingCircles = new ArrayList<>(circles);
+        List<Contour> includingCircles = new ArrayList<>();
+        List<Contour> excludingCircles = new ArrayList<>(circles);
 
         for (AbstractCurve curve : zone.getCurvesUnmodifiable()) {
-            CircleContour contour = curveToContour.get(curve);
+            Contour contour = curveToContour.get(curve);
+
             excludingCircles.remove(contour);
             includingCircles.add(contour);
         }
@@ -102,7 +103,7 @@ public class ConcreteDiagram {
         return box;
     }
 
-    public Map<AbstractCurve, CircleContour> getCurveToContour() {
+    public Map<AbstractCurve, Contour> getCurveToContour() {
         return curveToContour;
     }
 
@@ -116,7 +117,7 @@ public class ConcreteDiagram {
     /**
      * @return diagram arbitrary shape contours
      */
-    public List<ArbitraryContour> getContours() {
+    public List<PolygonContour> getContours() {
         return contours;
     }
 
@@ -220,7 +221,7 @@ public class ConcreteDiagram {
      */
     public List<ConcreteZone> getZonesContainingContour(CircleContour contour) {
         return allZones.stream()
-                .filter(zone -> zone.getContainingCircles().contains(contour))
+                .filter(zone -> zone.getContainingContours().contains(contour))
                 .collect(Collectors.toList());
     }
 

@@ -41,6 +41,7 @@ public class BetterDiagramCreator extends DiagramCreator {
 //        rSteps.set(2, step2);
 
         // a b c ab bc abd bcd
+        // a b c ab bc bd cd abe bcd bce
     }
 
     @Override
@@ -128,8 +129,6 @@ public class BetterDiagramCreator extends DiagramCreator {
 
 
 
-
-
             log.debug("Zones to split: " + zonesToSplit);
 
 
@@ -149,13 +148,24 @@ public class BetterDiagramCreator extends DiagramCreator {
                     .map(zone -> zone.getCenter())
                     .collect(Collectors.toList());
 
-            ArbitraryContour contour = new ArbitraryContour(curve, points);
+            PolygonContour contour = new PolygonContour(curve, points);
 
             List<CircleContour> circles = iCirclesDiagram.getCircles();
             circles.removeAll(duplicates.get(curve));
 
+            // GENERATE ACTUAL DESC
+            Set<AbstractBasicRegion> newZones = new TreeSet<>(iCirclesDiagram.getActualDescription().getZonesUnmodifiable());
+            // some of it is wrong due to different objects
+            for (AbstractBasicRegion zone : zonesToSplit) {
+                newZones.add(zone.moveInside(curve));
+            }
+
+            AbstractDescription actual = new AbstractDescription(iCirclesDiagram.getActualDescription().getCurvesUnmodifiable(), newZones);
+
+            iCirclesDiagram.getCurveToContour().put(curve, contour);
+
             // TODO: actual desc is different
-            return new ConcreteDiagram(iCirclesDiagram.getOriginalDescription(), iCirclesDiagram.getActualDescription(),
+            return new ConcreteDiagram(iCirclesDiagram.getOriginalDescription(), actual,
                     circles, iCirclesDiagram.getCurveToContour(), size, contour);
         }
 
