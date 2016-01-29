@@ -7,12 +7,8 @@ import icircles.abstractdual.AbstractDualEdge;
 import icircles.abstractdual.AbstractDualGraph;
 import icircles.abstractdual.AbstractDualNode;
 import icircles.decomposition.Decomposer;
-import icircles.decomposition.DecompositionStep;
 import icircles.geometry.Point2D;
-import icircles.geometry.Rectangle;
 import icircles.recomposition.Recomposer;
-import icircles.recomposition.RecompositionData;
-import icircles.recomposition.RecompositionStep;
 import icircles.util.CannotDrawException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -89,27 +85,47 @@ public class BetterDiagramCreator extends DiagramCreator {
                 }
             }
 
-            List<AbstractDualEdge> path = graph.findShortestPath(nodeStart, nodeTarget);
+            List<AbstractDualEdge> path = graph.findShortestEdgePath(nodeStart, nodeTarget);
 
             // these are abstract zones we know the curve will go through now
-            Set<AbstractBasicRegion> zonesToSplit = new TreeSet<>();
+//            Set<AbstractBasicRegion> zonesToSplit = new TreeSet<>();
+//
+//            path.forEach(e -> {
+//                log.debug(e.from + " -> " + e.to);
+//                zonesToSplit.add(e.from.getZone());
+//                zonesToSplit.add(e.to.getZone());
+//                graph.removeEdge(e);
+//            });
+//
+//            path = graph.findShortestEdgePath(nodeStart, nodeTarget);
+//
+//            log.debug("Cycle?:");
+//
+//            path.forEach(e -> {
+//                log.debug(e.from + " -> " + e.to);
+//                zonesToSplit.add(e.from.getZone());
+//                zonesToSplit.add(e.to.getZone());
+//            });
 
-            path.forEach(e -> {
-                log.debug(e.from + " -> " + e.to);
-                zonesToSplit.add(e.from.getZone());
-                zonesToSplit.add(e.to.getZone());
-                graph.removeEdge(e);
-            });
+            List<AbstractBasicRegion> zonesToSplit = graph.findShortestVertexPath(nodeStart, nodeTarget)
+                    .stream()
+                    .map(n -> n.getZone())
+                    .collect(Collectors.toList());
 
-            path = graph.findShortestPath(nodeStart, nodeTarget);
+            path.forEach(e -> graph.removeEdge(e));
 
-            log.debug("Cycle?:");
+            List<AbstractBasicRegion> zonesToSplit2 = graph.findShortestVertexPath(nodeTarget, nodeStart)
+                    .stream()
+                    .map(n -> n.getZone())
+                    .collect(Collectors.toList());
 
-            path.forEach(e -> {
-                log.debug(e.from + " -> " + e.to);
-                zonesToSplit.add(e.from.getZone());
-                zonesToSplit.add(e.to.getZone());
-            });
+            zonesToSplit2.remove(nodeStart.getZone());
+            zonesToSplit2.remove(nodeTarget.getZone());
+
+            zonesToSplit.addAll(zonesToSplit2);
+
+
+
 
 
 
@@ -117,25 +133,20 @@ public class BetterDiagramCreator extends DiagramCreator {
             log.debug("Zones to split: " + zonesToSplit);
 
 
-            List<ConcreteZone> concreteZones = iCirclesDiagram.getAllZones()
-                    .stream()
-                    .filter(zone -> {
-                        for (AbstractBasicRegion abr : zonesToSplit) {
-                            if (abr == zone.getAbstractZone()) {
-                                return true;
+            List<ConcreteZone> concreteZones = zonesToSplit.stream()
+                    .map(zone -> {
+                        for (ConcreteZone cz : iCirclesDiagram.getAllZones()) {
+                            if (cz.getAbstractZone() == zone) {
+                                return cz;
                             }
                         }
 
-                        return false;
-                    }).collect(Collectors.toList());
+                        return null;
+                    })
+                    .collect(Collectors.toList());
 
             List<Point2D> points = concreteZones.stream()
                     .map(zone -> zone.getCenter())
-//                    .map(zone -> {
-//                        Rectangle rect = zone.getBoundingBox();
-//
-//                        return new Point2D(rect.getX() + rect.getWidth() / 2, rect.getY() + rect.getHeight() / 2);
-//                    })
                     .collect(Collectors.toList());
 
             ArbitraryContour contour = new ArbitraryContour(curve, points);

@@ -88,8 +88,30 @@ public class AbstractDualGraph {
         graph.removeVertex(node);
     }
 
-    public List<AbstractDualEdge> findShortestPath(AbstractDualNode start, AbstractDualNode target) {
+    public List<AbstractDualEdge> findShortestEdgePath(AbstractDualNode start, AbstractDualNode target) {
         return DijkstraShortestPath.findPathBetween(graph, start, target);
+    }
+
+    public List<AbstractDualNode> findShortestVertexPath(AbstractDualNode start, AbstractDualNode target) {
+        List<AbstractDualNode> result = new ArrayList<>();
+        result.add(start);
+
+        AbstractDualNode prev = start;
+
+        for (AbstractDualEdge edge : findShortestEdgePath(start, target)) {
+            if (edge.from == prev) {
+                prev = edge.to;
+            } else {
+                prev = edge.from;
+            }
+
+            result.add(prev);
+        }
+
+        // here prev == target
+
+        //result.add(target);
+        return result;
     }
 
     /**

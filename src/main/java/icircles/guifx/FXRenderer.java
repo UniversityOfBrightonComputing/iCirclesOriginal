@@ -126,6 +126,8 @@ public class FXRenderer extends Pane implements Renderer {
             xPoints[i] = p.x;
             yPoints[i] = p.y;
             i++;
+
+            System.out.println("Points: " + p.x + " " + p.y);
         };
 
         g.strokePolygon(xPoints, yPoints, xPoints.length);
