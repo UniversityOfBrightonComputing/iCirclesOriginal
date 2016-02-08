@@ -1,8 +1,8 @@
 package icircles.concrete;
 
 import icircles.abstractdescription.AbstractBasicRegion;
-import icircles.geometry.Point2D;
 import icircles.geometry.Rectangle;
+import javafx.geometry.Point2D;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Shape;
 
@@ -97,6 +97,14 @@ public class ConcreteZone {
         return shape;
     }
 
+    public boolean intersects(Shape shape) {
+        return !Shape.intersect(getShape(), shape).getLayoutBounds().isEmpty();
+    }
+
+    public boolean intersects(ConcreteZone other) {
+        return intersects(other.getShape());
+    }
+
     /**
      * TODO: computation is based on BBOX but shape can be non-regular.
      * Hence point may not be within zone at all.
@@ -111,7 +119,50 @@ public class ConcreteZone {
         double width = shape.getLayoutBounds().getWidth();
         double height = shape.getLayoutBounds().getHeight();
 
-        return new Point2D(minX + width / 2, minY + height / 2);
+        Point2D center = new Point2D(minX + width / 2, minY + height / 2);
+        Point2D newCenter = center;
+
+        int step = 10;
+
+        Point2D delta = new Point2D(step, 0);
+        int i = 0;
+
+        while (!shape.contains(newCenter)) {
+            newCenter = center.add(delta);
+            i++;
+
+            switch (i) {
+                case 1:
+                    delta = new Point2D(step, step);
+                    break;
+                case 2:
+                    delta = new Point2D(0, step);
+                    break;
+                case 3:
+                    delta = new Point2D(-step, step);
+                    break;
+                case 4:
+                    delta = new Point2D(-step, 0);
+                    break;
+                case 5:
+                    delta = new Point2D(-step, -step);
+                    break;
+                case 6:
+                    delta = new Point2D(0, -step);
+                    break;
+                case 7:
+                    delta = new Point2D(step, -step);
+                    break;
+            }
+
+            if (i == 8) {
+                i = 0;
+                delta = new Point2D(step, 0);
+                step *= 2;
+            }
+        }
+
+        return newCenter;
     }
 
     public String toDebugString() {
