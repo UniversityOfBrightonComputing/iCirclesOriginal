@@ -114,6 +114,22 @@ public class AbstractDualGraph {
         return result;
     }
 
+    public List<AbstractDualNode> findCycle(AbstractDualNode start, AbstractDualNode target) {
+        List<AbstractDualNode> firstVertexPath = findShortestVertexPath(start, target);
+
+        findShortestEdgePath(start, target).forEach(this::removeEdge);
+
+        List<AbstractDualNode> secondVertexPath = findShortestVertexPath(start, target);
+
+        secondVertexPath.remove(start);
+        secondVertexPath.remove(target);
+
+        Collections.reverse(secondVertexPath);
+        firstVertexPath.addAll(secondVertexPath);
+
+        return firstVertexPath;
+    }
+
     /**
      * Returns edge from lowest degree node to its lowest degree neighbor.
      * Note this ignores isolated vertices since they do not have incident edges.
