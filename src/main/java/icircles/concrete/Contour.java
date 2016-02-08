@@ -27,4 +27,9 @@ public abstract class Contour {
     }
 
     public abstract Shape getShape();
+
+    @Override
+    public String toString() {
+        return curve.toString();
+    }
 }

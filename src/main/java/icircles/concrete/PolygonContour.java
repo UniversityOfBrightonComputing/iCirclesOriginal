@@ -1,7 +1,7 @@
 package icircles.concrete;
 
 import icircles.abstractdescription.AbstractCurve;
-import icircles.geometry.Point2D;
+import javafx.geometry.Point2D;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Shape;
 
@@ -28,8 +28,8 @@ public class PolygonContour extends Contour {
         double[] points = new double[getCriticalPoints().size() * 2];
         int i = 0;
         for (Point2D p : getCriticalPoints()) {
-            points[i++] = p.x;
-            points[i++] = p.y;
+            points[i++] = p.getX();
+            points[i++] = p.getY();
         }
 
         return new Polygon(points);
