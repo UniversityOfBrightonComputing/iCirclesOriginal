@@ -200,7 +200,11 @@ public class BetterDiagramCreator extends DiagramCreator {
                     .collect(Collectors.toList());
 
             List<Shape> shapes = new ArrayList<>();
-            out:
+
+            Path path = new Path();
+            MoveTo moveTo = new MoveTo(points.get(0).getX(), points.get(0).getY());
+            path.getElements().addAll(moveTo);
+
             for (int i = 0; i < concreteZones.size(); i++) {
                 Point2D p1 = points.get(i);
 
@@ -208,11 +212,11 @@ public class BetterDiagramCreator extends DiagramCreator {
 
                 Point2D p2 = i + 1 < points.size() ? points.get(i + 1) : points.get(0);
 
-                Line line = new Line();
-                line.setStartX(p1.getX());
-                line.setStartY(p1.getY());
-                line.setEndX(p2.getX());
-                line.setEndY(p2.getY());
+//                Line line = new Line();
+//                line.setStartX(p1.getX());
+//                line.setStartY(p1.getY());
+//                line.setEndX(p2.getX());
+//                line.setEndY(p2.getY());
 
                 QuadCurve q = new QuadCurve();
                 q.setFill(null);
@@ -242,9 +246,33 @@ public class BetterDiagramCreator extends DiagramCreator {
                 }
 
                 shapes.add(q);
+
+                QuadCurveTo quadCurveTo = new QuadCurveTo();
+                quadCurveTo.setX(q.getEndX());
+                quadCurveTo.setY(q.getEndY());
+                quadCurveTo.setControlX(q.getControlX());
+                quadCurveTo.setControlY(q.getControlY());
+
+                path.getElements().addAll(quadCurveTo);
             }
 
-            PolygonContour contour = new PolygonContour(curve, points);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            //PolygonContour contour = new PolygonContour(curve, points);
+
+            PathContour contour = new PathContour(curve, path);
 
             List<CircleContour> circles = iCirclesDiagramNew.getCircles();
             circles.removeAll(duplicates.get(curve));

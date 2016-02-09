@@ -32,7 +32,9 @@ public class FXRenderer extends Pane implements Renderer {
         canvas.setMouseTransparent(true);
         g = canvas.getGraphicsContext2D();
 
-        getChildren().addAll(rootShadedZones, canvas, freeRoot);
+        freeRoot.setMouseTransparent(true);
+
+        getChildren().addAll(rootShadedZones, freeRoot, canvas);
     }
 
     private void setCanvasSize(double w, double h) {
@@ -67,10 +69,15 @@ public class FXRenderer extends Pane implements Renderer {
 
 
 
+
         freeRoot.getChildren().clear();
 
-        for (Shape shape : diagram.shapes) {
-            freeRoot.getChildren().addAll(shape);
+//        for (Shape shape : diagram.shapes) {
+//            freeRoot.getChildren().addAll(shape);
+//        }
+
+        for (PathContour contour : diagram.getContours()) {
+            freeRoot.getChildren().addAll(contour.getShape());
         }
     }
 

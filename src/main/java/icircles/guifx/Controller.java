@@ -156,7 +156,7 @@ public class Controller {
     private void open() {
         // TODO: load data in via a dialog
 
-        AbstractDescription ad = new AbstractDescription("a b c ab ac bc abc");
+        AbstractDescription ad = new AbstractDescription("a b c ab bc abd bcd");
         visualize(ad);
     }
 

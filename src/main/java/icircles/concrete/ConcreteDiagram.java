@@ -21,7 +21,7 @@ public class ConcreteDiagram {
 
     private final Rectangle box;
     private final List<CircleContour> circles;
-    private final List<PolygonContour> contours;
+    private final List<PathContour> contours;
     private final List<ConcreteZone> shadedZones, allZones;
 
     private final AbstractDescription original, actual;
@@ -31,7 +31,7 @@ public class ConcreteDiagram {
 
     ConcreteDiagram(AbstractDescription original, AbstractDescription actual,
                     List<CircleContour> circles,
-                    Map<AbstractCurve, Contour> curveToContour, int size, PolygonContour... contours) {
+                    Map<AbstractCurve, Contour> curveToContour, int size, PathContour... contours) {
         this.original = original;
         this.actual = actual;
         this.box = new Rectangle(0, 0, size, size);
@@ -123,7 +123,7 @@ public class ConcreteDiagram {
     /**
      * @return diagram arbitrary shape contours
      */
-    public List<PolygonContour> getContours() {
+    public List<PathContour> getContours() {
         return contours;
     }
 
