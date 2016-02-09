@@ -4,6 +4,7 @@ import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
 import icircles.geometry.Rectangle;
+import javafx.scene.shape.Shape;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -26,6 +27,8 @@ public class ConcreteDiagram {
     private final AbstractDescription original, actual;
     private final Map<AbstractCurve, Contour> curveToContour;
 
+    public final List<Shape> shapes = new ArrayList<>();
+
     ConcreteDiagram(AbstractDescription original, AbstractDescription actual,
                     List<CircleContour> circles,
                     Map<AbstractCurve, Contour> curveToContour, int size, PolygonContour... contours) {
@@ -46,6 +49,8 @@ public class ConcreteDiagram {
                 .stream()
                 .map(this::makeConcreteZone)
                 .collect(Collectors.toList());
+
+        log.info("Concrete zones : " + allZones);
 
         Map<AbstractCurve, List<CircleContour> > duplicates = findDuplicateContours();
 
@@ -85,6 +90,7 @@ public class ConcreteDiagram {
     private ConcreteZone makeConcreteZone(AbstractBasicRegion zone) {
         List<Contour> includingCircles = new ArrayList<>();
         List<Contour> excludingCircles = new ArrayList<>(circles);
+        excludingCircles.addAll(contours);
 
         for (AbstractCurve curve : zone.getCurvesUnmodifiable()) {
             Contour contour = curveToContour.get(curve);
@@ -151,6 +157,19 @@ public class ConcreteDiagram {
      */
     public List<ConcreteZone> getAllZones() {
         return allZones;
+    }
+
+    public List<ConcreteZone> getNormalZones() {
+        List<ConcreteZone> zones = new ArrayList<>(allZones);
+        zones.removeAll(shadedZones);
+        return zones;
+    }
+
+    public ConcreteZone getOutsideZone() {
+        return allZones.stream()
+                .filter(z -> z.getAbstractZone() == AbstractBasicRegion.OUTSIDE)
+                .findAny()
+                .get();
     }
 
     public void setSize(int size) {

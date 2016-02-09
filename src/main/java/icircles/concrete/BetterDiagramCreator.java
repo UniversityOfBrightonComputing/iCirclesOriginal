@@ -7,9 +7,11 @@ import icircles.abstractdual.AbstractDualEdge;
 import icircles.abstractdual.AbstractDualGraph;
 import icircles.abstractdual.AbstractDualNode;
 import icircles.decomposition.Decomposer;
-import icircles.geometry.Point2D;
 import icircles.recomposition.Recomposer;
 import icircles.util.CannotDrawException;
+import javafx.geometry.Point2D;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -42,6 +44,35 @@ public class BetterDiagramCreator extends DiagramCreator {
 
         // a b c ab bc abd bcd
         // a b c ab bc bd cd abe bcd bce
+        // p q pr ps qr qs rs rt prt qrt rst
+    }
+
+    private ConcreteDiagram removeCurveFromDiagram(AbstractCurve curve, ConcreteDiagram diagram, int size) {
+        // generate a concrete diagram with the removed curve
+        Set<AbstractCurve> newCurves = new TreeSet<>(diagram.getActualDescription().getCurvesUnmodifiable());
+        for (Iterator<AbstractCurve> it = newCurves.iterator(); it.hasNext(); ) {
+            if (it.next().matchesLabel(curve)) {
+                it.remove();
+            }
+        }
+
+        Set<AbstractBasicRegion> newZones = new TreeSet<>(diagram.getActualDescription().getZonesUnmodifiable());
+        for (Iterator<AbstractBasicRegion> it = newZones.iterator(); it.hasNext(); ) {
+            AbstractBasicRegion zone = it.next();
+            if (zone.containsCurveWithLabel(curve.getLabel())) {
+                it.remove();
+            }
+        }
+
+        AbstractDescription actual = new AbstractDescription(newCurves, newZones);
+
+        diagram.getCircles().removeIf(contour -> {
+            return contour.getCurve().matchesLabel(curve);
+        });
+
+        ConcreteDiagram concreteDiagram = new ConcreteDiagram(diagram.getOriginalDescription(), actual,
+                diagram.getCircles(), diagram.getCurveToContour(), size);
+        return concreteDiagram;
     }
 
     @Override
@@ -49,14 +80,32 @@ public class BetterDiagramCreator extends DiagramCreator {
         //AbstractCurve.resetIdCounter();
         //AbstractBasicRegion.clearLibrary();
 
-        ConcreteDiagram iCirclesDiagram = super.createDiagram(description, size);
+        ConcreteDiagram iCirclesDiagram2 = super.createDiagram(description, size);
 
-        Map<AbstractCurve, List<CircleContour> > duplicates = iCirclesDiagram.findDuplicateContours();
+        Map<AbstractCurve, List<CircleContour> > duplicates = iCirclesDiagram2.findDuplicateContours();
         if (duplicates.isEmpty())
-            return iCirclesDiagram;
+            return iCirclesDiagram2;
 
         for (AbstractCurve curve : duplicates.keySet()) {
-            AbstractDescription ad = iCirclesDiagram.getActualDescription();
+            ConcreteDiagram iCirclesDiagramNew = removeCurveFromDiagram(curve, iCirclesDiagram2, size);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            AbstractDescription ad = iCirclesDiagram2.getActualDescription();
             List<AbstractBasicRegion> zones = ad.getZonesUnmodifiable().stream()
                     .filter(z -> z.containsCurveWithLabel(curve.getLabel()))
                     .collect(Collectors.toList());
@@ -71,7 +120,7 @@ public class BetterDiagramCreator extends DiagramCreator {
 
             AbstractDualGraph graph = new AbstractDualGraph(new ArrayList<>(ad.getZonesUnmodifiable()));
 
-            // let's assume we found nodes which need to be connected to get a connected graph
+            // TODO: let's assume we found nodes which need to be connected to get a connected graph
 
             AbstractBasicRegion zoneStart = zones.get(0);
             AbstractBasicRegion zoneTarget = zones.get(1);
@@ -86,55 +135,16 @@ public class BetterDiagramCreator extends DiagramCreator {
                 }
             }
 
-            List<AbstractDualEdge> path = graph.findShortestEdgePath(nodeStart, nodeTarget);
-
-            // these are abstract zones we know the curve will go through now
-//            Set<AbstractBasicRegion> zonesToSplit = new TreeSet<>();
-//
-//            path.forEach(e -> {
-//                log.debug(e.from + " -> " + e.to);
-//                zonesToSplit.add(e.from.getZone());
-//                zonesToSplit.add(e.to.getZone());
-//                graph.removeEdge(e);
-//            });
-//
-//            path = graph.findShortestEdgePath(nodeStart, nodeTarget);
-//
-//            log.debug("Cycle?:");
-//
-//            path.forEach(e -> {
-//                log.debug(e.from + " -> " + e.to);
-//                zonesToSplit.add(e.from.getZone());
-//                zonesToSplit.add(e.to.getZone());
-//            });
-
-            List<AbstractBasicRegion> zonesToSplit = graph.findShortestVertexPath(nodeStart, nodeTarget)
+            List<AbstractBasicRegion> zonesToSplit = graph.findCycle(nodeStart, nodeTarget)
                     .stream()
-                    .map(n -> n.getZone())
+                    .map(AbstractDualNode::getZone)
                     .collect(Collectors.toList());
-
-            path.forEach(e -> graph.removeEdge(e));
-
-            List<AbstractBasicRegion> zonesToSplit2 = graph.findShortestVertexPath(nodeTarget, nodeStart)
-                    .stream()
-                    .map(n -> n.getZone())
-                    .collect(Collectors.toList());
-
-            zonesToSplit2.remove(nodeStart.getZone());
-            zonesToSplit2.remove(nodeTarget.getZone());
-
-            zonesToSplit.addAll(zonesToSplit2);
-
-
-
-
 
             log.debug("Zones to split: " + zonesToSplit);
 
-
             List<ConcreteZone> concreteZones = zonesToSplit.stream()
                     .map(zone -> {
-                        for (ConcreteZone cz : iCirclesDiagram.getAllZones()) {
+                        for (ConcreteZone cz : iCirclesDiagramNew.getAllZones()) {
                             if (cz.getAbstractZone() == zone) {
                                 return cz;
                             }
@@ -144,31 +154,179 @@ public class BetterDiagramCreator extends DiagramCreator {
                     })
                     .collect(Collectors.toList());
 
+
+//            Point2D p1 = null, p2 = null;
+//
+//            for (int i = 0; i < concreteZones.size(); i++) {
+//                Point2D p = concreteZones.get(i).getCenter();
+//
+//                if (p.getX() == 500 && p.getY() == 500) {
+//                    if (i - 1 >= 0)
+//                        p1 = concreteZones.get(i - 1).getCenter();
+//                    else
+//                        p1 = concreteZones.get(concreteZones.size() - 1).getCenter();
+//
+//                    if (i + 1 < concreteZones.size())
+//                        p2 = concreteZones.get(i + 1).getCenter();
+//                    else
+//                        p2 = concreteZones.get(0).getCenter();
+//
+//                    break;
+//                }
+//            }
+//
+//            Point2D center = new Point2D(0, 0);
+//
+//            if (p1 != null && p2 != null) {
+//                log.trace(p1.toString());
+//                log.trace(p2.toString());
+//
+//                // if y values are closer than x values then do x / 2
+//
+//                center = new Point2D((p1.getX() + p2.getX()) / 2, p2.getY());
+//
+//
+//                ConcreteZone outside = iCirclesDiagram.getOutsideZone();
+//
+//                Shape outsideShape = outside.getShape();
+//
+//                log.trace(outsideShape.contains(center) + " " + outsideShape.contains(new Point2D(center.getX(), 550)));
+//
+//            }
+
+
             List<Point2D> points = concreteZones.stream()
                     .map(zone -> zone.getCenter())
                     .collect(Collectors.toList());
 
+            List<Shape> shapes = new ArrayList<>();
+            out:
+            for (int i = 0; i < concreteZones.size(); i++) {
+                Point2D p1 = points.get(i);
+
+                int second = i + 1 < points.size() ? i + 1 : 0;
+
+                Point2D p2 = i + 1 < points.size() ? points.get(i + 1) : points.get(0);
+
+                Line line = new Line();
+                line.setStartX(p1.getX());
+                line.setStartY(p1.getY());
+                line.setEndX(p2.getX());
+                line.setEndY(p2.getY());
+
+                QuadCurve q = new QuadCurve();
+                q.setFill(null);
+                q.setStroke(Color.BLACK);
+                q.setStartX(p1.getX());
+                q.setStartY(p1.getY());
+                q.setEndX(p2.getX());
+                q.setEndY(p2.getY());
+                q.setControlX((p1.getX() + p2.getX()) / 2);
+                q.setControlY((p1.getY() + p2.getY()) / 2);
+
+//                for (ConcreteZone zone : iCirclesDiagramNew.getNormalZones()) {
+//                    if (zone.intersects(q) && (zone != concreteZones.get(i) && zone != concreteZones.get(second))) {
+//                        continue out;
+//                    }
+//                }
+
+                double x = (p1.getX() + p2.getX()) / 2;
+                double y = (p1.getY() + p2.getY()) / 2;
+
+                while (!isOK(q, concreteZones.get(i), concreteZones.get(second), iCirclesDiagramNew.getNormalZones())) {
+                    x -= 10;
+                    y += 10;
+
+                    q.setControlX(x);
+                    q.setControlY(y);
+                }
+
+                shapes.add(q);
+            }
+
             PolygonContour contour = new PolygonContour(curve, points);
 
-            List<CircleContour> circles = iCirclesDiagram.getCircles();
+            List<CircleContour> circles = iCirclesDiagramNew.getCircles();
             circles.removeAll(duplicates.get(curve));
 
+            Set<AbstractCurve> newCurves = new TreeSet<>(iCirclesDiagramNew.getActualDescription().getCurvesUnmodifiable());
+            for (Iterator<AbstractCurve> it = newCurves.iterator(); it.hasNext(); ) {
+                if (it.next().matchesLabel(curve)) {
+                    it.remove();
+                }
+            }
+
+            newCurves.add(curve);
+
             // GENERATE ACTUAL DESC
-            Set<AbstractBasicRegion> newZones = new TreeSet<>(iCirclesDiagram.getActualDescription().getZonesUnmodifiable());
+            Set<AbstractBasicRegion> newZones = new TreeSet<>(iCirclesDiagramNew.getActualDescription().getZonesUnmodifiable());
+            for (Iterator<AbstractBasicRegion> it = newZones.iterator(); it.hasNext(); ) {
+                AbstractBasicRegion zone = it.next();
+                if (zone.containsCurveWithLabel(curve.getLabel())) {
+                    it.remove();
+                }
+            }
+
             // some of it is wrong due to different objects
             for (AbstractBasicRegion zone : zonesToSplit) {
                 newZones.add(zone.moveInside(curve));
             }
 
-            AbstractDescription actual = new AbstractDescription(iCirclesDiagram.getActualDescription().getCurvesUnmodifiable(), newZones);
+            AbstractDescription actual = new AbstractDescription(newCurves, newZones);
 
-            iCirclesDiagram.getCurveToContour().put(curve, contour);
+            iCirclesDiagramNew.getCurveToContour().put(curve, contour);
 
             // TODO: actual desc is different
-            return new ConcreteDiagram(iCirclesDiagram.getOriginalDescription(), actual,
-                    circles, iCirclesDiagram.getCurveToContour(), size, contour);
+            ConcreteDiagram concreteDiagram = new ConcreteDiagram(iCirclesDiagramNew.getOriginalDescription(), actual,
+                    circles, iCirclesDiagramNew.getCurveToContour(), size, contour);
+
+            concreteDiagram.shapes.addAll(shapes);
+
+//            if (p1 != null && p2 != null) {
+//                Path pathShape = new Path();
+//                //pathShape.setFill(Color.BLUEVIOLET);
+//
+//                QuadCurveTo q = new QuadCurveTo();
+//                q.setX(p2.getX());
+//                q.setY(p2.getY());
+//                q.setControlX(center.getX());
+//                q.setControlY(550);
+//
+//                ArcTo arcTo = new ArcTo();
+//                arcTo.setX(p2.getX());
+//
+//
+//
+//                MoveTo moveTo = new MoveTo();
+//                moveTo.setX(p1.getX());
+//                moveTo.setY(p1.getY());
+//
+//                pathShape.getElements().addAll(moveTo, q);
+//                concreteDiagram.shapes.add(pathShape);
+//
+//                iCirclesDiagram.getAllZones().forEach(zone -> {
+//                    if (concreteZones.contains(zone)) {
+//                        // CAN USE EMPTY TO CHECK FOR CONTAINMENT
+//                        log.trace("True:  " + !Shape.intersect(zone.getShape(), pathShape).getLayoutBounds().isEmpty() + " " + zone.toString());
+//                    } else {
+//                        log.trace("False: " + !Shape.intersect(zone.getShape(), pathShape).getLayoutBounds().isEmpty() + " " + zone.toString());
+//                    }
+//                });
+//            }
+
+            return concreteDiagram;
         }
 
-        return iCirclesDiagram;
+        return iCirclesDiagram2;
+    }
+
+    private boolean isOK(Shape shape, ConcreteZone zone1, ConcreteZone zone2, List<ConcreteZone> zones) {
+        for (ConcreteZone zone : zones) {
+            if (zone.intersects(shape) && (zone != zone1 && zone != zone2)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
