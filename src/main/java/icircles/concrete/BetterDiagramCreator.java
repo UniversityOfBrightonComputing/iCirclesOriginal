@@ -237,13 +237,61 @@ public class BetterDiagramCreator extends DiagramCreator {
                 double x = (p1.getX() + p2.getX()) / 2;
                 double y = (p1.getY() + p2.getY()) / 2;
 
-                while (!isOK(q, concreteZones.get(i), concreteZones.get(second), iCirclesDiagramNew.getNormalZones())) {
-                    x -= 10;
-                    y += 10;
+                int step = 10;
+                int safetyCount = 0;
 
+                Point2D delta = new Point2D(step, 0);
+                int j = 0;
+
+                while (!isOK(q, concreteZones.get(i), concreteZones.get(second), iCirclesDiagramNew.getNormalZones()) && safetyCount < 100) {
+                    q.setControlX(x + delta.getX());
+                    q.setControlY(y + delta.getY());
+
+                    j++;
+
+                    switch (j) {
+                        case 1:
+                            delta = new Point2D(step, step);
+                            break;
+                        case 2:
+                            delta = new Point2D(0, step);
+                            break;
+                        case 3:
+                            delta = new Point2D(-step, step);
+                            break;
+                        case 4:
+                            delta = new Point2D(-step, 0);
+                            break;
+                        case 5:
+                            delta = new Point2D(-step, -step);
+                            break;
+                        case 6:
+                            delta = new Point2D(0, -step);
+                            break;
+                        case 7:
+                            delta = new Point2D(step, -step);
+                            break;
+                    }
+
+                    if (j == 8) {
+                        j = 0;
+                        delta = new Point2D(step, 0);
+                        step *= 2;
+                    }
+
+                    safetyCount++;
+                }
+
+                // we failed to find the correct spot
+                if (safetyCount == 100) {
                     q.setControlX(x);
                     q.setControlY(y);
                 }
+
+
+
+
+
 
                 shapes.add(q);
 
@@ -252,6 +300,8 @@ public class BetterDiagramCreator extends DiagramCreator {
                 quadCurveTo.setY(q.getEndY());
                 quadCurveTo.setControlX(q.getControlX());
                 quadCurveTo.setControlY(q.getControlY());
+
+                CubicCurve cubicCurve = new CubicCurve();
 
                 path.getElements().addAll(quadCurveTo);
             }
