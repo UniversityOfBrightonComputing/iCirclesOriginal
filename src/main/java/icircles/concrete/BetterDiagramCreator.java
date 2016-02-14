@@ -92,8 +92,17 @@ public class BetterDiagramCreator extends DiagramCreator {
         // a b c ab ag ah ax az bh cf cg yz cgx
         // a b c ab bc bd cd abe bcd bce
 
+        // t at bt ct ft abt agt aht bht cft cgt tyz agty atyz cftx cgtx cgty ctyz
+
         // Examples where wrong
 
+        // y Ac Af bc bd bj cf cl de fh hi hq ik iy ky Acf Acl abc bfg fhz hiz - encloses region it shouldnt
+        // b c g h q ab ag ah aq adg adh adq
+
+        // a b c d e f ac ae bc be ce acf bce bcf bde - not enough covered
+
+        // a b d ac bc ce bcd bde - when both paths are short need to choose better one
+        // a c ab bc cd cf df abc abf ace cde
         // a b c ab ag ah bh cf cg hz yz agy cgy
         // p q pr ps qr qs rs rt prt qrt rst
     }
@@ -121,8 +130,10 @@ public class BetterDiagramCreator extends DiagramCreator {
             return contour.getCurve().matchesLabel(curve);
         });
 
+        List<PathContour> contours = new ArrayList<>(diagram.getContours());
+
         ConcreteDiagram concreteDiagram = new ConcreteDiagram(diagram.getOriginalDescription(), actual,
-                diagram.getCircles(), diagram.getCurveToContour(), size);
+                diagram.getCircles(), diagram.getCurveToContour(), size, contours.toArray(new PathContour[0]));
         return concreteDiagram;
     }
 
@@ -160,21 +171,51 @@ public class BetterDiagramCreator extends DiagramCreator {
 
             // TODO: let's assume we found nodes which need to be connected to get a connected graph
 
-            AbstractBasicRegion zoneStart = zones.get(0);
-            AbstractBasicRegion zoneTarget = zones.get(1);
+            List<AbstractDualNode> nodesToSplit = new ArrayList<>();
 
-            AbstractDualNode nodeStart = null, nodeTarget = null;
+            for (int i = 0; i < zones.size(); i++) {
+                int j = i + 1 < zones.size() ? i + 1 : 0;
 
-            for (AbstractDualNode node : graph.getNodes()) {
-                if (node.getZone() == zoneStart) {
-                    nodeStart = node;
-                } else if (node.getZone() == zoneTarget) {
-                    nodeTarget = node;
+                AbstractDualNode node1 = graph.getNodeByZone(zones.get(i));
+                AbstractDualNode node2 = graph.getNodeByZone(zones.get(j));
+
+                List<AbstractDualNode> nodePath = graph.findShortestVertexPath(node1, node2);
+
+                nodesToSplit.addAll(nodePath);
+                nodesToSplit.remove(node2);
+
+                // if first, we keep it
+                if (i == 0) {
+                    nodePath.remove(node1);
                 }
+
+                nodePath.remove(node2);
+
+                // remove visited edges and nodes
+                graph.findShortestEdgePath(node1, node2).forEach(graph::removeEdge);
+                nodePath.forEach(graph::removeNode);
             }
 
-            List<AbstractBasicRegion> zonesToSplit = graph.findCycle(nodeStart, nodeTarget)
-                    .stream()
+
+//            AbstractBasicRegion zoneStart = zones.get(0);
+//            AbstractBasicRegion zoneTarget = zones.get(1);
+//
+//            AbstractDualNode nodeStart = null, nodeTarget = null;
+//
+//            for (AbstractDualNode node : graph.getNodes()) {
+//                if (node.getZone() == zoneStart) {
+//                    nodeStart = node;
+//                } else if (node.getZone() == zoneTarget) {
+//                    nodeTarget = node;
+//                }
+//            }
+
+//            List<AbstractBasicRegion> zonesToSplit = graph.findCycle(nodeStart, nodeTarget)
+//                    .stream()
+//                    .map(AbstractDualNode::getZone)
+//                    .collect(Collectors.toList());
+
+            List<AbstractBasicRegion> zonesToSplit = nodesToSplit.stream()
                     .map(AbstractDualNode::getZone)
                     .collect(Collectors.toList());
 
@@ -188,6 +229,8 @@ public class BetterDiagramCreator extends DiagramCreator {
                                 return cz;
                             }
                         }
+
+                        log.trace("No concrete zone for zone: " + zone);
 
                         return null;
                     })
@@ -313,8 +356,11 @@ public class BetterDiagramCreator extends DiagramCreator {
             // put mapping from abstract to conrete curve
             iCirclesDiagramNew.getCurveToContour().put(curve, contour);
 
+            List<PathContour> contours = new ArrayList<>(iCirclesDiagramNew.getContours());
+            contours.add(contour);
+
             cd = new ConcreteDiagram(iCirclesDiagramNew.getOriginalDescription(), actual,
-                    iCirclesDiagramNew.getCircles(), iCirclesDiagramNew.getCurveToContour(), size, contour);
+                    iCirclesDiagramNew.getCircles(), iCirclesDiagramNew.getCurveToContour(), size, contours.toArray(new PathContour[0]));
         }
 
         return cd;

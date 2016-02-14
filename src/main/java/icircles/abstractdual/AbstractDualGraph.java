@@ -55,6 +55,15 @@ public class AbstractDualGraph {
         }
     }
 
+    public AbstractDualNode getNodeByZone(AbstractBasicRegion zone) {
+        for (AbstractDualNode node : getNodes()) {
+            if (node.getZone() == zone)
+                return node;
+        }
+
+        throw new IllegalArgumentException("Graph does not have zone: " + zone);
+    }
+
     /**
      * @return number of edges in this graph
      */
