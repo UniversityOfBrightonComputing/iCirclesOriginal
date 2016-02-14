@@ -19,13 +19,19 @@
                     <SeparatorMenuItem />
                     <MenuItem mnemonicParsing="false" text="Quit" onAction="#quit"/>
                 </Menu>
+
                 <Menu mnemonicParsing="false" text="Edit">
                     <MenuItem mnemonicParsing="false" text="Undo" onAction="#undo"/>
                     <MenuItem mnemonicParsing="false" text="Redo" onAction="#redo"/>
                 </Menu>
+
                 <Menu fx:id="drTypes" text="Decomposition/Recomposition">
+                    <CheckMenuItem fx:id="cbBruteforce" text="Bruteforce" />
+                    <SeparatorMenuItem />
                 </Menu>
+
                 <Menu fx:id="menuDiagrams" text="Diagrams" />
+
                 <Menu mnemonicParsing="false" text="Help">
                     <MenuItem mnemonicParsing="false" text="About" onAction="#about"/>
                 </Menu>

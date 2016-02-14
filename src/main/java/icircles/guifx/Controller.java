@@ -32,6 +32,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -52,6 +53,9 @@ public class Controller {
 
     @FXML
     private TextArea areaInfo;
+
+    @FXML
+    private CheckMenuItem cbBruteforce;
 
     private Alert progressDialog = new Alert(Alert.AlertType.INFORMATION);
 
@@ -263,11 +267,38 @@ public class Controller {
             DecompositionStrategyType dType = (DecompositionStrategyType) decompositionToggle.getSelectedToggle().getUserData();
             RecompositionStrategyType rType = (RecompositionStrategyType) recompositionToggle.getSelectedToggle().getUserData();
 
-            DiagramCreator creator = rType == RecompositionStrategyType.DOUBLY_PIERCED_EXTRA_ZONES
-                    ? new BetterDiagramCreator(DecomposerFactory.newDecomposer(dType), RecomposerFactory.newRecomposer(rType))
-                    : new DiagramCreator(DecomposerFactory.newDecomposer(dType), RecomposerFactory.newRecomposer(rType));
+            ConcreteDiagram diagram = null;
 
-            return creator.createDiagram(description, size);
+            if (cbBruteforce.isSelected()) {
+                // generate diagrams and select which has less path contours
+
+                List<ConcreteDiagram> diagrams = new ArrayList<>();
+
+                for (DecompositionStrategyType type : DecompositionStrategyType.values()) {
+                    try {
+                        DiagramCreator creator = new BetterDiagramCreator(DecomposerFactory.newDecomposer(type), RecomposerFactory.newRecomposer(rType));
+                        diagrams.add(creator.createDiagram(description, size));
+                    } catch (Exception e) {
+                        //e.printStackTrace();
+                    }
+                }
+
+                Collections.reverse(diagrams);
+
+                diagram = diagrams.stream()
+                        .reduce((d1, d2) -> d2.getContours().size() < d1.getContours().size() ? d2 : d1)
+                        .orElseThrow(() -> new RuntimeException("Cannot generate"));
+            } else {
+                DiagramCreator creator = rType == RecompositionStrategyType.DOUBLY_PIERCED_EXTRA_ZONES
+                        ? new BetterDiagramCreator(DecomposerFactory.newDecomposer(dType), RecomposerFactory.newRecomposer(rType))
+                        : new DiagramCreator(DecomposerFactory.newDecomposer(dType), RecomposerFactory.newRecomposer(rType));
+
+                diagram = creator.createDiagram(description, size);
+            }
+
+
+
+            return diagram;
         }
 
         @Override
