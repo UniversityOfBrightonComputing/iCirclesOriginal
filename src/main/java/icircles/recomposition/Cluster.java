@@ -53,6 +53,16 @@ public class Cluster {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        return zones.containsAll(((Cluster)obj).zones);
+    }
+
+    @Override
+    public int hashCode() {
+        return zones.stream().mapToInt(z -> z.hashCode()).sum();
+    }
+
+    @Override
     public String toString() {
         return zones.toString();
     }

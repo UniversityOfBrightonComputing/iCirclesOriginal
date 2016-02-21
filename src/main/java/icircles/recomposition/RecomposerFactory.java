@@ -8,10 +8,9 @@ import icircles.abstractdual.AbstractDualNode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * @author Almas Baimagambetov (AlmasB) (almaslvl@gmail.com)
@@ -20,7 +19,11 @@ public final class RecomposerFactory {
 
     private static final Logger log = LogManager.getLogger(Recomposer.class);
 
+    private static Map<Cluster, Integer> clusters = new HashMap<>();
+
     public static Recomposer newRecomposer(RecompositionStrategyType type) {
+        clusters.clear();
+
         switch (type) {
             case NESTED:
                 return new BasicRecomposer(nested());
@@ -143,6 +146,12 @@ public final class RecomposerFactory {
                     nodes.get(1).getZone(),
                     nodes.get(2).getZone(),
                     nodes.get(3).getZone());
+
+            if (clusters.getOrDefault(c, 0) == 2) {
+                break;
+            }
+
+            clusters.put(c, clusters.getOrDefault(c, 0) + 1);
             result.add(c);
 
             log.trace("Made cluster from potential: " + c);

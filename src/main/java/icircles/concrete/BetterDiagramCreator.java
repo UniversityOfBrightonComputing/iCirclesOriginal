@@ -96,6 +96,8 @@ public class BetterDiagramCreator extends DiagramCreator {
 
         // Examples where wrong
 
+        // a b c d ab ac bc bd be bf cd cf de abc - 2pierce disjoint
+
         // y Ac Af bc bd bj cf cl de fh hi hq ik iy ky Acf Acl abc bfg fhz hiz - encloses region it shouldnt
         // b c g h q ab ag ah aq adg adh adq
 
@@ -170,6 +172,8 @@ public class BetterDiagramCreator extends DiagramCreator {
             AbstractDualGraph graph = new AbstractDualGraph(new ArrayList<>(ad.getZonesUnmodifiable()));
 
             // TODO: let's assume we found nodes which need to be connected to get a connected graph
+
+            //graph.removeNode(graph.getNodeByZone(AbstractBasicRegion.OUTSIDE));
 
             List<AbstractDualNode> nodesToSplit = new ArrayList<>();
 
