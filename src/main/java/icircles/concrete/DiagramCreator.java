@@ -29,8 +29,8 @@ public class DiagramCreator {
     private Decomposer decomposer;
     private Recomposer recomposer;
 
-    private List<DecompositionStep> dSteps;
-    private List<RecompositionStep> rSteps;
+    protected List<DecompositionStep> dSteps;
+    protected List<RecompositionStep> rSteps;
 
     public List<DecompositionStep> getDSteps() {
         return dSteps;
@@ -100,6 +100,9 @@ public class DiagramCreator {
     public ConcreteDiagram createDiagram(AbstractDescription description, int size) throws CannotDrawException {
         if (dSteps == null) {
             dSteps = decomposer.decompose(description);
+        }
+
+        if (rSteps == null) {
             rSteps = recomposer.recompose(dSteps);
         }
 
@@ -1260,7 +1263,7 @@ public class DiagramCreator {
         return test.isEmpty();
     }
 
-    private AbstractDescription getInitialDiagram() {
+    protected AbstractDescription getInitialDiagram() {
         if (dSteps.isEmpty())
             return new AbstractDescription("");
 

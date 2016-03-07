@@ -88,7 +88,7 @@ public class BasicRecomposer implements Recomposer {
      * @param matchedZones matched zones
      * @return recomposition step
      */
-    private RecompositionStep recomposeStep(DecompositionStep decompStep, RecompositionStep previous,
+    protected RecompositionStep recomposeStep(DecompositionStep decompStep, RecompositionStep previous,
             Map<AbstractBasicRegion, AbstractBasicRegion> matchedZones) {
 
         log.trace("Matched Zones: " + matchedZones);

@@ -37,7 +37,7 @@ public class AbstractDescription {
         this.curves = Collections.unmodifiableSortedSet(new TreeSet<>(curves));
         this.zones = Collections.unmodifiableSortedSet(new TreeSet<>(zones));
 
-        validate();
+        //validate();
     }
 
     /**
@@ -75,7 +75,7 @@ public class AbstractDescription {
         this.curves = Collections.unmodifiableSortedSet(new TreeSet<>(curves.values()));
         this.zones = Collections.unmodifiableSortedSet(tmpZones);
 
-        validate();
+        //validate();
     }
 
     private void validate() {

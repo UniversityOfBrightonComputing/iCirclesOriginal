@@ -6,8 +6,10 @@ import icircles.abstractdescription.AbstractDescription;
 import icircles.abstractdual.AbstractDualEdge;
 import icircles.abstractdual.AbstractDualGraph;
 import icircles.abstractdual.AbstractDualNode;
-import icircles.decomposition.Decomposer;
+import icircles.decomposition.*;
+import icircles.recomposition.BetterBasicRecomposer;
 import icircles.recomposition.Recomposer;
+import icircles.recomposition.RecompositionStep;
 import icircles.util.CannotDrawException;
 import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
@@ -139,8 +141,29 @@ public class BetterDiagramCreator extends DiagramCreator {
         return concreteDiagram;
     }
 
+    private AbstractDescription original;
+
+    @Override
+    protected AbstractDescription getInitialDiagram() {
+        return original;
+    }
+
+    // a b c d e ab bc cd de , af ef  - new algorithm case
+
     @Override
     public ConcreteDiagram createDiagram(AbstractDescription description, int size) throws CannotDrawException {
+        original = description;
+
+        Decomposer decomposer = DecomposerFactory.newDecomposer(DecompositionStrategyType.PIERCED_FIRST);
+
+        Recomposer recomposer = new BetterBasicRecomposer(null);
+        List<RecompositionStep> rs = recomposer.recompose(decomposer.decompose(description));
+
+        return super.createDiagram(rs.get(rs.size() - 1).to(), size);
+        //return createDiagramConcrete(description, size);
+    }
+
+    public ConcreteDiagram createDiagramConcrete(AbstractDescription description, int size) throws CannotDrawException {
         //AbstractCurve.resetIdCounter();
         //AbstractBasicRegion.clearLibrary();
 
