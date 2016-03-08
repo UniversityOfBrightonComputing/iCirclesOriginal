@@ -167,11 +167,11 @@ public class DiagramCreator {
         List<Contour> includingCircles = new ArrayList<>();
         List<Contour> excludingCircles = new ArrayList<>(circles);
 
-        for (AbstractCurve curve : zone.getCurvesUnmodifiable()) {
-            Contour contour = curveToContour.get(curve);
-            excludingCircles.remove(contour);
-            includingCircles.add(contour);
-        }
+//        for (AbstractCurve curve : zone.getCurvesUnmodifiable()) {
+//            Contour contour = curveToContour.get(curve);
+//            excludingCircles.remove(contour);
+//            includingCircles.add(contour);
+//        }
 
         return new ConcreteZone(zone, includingCircles, excludingCircles);
     }
@@ -227,8 +227,8 @@ public class DiagramCreator {
                 CircleContour contour = contours.get(i);
                 AbstractCurve curve = step.recomp_data.get(i).addedCurve;
 
-                if (!contour.getCurve().matchesLabel(curve))
-                    throw new CannotDrawException("Mismatched labels");
+//                if (!contour.getCurve().matchesLabel(curve))
+//                    throw new CannotDrawException("Mismatched labels");
 
                 curveToContour.put(curve, contour);
                 addCircle(contour);
@@ -655,7 +655,7 @@ public class DiagramCreator {
             RecompositionData rd2 = beforefuturebs.next.recomp_data.get(0);
             if (rd2.isNested()) {
                 AbstractBasicRegion abr2 = rd2.splitZones.get(0);
-                if (abr.isLabelEquivalent(abr2)) {
+                //if (abr.isLabelEquivalent(abr2)) {
                     log.trace("Found matching abrs " + abr + ", " + abr2);
 
                     // check scores match
@@ -674,7 +674,7 @@ public class DiagramCreator {
 
                         bs.recomp_data.add(to_move.recomp_data.get(0));
                     }
-                }
+                //}
             }
             beforefuturebs = beforefuturebs.next;
         }
@@ -698,29 +698,29 @@ public class DiagramCreator {
             if (rd2.isSinglePiercing()) {
                 AbstractBasicRegion abr3 = rd2.splitZones.get(0);
                 AbstractBasicRegion abr4 = rd2.splitZones.get(1);
-                if ((abr1.isLabelEquivalent(abr3) && abr2.isLabelEquivalent(abr4))
-                        || (abr1.isLabelEquivalent(abr4) && abr2.isLabelEquivalent(abr3))) {
-
-                    log.trace("Found matching abrs " + abr1 + ", " + abr2);
-
-                    // check scores match
-                    double abrScore = contourScores.get(rd.addedCurve);
-                    double abrScore2 = contourScores.get(rd2.addedCurve);
-
-                    if (!(abrScore > 0 && abrScore2 > 0))
-                        throw new RuntimeException("Zones must have score");
-
-                    log.trace("Matched piercings " + abr1 + " and " + abr2 + " with scores " + abrScore + " and " + abrScore2);
-
-                    if (abrScore == abrScore2) {
-                        // unhook futurebs and insert into list after bs
-                        BuildStep to_move = beforefuturebs.next;
-                        beforefuturebs.next = to_move.next;
-
-                        bs.recomp_data.add(to_move.recomp_data.get(0));
-                        continue;
-                    }
-                }
+//                if ((abr1.isLabelEquivalent(abr3) && abr2.isLabelEquivalent(abr4))
+//                        || (abr1.isLabelEquivalent(abr4) && abr2.isLabelEquivalent(abr3))) {
+//
+//                    log.trace("Found matching abrs " + abr1 + ", " + abr2);
+//
+//                    // check scores match
+//                    double abrScore = contourScores.get(rd.addedCurve);
+//                    double abrScore2 = contourScores.get(rd2.addedCurve);
+//
+//                    if (!(abrScore > 0 && abrScore2 > 0))
+//                        throw new RuntimeException("Zones must have score");
+//
+//                    log.trace("Matched piercings " + abr1 + " and " + abr2 + " with scores " + abrScore + " and " + abrScore2);
+//
+//                    if (abrScore == abrScore2) {
+//                        // unhook futurebs and insert into list after bs
+//                        BuildStep to_move = beforefuturebs.next;
+//                        beforefuturebs.next = to_move.next;
+//
+//                        bs.recomp_data.add(to_move.recomp_data.get(0));
+//                        continue;
+//                    }
+//                }
             }
             beforefuturebs = beforefuturebs.next;
         }
@@ -929,7 +929,7 @@ public class DiagramCreator {
             // not the outside zone - locate the zone in the last diag
             AbstractBasicRegion zoneInLast = finalDiagram.getZonesUnmodifiable()
                     .stream()
-                    .filter(z -> z.isLabelEquivalent(zone))
+                    //.filter(z -> z.isLabelEquivalent(zone))
                     .findAny()
                     .orElseThrow(() -> new RuntimeException("Failed to locate zone in final diagram"));
 
@@ -939,7 +939,7 @@ public class DiagramCreator {
                     .map(zoneInLast::getStraddledContour)
                     .filter(Optional::isPresent)
                     .map(Optional::get)
-                    .filter(curve -> !curve.matchesLabel(acs.get(0)))
+                    //.filter(curve -> !curve.matchesLabel(acs.get(0)))
                     .collect(Collectors.toList());
 
             if (nbring_curves.size() == 1) {

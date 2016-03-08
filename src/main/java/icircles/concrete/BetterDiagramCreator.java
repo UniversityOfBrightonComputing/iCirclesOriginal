@@ -115,23 +115,24 @@ public class BetterDiagramCreator extends DiagramCreator {
         // generate a concrete diagram with the removed curve
         Set<AbstractCurve> newCurves = new TreeSet<>(diagram.getActualDescription().getCurvesUnmodifiable());
         for (Iterator<AbstractCurve> it = newCurves.iterator(); it.hasNext(); ) {
-            if (it.next().matchesLabel(curve)) {
-                it.remove();
-            }
+//            if (it.next().matchesLabel(curve)) {
+//                it.remove();
+//            }
         }
 
         Set<AbstractBasicRegion> newZones = new TreeSet<>(diagram.getActualDescription().getZonesUnmodifiable());
         for (Iterator<AbstractBasicRegion> it = newZones.iterator(); it.hasNext(); ) {
             AbstractBasicRegion zone = it.next();
-            if (zone.containsCurveWithLabel(curve.getLabel())) {
-                it.remove();
-            }
+//            if (zone.containsCurveWithLabel(curve.getLabel())) {
+//                it.remove();
+//            }
         }
 
         AbstractDescription actual = new AbstractDescription(newCurves, newZones);
 
         diagram.getCircles().removeIf(contour -> {
-            return contour.getCurve().matchesLabel(curve);
+            return true;
+            //return contour.getCurve().matchesLabel(curve);
         });
 
         List<PathContour> contours = new ArrayList<>(diagram.getContours());
@@ -181,13 +182,13 @@ public class BetterDiagramCreator extends DiagramCreator {
 
             AbstractDescription ad = cd.getActualDescription();
             List<AbstractBasicRegion> zones = ad.getZonesUnmodifiable().stream()
-                    .filter(z -> z.containsCurveWithLabel(curve.getLabel()))
+                    //.filter(z -> z.containsCurveWithLabel(curve.getLabel()))
                     .collect(Collectors.toList());
 
             log.debug("Zones in " + curve + ":" + zones.toString());
 
             zones = zones.stream()
-                    .map(z -> z.moveOutsideLabel(curve.getLabel()))
+                    //.map(z -> z.moveOutsideLabel(curve.getLabel()))
                     .collect(Collectors.toList());
 
             log.debug("Zones that will be in " + curve + ":" + zones.toString());
@@ -357,9 +358,9 @@ public class BetterDiagramCreator extends DiagramCreator {
 
             Set<AbstractCurve> newCurves = new TreeSet<>(iCirclesDiagramNew.getActualDescription().getCurvesUnmodifiable());
             for (Iterator<AbstractCurve> it = newCurves.iterator(); it.hasNext(); ) {
-                if (it.next().matchesLabel(curve)) {
-                    it.remove();
-                }
+//                if (it.next().matchesLabel(curve)) {
+//                    it.remove();
+//                }
             }
 
             newCurves.add(curve);
@@ -368,9 +369,9 @@ public class BetterDiagramCreator extends DiagramCreator {
             Set<AbstractBasicRegion> newZones = new TreeSet<>(iCirclesDiagramNew.getActualDescription().getZonesUnmodifiable());
             for (Iterator<AbstractBasicRegion> it = newZones.iterator(); it.hasNext(); ) {
                 AbstractBasicRegion zone = it.next();
-                if (zone.containsCurveWithLabel(curve.getLabel())) {
-                    it.remove();
-                }
+//                if (zone.containsCurveWithLabel(curve.getLabel())) {
+//                    it.remove();
+//                }
             }
 
             // some of it is wrong due to different objects

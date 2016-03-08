@@ -66,20 +66,6 @@ public final class RecompositionStep {
         return addedContourData.iterator();
     }
 
-    public static double checksum(List<RecompositionStep> rSteps) {
-        double scaling = 11.23;
-        double result = 0.0;
-        for (RecompositionStep step : rSteps) {
-            result += step.checksum() * scaling;
-            scaling += 0.1;
-        }
-        return result;
-    }
-
-    private double checksum() {
-        return 7.1 * from.checksum() + 7.3 * to.checksum();
-    }
-
     @Override
     public String toString() {
         return "R_Step[From=" + from + " To=" + to + " Data=" + addedContourData + "]";

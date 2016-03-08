@@ -131,28 +131,28 @@ public final class DecomposerFactory {
                 .orElseThrow(() -> new RuntimeException("There are no zones in given contour"));
 
         // every other zone in ac must be a superset of that zone
-        for (AbstractBasicRegion zone : zonesInContour) {
-            for (AbstractCurve curve : smallestZone.getCurvesUnmodifiable()) {
-                if (!zone.contains(curve)) {
-                    return false;
-                }
-            }
-        }
+//        for (AbstractBasicRegion zone : zonesInContour) {
+//            for (AbstractCurve curve : smallestZone.getCurvesUnmodifiable()) {
+//                if (!zone.contains(curve)) {
+//                    return false;
+//                }
+//            }
+//        }
 
         // We have 2^n zones which are all supersets of smallestZone.
         // Check that they use exactly n contours from smallestZone.
         Set<AbstractCurve> addedContours = new TreeSet<>();
 
-        for (AbstractBasicRegion zone : zonesInContour) {
-            for (AbstractCurve curve : zone.getCurvesUnmodifiable()) {
-                if (!smallestZone.contains(curve)) {
-                    addedContours.add(curve);
-                    if (addedContours.size() > power) {
-                        return false;
-                    }
-                }
-            }
-        }
+//        for (AbstractBasicRegion zone : zonesInContour) {
+//            for (AbstractCurve curve : zone.getCurvesUnmodifiable()) {
+//                if (!smallestZone.contains(curve)) {
+//                    addedContours.add(curve);
+//                    if (addedContours.size() > power) {
+//                        return false;
+//                    }
+//                }
+//            }
+//        }
 
         return true;
     }

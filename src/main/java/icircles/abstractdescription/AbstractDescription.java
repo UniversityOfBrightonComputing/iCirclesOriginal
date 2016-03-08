@@ -52,7 +52,7 @@ public class AbstractDescription {
      */
     public AbstractDescription(String informalDescription) {
         SortedSet<AbstractBasicRegion> tmpZones = new TreeSet<>();
-        tmpZones.add(AbstractBasicRegion.OUTSIDE);
+        //tmpZones.add(AbstractBasicRegion.OUTSIDE);
 
         Map<String, AbstractCurve> curves = new HashMap<>();
 
@@ -69,7 +69,7 @@ public class AbstractDescription {
                 zoneCurves.add(curves.get(label));
             }
 
-            tmpZones.add(AbstractBasicRegion.get(zoneCurves));
+            //tmpZones.add(AbstractBasicRegion.get(zoneCurves));
         }
         
         this.curves = Collections.unmodifiableSortedSet(new TreeSet<>(curves.values()));
@@ -80,28 +80,28 @@ public class AbstractDescription {
 
     private void validate() {
         // Condition 1
-        for (AbstractBasicRegion zone : zones) {
-            for (AbstractCurve curve : zone.getCurvesUnmodifiable()) {
-                if (!curves.contains(curve)) {
-                    throw new IllegalArgumentException("Invalid AbstractDescription (Condition1): " + toDebugString());
-                }
-            }
-        }
-
-        // Condition 2
-        if (!zones.contains(AbstractBasicRegion.OUTSIDE))
-            throw new IllegalArgumentException("Invalid AbstractDescription (Condition2): " + toDebugString());
-
-        // Condition 3
-        curveLoop:
-        for (AbstractCurve curve : curves) {
-            for (AbstractBasicRegion zone : zones) {
-                if (zone.contains(curve))
-                    continue curveLoop;
-            }
-
-            throw new IllegalArgumentException("Invalid AbstractDescription (Condition3): " + toDebugString());
-        }
+//        for (AbstractBasicRegion zone : zones) {
+//            for (AbstractCurve curve : zone.getCurvesUnmodifiable()) {
+//                if (!curves.contains(curve)) {
+//                    throw new IllegalArgumentException("Invalid AbstractDescription (Condition1): " + toDebugString());
+//                }
+//            }
+//        }
+//
+//        // Condition 2
+//        if (!zones.contains(AbstractBasicRegion.OUTSIDE))
+//            throw new IllegalArgumentException("Invalid AbstractDescription (Condition2): " + toDebugString());
+//
+//        // Condition 3
+//        curveLoop:
+//        for (AbstractCurve curve : curves) {
+//            for (AbstractBasicRegion zone : zones) {
+//                if (zone.contains(curve))
+//                    continue curveLoop;
+//            }
+//
+//            throw new IllegalArgumentException("Invalid AbstractDescription (Condition3): " + toDebugString());
+//        }
     }
 
     // these are needed for alphabetic / reverse decomposition
@@ -125,13 +125,13 @@ public class AbstractDescription {
      */
     public String getInformalDescription() {
         StringBuilder sb = new StringBuilder();
-        for (AbstractBasicRegion zone : zones) {
-            for (AbstractCurve curve : zone.getCurvesUnmodifiable()) {
-                sb.append(curve.getLabel());
-            }
-
-            sb.append(" ");
-        }
+//        for (AbstractBasicRegion zone : zones) {
+//            for (AbstractCurve curve : zone.getCurvesUnmodifiable()) {
+//                sb.append(curve.getLabel());
+//            }
+//
+//            sb.append(" ");
+//        }
 
         return sb.toString().trim();
     }
@@ -187,23 +187,6 @@ public class AbstractDescription {
         return curves.size();
     }
 
-    public double checksum() {
-        double scaling = 2.1;
-        double result = 0.0;
-        for (AbstractCurve c : curves) {
-            result += c.checksum() * scaling;
-            scaling += 0.07;
-            scaling += 0.05;
-            for (AbstractBasicRegion z : zones) {
-                if (z.contains(c)) {
-                    result += z.checksum() * scaling;
-                    scaling += 0.09;
-                }
-            }
-        }
-        return result;
-    }
-
     public boolean includesLabel(String label) {
         for (AbstractCurve curve : curves) {
             if (curve.hasLabel(label)) {
@@ -233,17 +216,17 @@ public class AbstractDescription {
     }
 
     public boolean hasLabelEquivalentZone(AbstractBasicRegion z) {
-        for (AbstractBasicRegion zone : zones) {
-            if (zone.isLabelEquivalent(z)) {
-                return true;
-            }
-        }
+//        for (AbstractBasicRegion zone : zones) {
+//            if (zone.isLabelEquivalent(z)) {
+//                return true;
+//            }
+//        }
         return false;
     }
 
     public String toDebugString() {
         StringBuilder sb = new StringBuilder("AD[curves=");
-        curves.forEach(curve -> sb.append(curve.toDebugString()).append(","));
+        //curves.forEach(curve -> sb.append(curve.toDebugString()).append(","));
 
         int lastIndex = sb.lastIndexOf(",");
         if (lastIndex != -1) {

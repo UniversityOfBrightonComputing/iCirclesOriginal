@@ -118,7 +118,7 @@ public class BetterBasicRecomposer extends BasicRecomposer {
             List<AbstractBasicRegion> splitZones = new ArrayList<>();
             List<AbstractBasicRegion> addedZones = new ArrayList<>();
 
-            AbstractCurve newCurve = new AbstractCurve(removedCurve);
+            AbstractCurve newCurve = new AbstractCurve(removedCurve.getLabel());
             newCurveSet.add(newCurve);
 
             for (AbstractBasicRegion z : cluster.zones()) {

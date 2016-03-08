@@ -21,7 +21,9 @@ public class BasicRecomposer implements Recomposer {
 
     @Override
     public List<RecompositionStep> recompose(List<DecompositionStep> decompSteps) {
-        Map<AbstractBasicRegion, AbstractBasicRegion> matchedZones = new TreeMap<>(AbstractBasicRegion::compareTo);
+        //Map<AbstractBasicRegion, AbstractBasicRegion> matchedZones = new TreeMap<>(AbstractBasicRegion::compareTo);
+        Map<AbstractBasicRegion, AbstractBasicRegion> matchedZones = new HashMap<>();
+
 
         int numSteps = decompSteps.size();
 
@@ -58,7 +60,9 @@ public class BasicRecomposer implements Recomposer {
 
         // make a new Abstract Description
         Set<AbstractCurve> contours = new TreeSet<>();
-        AbstractBasicRegion outside_zone = AbstractBasicRegion.get(contours);
+        //AbstractBasicRegion outside_zone = AbstractBasicRegion.get(contours);
+
+        AbstractBasicRegion outside_zone = null;
 
         List<AbstractBasicRegion> split_zone = new ArrayList<>();
         List<AbstractBasicRegion> added_zone = new ArrayList<>();
@@ -66,7 +70,9 @@ public class BasicRecomposer implements Recomposer {
         added_contour_data.add(new RecompositionData(was_removed, split_zone, added_zone));
 
         contours.add(was_removed);
-        AbstractBasicRegion new_zone = AbstractBasicRegion.get(contours);
+        //AbstractBasicRegion new_zone = AbstractBasicRegion.get(contours);
+        AbstractBasicRegion new_zone = null;
+
         Set<AbstractBasicRegion> new_zones = new TreeSet<>();
         new_zones.add(new_zone);
         new_zones.add(outside_zone);
@@ -136,7 +142,7 @@ public class BasicRecomposer implements Recomposer {
             List<AbstractBasicRegion> splitZones = new ArrayList<>();
             List<AbstractBasicRegion> addedZones = new ArrayList<>();
 
-            AbstractCurve newCurve = new AbstractCurve(removedCurve);
+            AbstractCurve newCurve = new AbstractCurve(removedCurve.getLabel());
             newCurveSet.add(newCurve);
 
             for (AbstractBasicRegion z : cluster.zones()) {

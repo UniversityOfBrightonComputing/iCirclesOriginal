@@ -55,20 +55,6 @@ public class DecompositionStep {
         return removed;
     }
 
-    private double checksum() {
-        return 1.1 * from.checksum() + 1.3 * to.checksum();
-    }
-
-    public static double checksum(List<DecompositionStep> d_steps) {
-        double scaling = 1.11;
-        double result = 0.0;
-        for (DecompositionStep step : d_steps) {
-            result += step.checksum() * scaling;
-            scaling += 0.1;
-        }
-        return result;
-    }
-
     @Override
     public String toString() {
         return "D_Step[Removed=" + removed + ". From=" + from + " To=" + to +

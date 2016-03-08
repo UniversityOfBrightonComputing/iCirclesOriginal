@@ -57,13 +57,13 @@ public class BasicDecomposer implements Decomposer {
         Set<AbstractBasicRegion> zones = new TreeSet<>();
         Map<AbstractBasicRegion, AbstractBasicRegion> zonesMoved = new TreeMap<>();
 
-        for (AbstractBasicRegion zone : ad.getZonesUnmodifiable()) {
-            AbstractBasicRegion newZone = zone.moveOutside(curve);
-            zones.add(newZone);
-            if (!zone.isLabelEquivalent(newZone)) {
-                zonesMoved.put(zone, newZone);
-            }
-        }
+//        for (AbstractBasicRegion zone : ad.getZonesUnmodifiable()) {
+//            AbstractBasicRegion newZone = zone.moveOutside(curve);
+//            zones.add(newZone);
+//            if (!zone.isLabelEquivalent(newZone)) {
+//                zonesMoved.put(zone, newZone);
+//            }
+//        }
 
         AbstractDescription targetAD = new AbstractDescription(contours, zones);
         return new DecompositionStep(ad, targetAD, zonesMoved, curve);

@@ -301,17 +301,17 @@ public class AbstractDualGraph {
     private Optional<AbstractBasicRegion> getMissingZone(AbstractBasicRegion zone1, AbstractBasicRegion zone2, AbstractBasicRegion sameZone, Set<AbstractBasicRegion> zones) {
         log.trace("Checking for missing zone with " + zone1 + " " + zone2);
 
-        for (AbstractBasicRegion zone : zones) {
-            if (zone.isLabelEquivalent(sameZone))
-                continue;
-
-            Optional<AbstractCurve> curve1 = zone.getStraddledContour(zone1);
-            Optional<AbstractCurve> curve2 = zone.getStraddledContour(zone2);
-
-            if (curve1.isPresent() && curve2.isPresent()) {
-                return Optional.of(zone);
-            }
-        }
+//        for (AbstractBasicRegion zone : zones) {
+//            if (zone.isLabelEquivalent(sameZone))
+//                continue;
+//
+//            Optional<AbstractCurve> curve1 = zone.getStraddledContour(zone1);
+//            Optional<AbstractCurve> curve2 = zone.getStraddledContour(zone2);
+//
+//            if (curve1.isPresent() && curve2.isPresent()) {
+//                return Optional.of(zone);
+//            }
+//        }
 
         return Optional.empty();
     }

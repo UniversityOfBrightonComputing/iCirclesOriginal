@@ -92,12 +92,12 @@ public class ConcreteDiagram {
         List<Contour> excludingCircles = new ArrayList<>(circles);
         excludingCircles.addAll(contours);
 
-        for (AbstractCurve curve : zone.getCurvesUnmodifiable()) {
-            Contour contour = curveToContour.get(curve);
-
-            excludingCircles.remove(contour);
-            includingCircles.add(contour);
-        }
+//        for (AbstractCurve curve : zone.getCurvesUnmodifiable()) {
+//            Contour contour = curveToContour.get(curve);
+//
+//            excludingCircles.remove(contour);
+//            includingCircles.add(contour);
+//        }
 
         return new ConcreteZone(zone, includingCircles, excludingCircles);
     }
@@ -167,7 +167,7 @@ public class ConcreteDiagram {
 
     public ConcreteZone getOutsideZone() {
         return allZones.stream()
-                .filter(z -> z.getAbstractZone() == AbstractBasicRegion.OUTSIDE)
+                //.filter(z -> z.getAbstractZone() == AbstractBasicRegion.OUTSIDE)
                 .findAny()
                 .get();
     }
@@ -242,21 +242,6 @@ public class ConcreteDiagram {
         return allZones.stream()
                 .filter(zone -> zone.getContainingContours().contains(contour))
                 .collect(Collectors.toList());
-    }
-
-    public static double checksum(List<CircleContour> circles) {
-        double result = 0.0;
-        if (circles == null) {
-            return result;
-        }
-
-        Iterator<CircleContour> cIt = circles.iterator();
-        while (cIt.hasNext()) {
-            CircleContour c = cIt.next();
-            result += c.centerX * 0.345 + c.centerY * 0.456 + c.radius * 0.567 + c.getCurve().checksum() * 0.555;
-            result *= 1.2;
-        }
-        return result;
     }
 
     public String toDebugString() {
