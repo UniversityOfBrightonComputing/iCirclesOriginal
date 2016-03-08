@@ -29,8 +29,8 @@ public class DiagramCreator {
     private Decomposer decomposer;
     private Recomposer recomposer;
 
-    private List<DecompositionStep> dSteps;
-    private List<RecompositionStep> rSteps;
+    protected List<DecompositionStep> dSteps;
+    protected List<RecompositionStep> rSteps;
 
     public List<DecompositionStep> getDSteps() {
         return dSteps;
@@ -54,7 +54,7 @@ public class DiagramCreator {
      * K - AbstractCurve
      * V - CircleCountour representing AbstractCurve
      */
-    private Map<AbstractCurve, CircleContour> curveToContour;
+    private Map<AbstractCurve, Contour> curveToContour;
 
     private Map<ConcreteZone, Area> zoneAreas;
 
@@ -82,6 +82,11 @@ public class DiagramCreator {
         this.recomposer = recomposer;
     }
 
+    public DiagramCreator(List<DecompositionStep> dSteps, List<RecompositionStep> rSteps) {
+        this.dSteps = dSteps;
+        this.rSteps = rSteps;
+    }
+
     /**
      * Creates a concrete diagram out of given abstract description with specified size.
      * Once created, the diagram's size can be changed by calling {@link ConcreteDiagram#setSize(int)}
@@ -93,8 +98,13 @@ public class DiagramCreator {
      * @throws CannotDrawException
      */
     public ConcreteDiagram createDiagram(AbstractDescription description, int size) throws CannotDrawException {
-        dSteps = decomposer.decompose(description);
-        rSteps = recomposer.recompose(dSteps);
+        if (dSteps == null) {
+            dSteps = decomposer.decompose(description);
+        }
+
+        if (rSteps == null) {
+            rSteps = recomposer.recompose(dSteps);
+        }
 
         curveToContour = new HashMap<>();
         zoneAreas = new HashMap<>();
@@ -140,7 +150,7 @@ public class DiagramCreator {
             guideSizes.put(curve, guideSize);
         }
 
-        log.trace("Guide sizes: " + guideSizes);
+        log.info("Guide sizes: " + guideSizes);
     }
 
     private double computeZoneScore(AbstractBasicRegion abr, AbstractDescription context) {
@@ -154,11 +164,11 @@ public class DiagramCreator {
      * @return the concrete zone
      */
     private ConcreteZone makeConcreteZone(AbstractBasicRegion zone) {
-        List<CircleContour> includingCircles = new ArrayList<>();
-        List<CircleContour> excludingCircles = new ArrayList<>(circles);
+        List<Contour> includingCircles = new ArrayList<>();
+        List<Contour> excludingCircles = new ArrayList<>(circles);
 
         for (AbstractCurve curve : zone.getCurvesUnmodifiable()) {
-            CircleContour contour = curveToContour.get(curve);
+            Contour contour = curveToContour.get(curve);
             excludingCircles.remove(contour);
             includingCircles.add(contour);
         }
@@ -243,7 +253,7 @@ public class DiagramCreator {
         AbstractCurve piercingCurve = rd0.addedCurve;
 
         AbstractCurve pierced_ac = abr0.getStraddledContour(abr1).get();
-        CircleContour pierced_cc = curveToContour.get(pierced_ac);
+        CircleContour pierced_cc = (CircleContour) curveToContour.get(pierced_ac);
         ConcreteZone cz0 = makeConcreteZone(abr0);
         ConcreteZone cz1 = makeConcreteZone(abr1);
         Area a = new Area(computeArea(cz0, outerBox));
@@ -269,12 +279,12 @@ public class DiagramCreator {
 
         Set<AbstractBasicRegion> allZones = zoneScores.keySet();
         for (AbstractBasicRegion zone : allZones) {
-            log.info("compare " + zone + " against " + piercingCurve);
+            log.trace("compare " + zone + " against " + piercingCurve);
 
             if (!zone.contains(piercingCurve))
                 continue;
 
-            log.info("OK. " + zone + " is in " + piercingCurve + ", so compare against " + pierced_ac);
+            log.trace("OK. " + zone + " is in " + piercingCurve + ", so compare against " + pierced_ac);
 
             double zoneScore = zoneScores.get(zone);
 
@@ -411,6 +421,7 @@ public class DiagramCreator {
             }
         }
 
+        log.info("Added a nested contour labelled " + contour.getCurve().getLabel());
         curveToContour.put(ac, contour);
         addCircle(contour);
     }
@@ -422,7 +433,7 @@ public class DiagramCreator {
         AbstractBasicRegion abr0 = rd.splitZones.get(0);
         AbstractBasicRegion abr1 = rd.splitZones.get(1);
         AbstractCurve c = abr0.getStraddledContour(abr1).get();
-        CircleContour cc = curveToContour.get(c);
+        CircleContour cc = (CircleContour) curveToContour.get(c);
         ConcreteZone cz0 = makeConcreteZone(abr0);
         ConcreteZone cz1 = makeConcreteZone(abr1);
         Area a = new Area(computeArea(cz0, outerBox));
@@ -444,12 +455,12 @@ public class DiagramCreator {
 
         Set<AbstractBasicRegion> allZones = zoneScores.keySet();
         for (AbstractBasicRegion zone : allZones) {
-            log.info("compare " + zone + " against " + c);
+            log.trace("compare " + zone + " against " + c);
 
             if (!zone.contains(rd.addedCurve))
                 continue;
 
-            log.info("OK. " + zone + " is in " + c + ", so compare against " + cc.toDebugString());
+            log.trace("OK. " + zone + " is in " + c + ", so compare against " + cc.toDebugString());
 
             double zoneScore = zoneScores.get(zone);
 
@@ -507,7 +518,7 @@ public class DiagramCreator {
         if (solution == null) {
             throw new CannotDrawException("1-piercing no fit");
         } else {
-            log.trace("Added a single piercing labelled " + solution.getCurve().getLabel());
+            log.info("Added a single piercing labelled " + solution.getCurve().getLabel());
             curveToContour.put(rd.addedCurve, solution);
             addCircle(solution);
         }
@@ -523,10 +534,12 @@ public class DiagramCreator {
         AbstractBasicRegion abr3 = rd.splitZones.get(3);
 
         // are we sure the straddled curves exist?
+        log.debug("abr0: " + abr0 + " abr1: " + abr1 + " abr2: " + abr2 + " abr3: " + abr3);
+
         AbstractCurve c1 = abr0.getStraddledContour(abr1).get();
         AbstractCurve c2 = abr0.getStraddledContour(abr2).get();
-        CircleContour cc1 = curveToContour.get(c1);
-        CircleContour cc2 = curveToContour.get(c2);
+        CircleContour cc1 = (CircleContour) curveToContour.get(c1);
+        CircleContour cc2 = (CircleContour) curveToContour.get(c2);
 
         double[][] intn_coords = intersectCircles(cc1.centerX, cc1.centerY, cc1.radius,
                 cc2.centerX, cc2.centerY, cc2.radius);
@@ -566,7 +579,7 @@ public class DiagramCreator {
         if (solution == null) {
             throw new CannotDrawException("2piercing no fit");
         } else {
-            log.trace("Added a double piercing labelled " + solution.getCurve().getLabel());
+            log.info("Added a double piercing labelled " + solution.getCurve().getLabel());
             curveToContour.put(rd.addedCurve, solution);
             addCircle(solution);
         }
@@ -579,7 +592,7 @@ public class DiagramCreator {
 
         BuildStep step = bs;
         while (step != null) {
-            log.trace("Build step begin");
+            log.info("Build step begin");
 
             icircles.geometry.Rectangle bbox = makeBigOuterBox(circles);
             Rectangle2D.Double outerBox = new Rectangle2D.Double(bbox.getX(), bbox.getY(), bbox.getWidth(), bbox.getHeight());
@@ -935,7 +948,7 @@ public class DiagramCreator {
                 AbstractCurve acOutside = nbring_curves.get(0);
                 // use the centre of the relevant contour
 
-                CircleContour ccOutside = curveToContour.get(acOutside);
+                CircleContour ccOutside = (CircleContour) curveToContour.get(acOutside);
 
                 if (ccOutside == null)
                     throw new RuntimeException("Did not find containing circle");
@@ -960,8 +973,8 @@ public class DiagramCreator {
                 AbstractCurve ac1 = nbring_curves.get(0);
                 AbstractCurve ac2 = nbring_curves.get(1);
 
-                CircleContour cc1 = curveToContour.get(ac1);
-                CircleContour cc2 = curveToContour.get(ac2);
+                CircleContour cc1 = (CircleContour) curveToContour.get(ac1);
+                CircleContour cc2 = (CircleContour) curveToContour.get(ac2);
 
                 if (cc1 != null && cc2 != null) {
                     boolean in1 = zone.contains(ac1);
@@ -1032,9 +1045,9 @@ public class DiagramCreator {
          */
 
         if (acs.get(0) == null)
-        	log.info("putting unlabelled contour inside a zone - grid-style");
+        	log.trace("putting unlabelled contour inside a zone - grid-style");
         else
-        	log.info("putting contour " + acs.get(0).getLabel() + " inside a zone - grid-style");
+        	log.trace("putting contour " + acs.get(0).getLabel() + " inside a zone - grid-style");
 
         // Use a grid approach to search for a space for the contour(s)
         int ni = (int) (bounds.getWidth() / smallest_radius) + 1;
@@ -1071,16 +1084,16 @@ public class DiagramCreator {
                 int max_sq = Math.min(ni - i, nj - j);
                 for (int sq = size + 1; sq < max_sq + 1; sq++) {
                     // scan a square from i, j
-                    log.info("look for a box from (" + i + "," + j + ") size " + sq);
+                    log.trace("look for a box from (" + i + "," + j + ") size " + sq);
 
                     if (all_ok_in(i, i + (sq * acs.size()) + 1, j, j + sq + 1, contained, ni, nj)) {
-                        log.info("found a wide box, corner at (" + i + "," + j + "), size " + sq);
+                        log.trace("found a wide box, corner at (" + i + "," + j + "), size " + sq);
                         corneri = i;
                         cornerj = j;
                         size = sq;
                         isTall = false;
                     } else if (acs.size() > 1 && all_ok_in(i, i + sq + 1, j, j + (sq * acs.size()) + 1, contained, ni, nj)) {
-                        log.info("found a tall box, corner at (" + i + "," + j + "), size " + sq);
+                        log.trace("found a tall box, corner at (" + i + "," + j + "), size " + sq);
                         corneri = i;
                         cornerj = j;
                         size = sq;
@@ -1105,7 +1118,7 @@ public class DiagramCreator {
             }
 
             // have size, centerX, centerY
-            log.info("corner at " + pc.x + "," + pc.y + ", size " + size);
+            log.trace("corner at " + pc.x + "," + pc.y + ", size " + size);
 
             List<CircleContour> centredCircles = new ArrayList<>();
 
@@ -1250,7 +1263,7 @@ public class DiagramCreator {
         return test.isEmpty();
     }
 
-    private AbstractDescription getInitialDiagram() {
+    protected AbstractDescription getInitialDiagram() {
         if (dSteps.isEmpty())
             return new AbstractDescription("");
 
@@ -1274,12 +1287,18 @@ public class DiagramCreator {
 
         Area area = new Area(box);
 
-        for (CircleContour c : zone.getContainingCircles()) {
-            area.intersect(new Area(makeEllipse(c.getCenterX(), c.getCenterY(), c.getBigRadius())));
+        for (Contour contour : zone.getContainingContours()) {
+            if (contour instanceof CircleContour) {
+                CircleContour c = (CircleContour) contour;
+                area.intersect(new Area(makeEllipse(c.getCenterX(), c.getCenterY(), c.getBigRadius())));
+            }
         }
 
-        for (CircleContour c : zone.getExcludingCircles()) {
-            area.subtract(new Area(makeEllipse(c.getCenterX(), c.getCenterY(), c.getSmallRadius())));
+        for (Contour contour : zone.getExcludingContours()) {
+            if (contour instanceof CircleContour) {
+                CircleContour c = (CircleContour) contour;
+                area.subtract(new Area(makeEllipse(c.getCenterX(), c.getCenterY(), c.getSmallRadius())));
+            }
         }
 
         zoneAreas.put(zone, area);

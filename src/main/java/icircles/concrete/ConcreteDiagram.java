@@ -4,6 +4,7 @@ import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
 import icircles.geometry.Rectangle;
+import javafx.scene.shape.Shape;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -20,24 +21,28 @@ public class ConcreteDiagram {
 
     private final Rectangle box;
     private final List<CircleContour> circles;
+    private final List<PathContour> contours;
     private final List<ConcreteZone> shadedZones, allZones;
 
     private final AbstractDescription original, actual;
-    private final Map<AbstractCurve, CircleContour> curveToContour;
+    private final Map<AbstractCurve, Contour> curveToContour;
+
+    public final List<Shape> shapes = new ArrayList<>();
 
     ConcreteDiagram(AbstractDescription original, AbstractDescription actual,
                     List<CircleContour> circles,
-                    Map<AbstractCurve, CircleContour> curveToContour, int size) {
+                    Map<AbstractCurve, Contour> curveToContour, int size, PathContour... contours) {
         this.original = original;
         this.actual = actual;
         this.box = new Rectangle(0, 0, size, size);
         this.curveToContour = curveToContour;
         this.circles = circles;
+        this.contours = Arrays.asList(contours);
 
         setSize(size);
 
-        log.trace("Initial diagram: " + original);
-        log.trace("Final diagram  : " + actual);
+        log.info("Initial diagram: " + original);
+        log.info("Final diagram  : " + actual);
 
         this.shadedZones = createShadedZones();
         this.allZones = actual.getZonesUnmodifiable()
@@ -45,12 +50,14 @@ public class ConcreteDiagram {
                 .map(this::makeConcreteZone)
                 .collect(Collectors.toList());
 
+        log.info("Concrete zones : " + allZones);
+
         Map<AbstractCurve, List<CircleContour> > duplicates = findDuplicateContours();
 
-        log.trace("Duplicates: " + duplicates);
-        duplicates.values().forEach(contours -> {
-            for (CircleContour contour : contours) {
-                log.trace("Contour " + contour + " is in " + getZonesContainingContour(contour));
+        log.info("Duplicates: " + duplicates);
+        duplicates.values().forEach(contourList -> {
+            for (CircleContour contour : contourList) {
+                log.info("Contour " + contour + " is in " + getZonesContainingContour(contour));
             }
         });
     }
@@ -69,7 +76,7 @@ public class ConcreteDiagram {
                 .map(this::makeConcreteZone)
                 .collect(Collectors.toList());
 
-        log.trace("Extra zones: " + result);
+        log.info("Extra zones: " + result);
 
         return result;
     }
@@ -81,11 +88,13 @@ public class ConcreteDiagram {
      * @return the concrete zone
      */
     private ConcreteZone makeConcreteZone(AbstractBasicRegion zone) {
-        List<CircleContour> includingCircles = new ArrayList<>();
-        List<CircleContour> excludingCircles = new ArrayList<>(circles);
+        List<Contour> includingCircles = new ArrayList<>();
+        List<Contour> excludingCircles = new ArrayList<>(circles);
+        excludingCircles.addAll(contours);
 
         for (AbstractCurve curve : zone.getCurvesUnmodifiable()) {
-            CircleContour contour = curveToContour.get(curve);
+            Contour contour = curveToContour.get(curve);
+
             excludingCircles.remove(contour);
             includingCircles.add(contour);
         }
@@ -100,11 +109,22 @@ public class ConcreteDiagram {
         return box;
     }
 
+    public Map<AbstractCurve, Contour> getCurveToContour() {
+        return curveToContour;
+    }
+
     /**
-     * @return diagram contours
+     * @return diagram circle contours
      */
     public List<CircleContour> getCircles() {
         return circles;
+    }
+
+    /**
+     * @return diagram arbitrary shape contours
+     */
+    public List<PathContour> getContours() {
+        return contours;
     }
 
     /**
@@ -137,6 +157,19 @@ public class ConcreteDiagram {
      */
     public List<ConcreteZone> getAllZones() {
         return allZones;
+    }
+
+    public List<ConcreteZone> getNormalZones() {
+        List<ConcreteZone> zones = new ArrayList<>(allZones);
+        zones.removeAll(shadedZones);
+        return zones;
+    }
+
+    public ConcreteZone getOutsideZone() {
+        return allZones.stream()
+                .filter(z -> z.getAbstractZone() == AbstractBasicRegion.OUTSIDE)
+                .findAny()
+                .get();
     }
 
     public void setSize(int size) {
@@ -193,7 +226,7 @@ public class ConcreteDiagram {
         Map<AbstractCurve, List<CircleContour> > duplicates = new TreeMap<>();
         groups.forEach((label, contours) -> {
             if (contours.size() > 1)
-                duplicates.put(new AbstractCurve(label), contours);
+                duplicates.put(actual.getCurveByLabel(label).get(), contours);
         });
 
         return duplicates;
@@ -207,7 +240,7 @@ public class ConcreteDiagram {
      */
     public List<ConcreteZone> getZonesContainingContour(CircleContour contour) {
         return allZones.stream()
-                .filter(zone -> zone.getContainingCircles().contains(contour))
+                .filter(zone -> zone.getContainingContours().contains(contour))
                 .collect(Collectors.toList());
     }
 

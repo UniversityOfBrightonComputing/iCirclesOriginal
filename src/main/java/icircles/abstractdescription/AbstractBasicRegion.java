@@ -9,13 +9,17 @@ import java.util.stream.Collectors;
 /**
  * Represents a zone (basic region) at an abstract level.
  * Holds curves that pass through or are inside this zone.
+ *
+ * <p>
+ *     <b>Immutable.</b>
+ * </p>
  */
 public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
 
     private static final Logger log = LogManager.getLogger(AbstractBasicRegion.class);
 
-    private Set<AbstractCurve> theInSet;
-    private static Set<AbstractBasicRegion> library = new TreeSet<>();
+    private final Set<AbstractCurve> theInSet;
+    private static final Set<AbstractBasicRegion> library = new TreeSet<>();
 
     private AbstractBasicRegion(SortedSet<AbstractCurve> in_set) {
         theInSet = Collections.unmodifiableSortedSet(in_set);
@@ -44,16 +48,45 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
 
     public static final AbstractBasicRegion OUTSIDE = get(new TreeSet<>());
 
-    public AbstractBasicRegion moveInside(AbstractCurve newCont) {
+    /**
+     * Creates (or returns an existing) zone that will contain the given curve.
+     *
+     * @param curve the curve
+     * @return zone
+     */
+    public AbstractBasicRegion moveInside(AbstractCurve curve) {
         TreeSet<AbstractCurve> conts = new TreeSet<>(theInSet);
-        conts.add(newCont);
+        conts.add(curve);
         return get(conts);
     }
 
-    public AbstractBasicRegion moveOutside(AbstractCurve c) {
-        if (theInSet.contains(c)) {
+    /**
+     * Creates (or returns existing) zone that will be outside of the given curve.
+     *
+     * @param curve the curve
+     * @return zone
+     */
+    public AbstractBasicRegion moveOutside(AbstractCurve curve) {
+        if (theInSet.contains(curve)) {
             Set<AbstractCurve> contours = new TreeSet<>(theInSet);
-            contours.remove(c);
+            contours.remove(curve);
+            return get(contours);
+        } else {
+            return this;
+        }
+    }
+
+    public AbstractBasicRegion moveOutsideLabel(String label) {
+        if (containsCurveWithLabel(label)) {
+            Set<AbstractCurve> contours = new TreeSet<>(theInSet);
+
+            for (Iterator<AbstractCurve> it = contours.iterator(); it.hasNext(); ) {
+                if (it.next().hasLabel(label)) {
+                    it.remove();
+                    break;
+                }
+            }
+
             return get(contours);
         } else {
             return this;
@@ -75,7 +108,7 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
     }
 
     /**
-     * Returns true if this zone contains the curve.
+     * Returns true if this zone contains that <b>exact</b> curve.
      *
      * @param curve the curve
      * @return true iff the curve is within this zone
@@ -106,6 +139,8 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
      * @return curve if zones are a cluster else {@link Optional#empty()}.
      */
     public Optional<AbstractCurve> getStraddledContour(AbstractBasicRegion other) {
+        log.trace("Checking straddle: " + this + " -> " + other);
+
         int nc = getNumCurves();
         int othernc = other.getNumCurves();
 
@@ -115,6 +150,7 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
             // delegate the computation to the other since it has 1 more contour
             return other.getStraddledContour(this);
         } else {
+
             // we have one more contour than other - are we neighbours?
             AbstractCurve result = null;
             for (AbstractCurve curve : theInSet) {
@@ -137,6 +173,10 @@ public class AbstractBasicRegion implements Comparable<AbstractBasicRegion> {
         }
     }
 
+    /**
+     * @param other the other zone
+     * @return true iff the other zone has the same labelling
+     */
     public boolean isLabelEquivalent(AbstractBasicRegion other) {
         // TODO: if we didn't have id for curve we couldve used more natural
         //return theInSet.equals(other.theInSet);

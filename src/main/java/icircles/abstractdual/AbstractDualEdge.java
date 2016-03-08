@@ -4,13 +4,18 @@ import icircles.abstractdescription.AbstractCurve;
 
 public class AbstractDualEdge {
 
-    public AbstractDualEdge(AbstractDualNode from, AbstractDualNode to,
-            AbstractCurve label) {
+    public final AbstractDualNode from;
+    public final AbstractDualNode to;
+    public final AbstractCurve curve;
+
+    public AbstractDualEdge(AbstractDualNode from, AbstractDualNode to, AbstractCurve curve) {
         this.from = from;
         this.to = to;
-        this.label = label;
+        this.curve = curve;
     }
-    public AbstractDualNode from;
-    public AbstractDualNode to;
-    public AbstractCurve label;
+
+    @Override
+    public String toString() {
+        return "Edge[curve=" + curve + "]";
+    }
 }

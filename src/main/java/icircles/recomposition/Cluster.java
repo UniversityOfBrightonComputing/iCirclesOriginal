@@ -3,6 +3,7 @@ package icircles.recomposition;
 import icircles.abstractdescription.AbstractBasicRegion;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Cluster {
@@ -48,8 +49,23 @@ public class Cluster {
         zones.add(z4);
     }
 
+    public Cluster(AbstractBasicRegion... regions) {
+        zones = new ArrayList<>();
+        zones.addAll(Arrays.asList(regions));
+    }
+
     public List<AbstractBasicRegion> zones() {
         return zones;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return zones.containsAll(((Cluster)obj).zones);
+    }
+
+    @Override
+    public int hashCode() {
+        return zones.stream().mapToInt(z -> z.hashCode()).sum();
     }
 
     @Override

@@ -1,5 +1,7 @@
 package icircles.abstractdescription;
 
+import java.util.Objects;
+
 /**
  * Represents a curve at an abstract level.
  * The curve has a label and a unique ID.
@@ -121,7 +123,7 @@ public final class AbstractCurve implements Comparable<AbstractCurve> {
 //
 //    @Override
 //    public int hashCode() {
-//        return Objects.hash(label);
+//        return label.hashCode();
 //    }
 
     @Override

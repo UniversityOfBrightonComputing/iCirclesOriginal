@@ -3,22 +3,22 @@ package icircles.abstractdual;
 import icircles.abstractdescription.AbstractBasicRegion;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class AbstractDualNode {
 
-    public AbstractBasicRegion abr;
-    ArrayList<AbstractDualEdge> incidentEdges;
+    private final AbstractBasicRegion zone;
 
-    AbstractDualNode(AbstractBasicRegion abr) {
-        incidentEdges = new ArrayList<AbstractDualEdge>();
-        this.abr = abr;
+    AbstractDualNode(AbstractBasicRegion zone) {
+        this.zone = zone;
     }
 
-    int degree() {
-        return incidentEdges.size();
+    public AbstractBasicRegion getZone() {
+        return zone;
     }
 
-    void removeEdge(AbstractDualEdge e) {
-        incidentEdges.remove(e);
+    @Override
+    public String toString() {
+        return "Node[" + zone.toString() + "]";
     }
 }

@@ -1,6 +1,7 @@
 package icircles.guifx;
 
 import icircles.abstractdescription.AbstractDescription;
+import icircles.concrete.BetterDiagramCreator;
 import icircles.concrete.ConcreteDiagram;
 import icircles.concrete.ConcreteZone;
 import icircles.concrete.DiagramCreator;
@@ -8,6 +9,10 @@ import icircles.decomposition.DecomposerFactory;
 import icircles.decomposition.DecompositionStrategyType;
 import icircles.recomposition.RecomposerFactory;
 import icircles.recomposition.RecompositionStrategyType;
+import icircles.util.ExampleData;
+import icircles.util.ExampleDiagram;
+import javafx.collections.FXCollections;
+import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -27,6 +32,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -47,6 +53,11 @@ public class Controller {
 
     @FXML
     private TextArea areaInfo;
+
+    @FXML
+    private CheckMenuItem cbBruteforce;
+
+    private Alert progressDialog = new Alert(Alert.AlertType.INFORMATION);
 
     private ToggleGroup decompositionToggle = new ToggleGroup();
     private ToggleGroup recompositionToggle = new ToggleGroup();
@@ -99,9 +110,37 @@ public class Controller {
                 visualize(currentDescription);
         });
 
+        initMenuDiagrams();
+
+        progressDialog.setTitle("Working...");
+
+        ProgressIndicator progressIndicator = new ProgressIndicator();
+        progressDialog.getDialogPane().setContent(progressIndicator);
+    }
+
+    private void initMenuDiagrams() {
         MenuItem itemVenn = new MenuItem("Venn3");
         itemVenn.setOnAction(e -> visualize(new AbstractDescription("a b c abc ab ac bc")));
-        menuDiagrams.getItems().addAll(itemVenn);
+
+        MenuItem itemExamples = new MenuItem("Examples");
+        itemExamples.setOnAction(e -> {
+            Alert dialog = new Alert(Alert.AlertType.INFORMATION);
+
+            ListView<ExampleDiagram> list = new ListView<>(FXCollections.observableArrayList(ExampleData.exampleDiagrams));
+
+            ScrollPane scrollPane = new ScrollPane(list);
+
+            dialog.getDialogPane().setContent(scrollPane);
+
+            dialog.showAndWait().ifPresent(buttonType -> {
+                ExampleDiagram diagram = list.getSelectionModel().getSelectedItem();
+                if (diagram != null) {
+                    visualize(new AbstractDescription(diagram.description));
+                }
+            });
+        });
+
+        menuDiagrams.getItems().addAll(itemVenn, itemExamples);
     }
 
     @FXML
@@ -121,7 +160,7 @@ public class Controller {
     private void open() {
         // TODO: load data in via a dialog
 
-        AbstractDescription ad = new AbstractDescription("a b c ab ac bc abc");
+        AbstractDescription ad = new AbstractDescription("a b c ab bc abd bcd");
         visualize(ad);
     }
 
@@ -190,7 +229,7 @@ public class Controller {
         alert.show();
     }
 
-    private void showError(Exception e) {
+    private void showError(Throwable e) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Ooops");
         alert.setContentText(e.getMessage());
@@ -198,16 +237,74 @@ public class Controller {
     }
 
     private void visualize(AbstractDescription description) {
+        progressDialog.show();
+
         fieldInput.setText(description.getInformalDescription());
         currentDescription = description;
         int size = (int) Math.min(renderer.getWidth(), renderer.getHeight());
 
-        DecompositionStrategyType dType = (DecompositionStrategyType) decompositionToggle.getSelectedToggle().getUserData();
-        RecompositionStrategyType rType = (RecompositionStrategyType) recompositionToggle.getSelectedToggle().getUserData();
+        Task<ConcreteDiagram> task = new CreateDiagramTask(description, size);
 
-        try {
-            ConcreteDiagram diagram = new DiagramCreator(DecomposerFactory.newDecomposer(dType), RecomposerFactory.newRecomposer(rType))
-                .createDiagram(description, size);
+        Thread t = new Thread(task);
+        t.start();
+    }
+
+    /**
+     * A task of creating a diagram and subsequently drawing it on the screen.
+     */
+    private class CreateDiagramTask extends Task<ConcreteDiagram> {
+
+        private AbstractDescription description;
+        private int size;
+
+        public CreateDiagramTask(AbstractDescription description, int size) {
+            this.description = description;
+            this.size = size;
+        }
+
+        @Override
+        protected ConcreteDiagram call() throws Exception {
+            DecompositionStrategyType dType = (DecompositionStrategyType) decompositionToggle.getSelectedToggle().getUserData();
+            RecompositionStrategyType rType = (RecompositionStrategyType) recompositionToggle.getSelectedToggle().getUserData();
+
+            ConcreteDiagram diagram = null;
+
+            if (cbBruteforce.isSelected()) {
+                // generate diagrams and select which has less path contours
+
+                List<ConcreteDiagram> diagrams = new ArrayList<>();
+
+                for (DecompositionStrategyType type : DecompositionStrategyType.values()) {
+                    try {
+                        DiagramCreator creator = new BetterDiagramCreator(DecomposerFactory.newDecomposer(type), RecomposerFactory.newRecomposer(rType));
+                        diagrams.add(creator.createDiagram(description, size));
+                    } catch (Exception e) {
+                        //e.printStackTrace();
+                    }
+                }
+
+                Collections.reverse(diagrams);
+
+                diagram = diagrams.stream()
+                        .reduce((d1, d2) -> d2.getContours().size() < d1.getContours().size() ? d2 : d1)
+                        .orElseThrow(() -> new RuntimeException("Cannot generate"));
+            } else {
+                DiagramCreator creator = rType == RecompositionStrategyType.DOUBLY_PIERCED_EXTRA_ZONES
+                        ? new BetterDiagramCreator(DecomposerFactory.newDecomposer(dType), RecomposerFactory.newRecomposer(rType))
+                        : new DiagramCreator(DecomposerFactory.newDecomposer(dType), RecomposerFactory.newRecomposer(rType));
+
+                diagram = creator.createDiagram(description, size);
+            }
+
+
+
+            return diagram;
+        }
+
+        @Override
+        protected void succeeded() {
+            // TODO: handle any drawing errors
+            ConcreteDiagram diagram = getValue();
 
             renderer.draw(diagram);
 
@@ -222,8 +319,18 @@ public class Controller {
                     ((Shape)zone).setFill(Color.TRANSPARENT);
                 });
             });
-        } catch (Exception e) {
-            showError(e);
+
+            progressDialog.hide();
+        }
+
+        @Override
+        protected void failed() {
+            progressDialog.hide();
+
+            Throwable error = getException();
+            if (error == null || error.getMessage() == null || error.getMessage().isEmpty())
+                error = new RuntimeException("NullPointerException");
+            showError(error);
         }
     }
 }
