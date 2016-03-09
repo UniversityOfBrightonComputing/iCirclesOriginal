@@ -64,7 +64,7 @@ public class Controller {
 
     private List<AbstractDescription> historyUndo = new ArrayList<>();
     private List<AbstractDescription> historyRedo = new ArrayList<>();
-    private AbstractDescription currentDescription = new AbstractDescription("");
+    private AbstractDescription currentDescription = AbstractDescription.from("");
 
     public void initialize() {
         for (DecompositionStrategyType dType : DecompositionStrategyType.values()) {
@@ -88,7 +88,7 @@ public class Controller {
         }
 
         fieldInput.setOnAction(e -> {
-            AbstractDescription ad = new AbstractDescription(fieldInput.getText());
+            AbstractDescription ad = AbstractDescription.from(fieldInput.getText());
             historyUndo.add(ad);
             visualize(ad);
         });
@@ -120,7 +120,7 @@ public class Controller {
 
     private void initMenuDiagrams() {
         MenuItem itemVenn = new MenuItem("Venn3");
-        itemVenn.setOnAction(e -> visualize(new AbstractDescription("a b c abc ab ac bc")));
+        itemVenn.setOnAction(e -> visualize(AbstractDescription.from("a b c abc ab ac bc")));
 
         MenuItem itemExamples = new MenuItem("Examples");
         itemExamples.setOnAction(e -> {
@@ -135,7 +135,7 @@ public class Controller {
             dialog.showAndWait().ifPresent(buttonType -> {
                 ExampleDiagram diagram = list.getSelectionModel().getSelectedItem();
                 if (diagram != null) {
-                    visualize(new AbstractDescription(diagram.description));
+                    visualize(AbstractDescription.from(diagram.description));
                 }
             });
         });
@@ -160,7 +160,7 @@ public class Controller {
     private void open() {
         // TODO: load data in via a dialog
 
-        AbstractDescription ad = new AbstractDescription("a b c ab bc abd bcd");
+        AbstractDescription ad = AbstractDescription.from("a b c ab bc abd bcd");
         visualize(ad);
     }
 
@@ -204,7 +204,7 @@ public class Controller {
             historyRedo.add(historyUndo.remove(historyUndo.size() - 1));
 
             AbstractDescription ad = historyUndo.get(historyUndo.size() - 1);
-            //fieldInput.setText(ad.getInformalDescription());
+            fieldInput.setText(ad.getInformalDescription());
             visualize(ad);
         }
     }
@@ -215,7 +215,7 @@ public class Controller {
             AbstractDescription ad = historyRedo.remove(historyRedo.size() - 1);
             historyUndo.add(ad);
 
-            //fieldInput.setText(ad.getInformalDescription());
+            fieldInput.setText(ad.getInformalDescription());
             visualize(ad);
         }
     }
@@ -328,6 +328,8 @@ public class Controller {
             progressDialog.hide();
 
             Throwable error = getException();
+            error.printStackTrace();
+
             if (error == null || error.getMessage() == null || error.getMessage().isEmpty())
                 error = new RuntimeException("NullPointerException");
             showError(error);

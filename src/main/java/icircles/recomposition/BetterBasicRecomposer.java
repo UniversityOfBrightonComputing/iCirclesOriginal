@@ -40,6 +40,9 @@ public class BetterBasicRecomposer extends BasicRecomposer {
         Iterator<AbstractBasicRegion> moved_it = zones_after_moved.iterator();
         while (moved_it.hasNext()) {
             AbstractBasicRegion moved = moved_it.next();
+
+            System.out.println("Moved: " + moved);
+
             AbstractBasicRegion to_split = matchedZones.get(moved);
 
             matched_inverse.put(to_split, moved);
@@ -48,6 +51,7 @@ public class BetterBasicRecomposer extends BasicRecomposer {
                 zonesToSplit.add(to_split);
             } else {
                 throw new RuntimeException("match not found");
+                //zonesToSplit.add(moved);
             }
         }
 
@@ -61,7 +65,7 @@ public class BetterBasicRecomposer extends BasicRecomposer {
         log.debug("Zones to split (ORIGINAL): " + zonesToSplit);
 
         if (zonesToSplit.size() >= 2 && !zonesToSplit.get(0).getStraddledContour(zonesToSplit.get(1)).isPresent()) {
-            AbstractDualGraph graph = new AbstractDualGraph(new ArrayList<>(from.getZonesUnmodifiable()));
+            AbstractDualGraph graph = new AbstractDualGraph(new ArrayList<>(from.getZones()));
 
             List<AbstractDualNode> nodesToSplit = new ArrayList<>();
 
@@ -104,10 +108,12 @@ public class BetterBasicRecomposer extends BasicRecomposer {
         List<Cluster> clusters = new ArrayList<>();
         clusters.add(new Cluster(zonesToSplit.toArray(new AbstractBasicRegion[0])));
 
+        System.out.println(clusters);
 
 
-        Set<AbstractBasicRegion> newZoneSet = new TreeSet<>(from.getZonesUnmodifiable());
-        Set<AbstractCurve> newCurveSet = new TreeSet<>(from.getCurvesUnmodifiable());
+
+        Set<AbstractBasicRegion> newZoneSet = new TreeSet<>(from.getZones());
+        Set<AbstractCurve> newCurveSet = new TreeSet<>(from.getCurves());
 
         AbstractCurve removedCurve = decompStep.removed();
         List<RecompositionData> addedContourData = new ArrayList<>();

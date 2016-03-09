@@ -20,9 +20,9 @@ public class BasicDecomposer implements Decomposer {
 
     @Override
     public List<DecompositionStep> decompose(AbstractDescription ad) {
-        if (ad.getNumZones() <= 0) {
-            throw new IllegalArgumentException("Abstraction description is empty: " + ad.toDebugString());
-        }
+//        if (ad.getNumZones() <= 0) {
+//            throw new IllegalArgumentException("Abstraction description is empty: " + ad.toString());
+//        }
 
         List<DecompositionStep> result = new ArrayList<>();
 
@@ -51,19 +51,20 @@ public class BasicDecomposer implements Decomposer {
     }
 
     private DecompositionStep takeStep(AbstractDescription ad, AbstractCurve curve) {
-        Set<AbstractCurve> contours = new TreeSet<>(ad.getCurvesUnmodifiable());
+        Set<AbstractCurve> contours = new TreeSet<>(ad.getCurves());
         contours.remove(curve);
 
         Set<AbstractBasicRegion> zones = new TreeSet<>();
         Map<AbstractBasicRegion, AbstractBasicRegion> zonesMoved = new TreeMap<>();
 
-//        for (AbstractBasicRegion zone : ad.getZonesUnmodifiable()) {
-//            AbstractBasicRegion newZone = zone.moveOutside(curve);
-//            zones.add(newZone);
-//            if (!zone.isLabelEquivalent(newZone)) {
-//                zonesMoved.put(zone, newZone);
-//            }
-//        }
+        for (AbstractBasicRegion zone : ad.getZones()) {
+            AbstractBasicRegion newZone = zone.moveOutside(curve);
+            zones.add(newZone);
+
+            if (!zone.equals(newZone)) {
+                zonesMoved.put(zone, newZone);
+            }
+        }
 
         AbstractDescription targetAD = new AbstractDescription(contours, zones);
         return new DecompositionStep(ad, targetAD, zonesMoved, curve);

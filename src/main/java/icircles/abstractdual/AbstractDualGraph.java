@@ -50,6 +50,8 @@ public class AbstractDualGraph {
                     AbstractDualEdge e = new AbstractDualEdge(n, n2, curve);
 
                     graph.addEdge(e.from, e.to, e);
+
+                    System.out.println("Adding edge: from, to" + n + " " + n2 + " " + e);
                 });
             }
         }
@@ -98,10 +100,17 @@ public class AbstractDualGraph {
     }
 
     public List<AbstractDualEdge> findShortestEdgePath(AbstractDualNode start, AbstractDualNode target) {
-        return DijkstraShortestPath.findPathBetween(graph, start, target);
+        List<AbstractDualEdge> path = DijkstraShortestPath.findPathBetween(graph, start, target);
+        if (path == null)
+            throw new RuntimeException("Failed to find path between: " + start + " and " + target);
+
+        return path;
     }
 
     public List<AbstractDualNode> findShortestVertexPath(AbstractDualNode start, AbstractDualNode target) {
+        if (start == null || target == null)
+            throw new IllegalArgumentException("start and target cannot be null");
+
         List<AbstractDualNode> result = new ArrayList<>();
         result.add(start);
 
@@ -190,13 +199,19 @@ public class AbstractDualGraph {
 
                     // look for an edge from n with the same label (curve) as e2
                     for (AbstractDualEdge e3 : graph.edgesOf(n)) {
-                        if (e3.curve == e2.curve) {
+
+                        System.out.println(e3.curve + " VS " + e2.curve);
+
+                        if (e3.curve.equals(e2.curve)) {
                             // found a square
                             ArrayList<AbstractDualNode> result = new ArrayList<>();
                             result.add(n);
                             result.add(n2);
                             result.add(e3.to);
                             result.add(e2.to);
+
+                            System.out.println("Returning result: " + result);
+
                             return result;
                         }
                     }
@@ -301,17 +316,17 @@ public class AbstractDualGraph {
     private Optional<AbstractBasicRegion> getMissingZone(AbstractBasicRegion zone1, AbstractBasicRegion zone2, AbstractBasicRegion sameZone, Set<AbstractBasicRegion> zones) {
         log.trace("Checking for missing zone with " + zone1 + " " + zone2);
 
-//        for (AbstractBasicRegion zone : zones) {
-//            if (zone.isLabelEquivalent(sameZone))
-//                continue;
-//
-//            Optional<AbstractCurve> curve1 = zone.getStraddledContour(zone1);
-//            Optional<AbstractCurve> curve2 = zone.getStraddledContour(zone2);
-//
-//            if (curve1.isPresent() && curve2.isPresent()) {
-//                return Optional.of(zone);
-//            }
-//        }
+        for (AbstractBasicRegion zone : zones) {
+            if (zone.equals(sameZone))
+                continue;
+
+            Optional<AbstractCurve> curve1 = zone.getStraddledContour(zone1);
+            Optional<AbstractCurve> curve2 = zone.getStraddledContour(zone2);
+
+            if (curve1.isPresent() && curve2.isPresent()) {
+                return Optional.of(zone);
+            }
+        }
 
         return Optional.empty();
     }

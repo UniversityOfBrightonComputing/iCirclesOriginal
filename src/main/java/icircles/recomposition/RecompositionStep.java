@@ -32,9 +32,9 @@ public final class RecompositionStep {
             throw new IllegalArgumentException("No added curve in recomp");
         }
 
-        String label = addedContourData.get(0).addedCurve.getLabel();
+        String label = addedContourData.get(0).getAddedCurve().getLabel();
         for (RecompositionData data : addedContourData) {
-            if (!data.addedCurve.hasLabel(label))
+            if (!data.getAddedCurve().matchesLabel(addedContourData.get(0).getAddedCurve()))
                 throw new IllegalArgumentException("Mixed curves added in recomp");
         }
 

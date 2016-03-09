@@ -137,7 +137,7 @@ public final class RecomposerFactory {
 
         // Search 3 node graph and add extra zone
 
-        for (List<AbstractDualNode> nodes = adg.getPotentialFourTuple(ad.getZonesUnmodifiable()); nodes != null; nodes = adg.getPotentialFourTuple(ad.getZonesUnmodifiable())) {
+        for (List<AbstractDualNode> nodes = adg.getPotentialFourTuple(ad.getZones()); nodes != null; nodes = adg.getPotentialFourTuple(ad.getZones())) {
             if (nodes.isEmpty()) {
                 break;
             }

@@ -29,6 +29,9 @@ public class BetterDiagramCreator extends DiagramCreator {
 
     public BetterDiagramCreator(Decomposer decomposer, Recomposer recomposer) {
         super(decomposer, recomposer);
+        //super(decomposer, new BetterBasicRecomposer(null));
+
+
 
         // solution for a ab abc ac bc abd ad
         // but iCircles currently doesn't know how to add with TP (triple point) so it adds like a 2-piercing
@@ -101,9 +104,9 @@ public class BetterDiagramCreator extends DiagramCreator {
         // a b c d ab ac bc bd be bf cd cf de abc - 2pierce disjoint
 
         // y Ac Af bc bd bj cf cl de fh hi hq ik iy ky Acf Acl abc bfg fhz hiz - encloses region it shouldnt
-        // b c g h q ab ag ah aq adg adh adq
+        // b c g h q ab ag ah aq adg adh adq - NPE
 
-        // a b c d e f ac ae bc be ce acf bce bcf bde - not enough covered
+        // a b c d e f ac ae bc be ce acf bce bcf bde - not enough covered (doesnot know what to do because it cant draw > 4)
 
         // a b d ac bc ce bcd bde - when both paths are short need to choose better one
         // a c ab bc cd cf df abc abf ace cde
@@ -113,26 +116,25 @@ public class BetterDiagramCreator extends DiagramCreator {
 
     private ConcreteDiagram removeCurveFromDiagram(AbstractCurve curve, ConcreteDiagram diagram, int size) {
         // generate a concrete diagram with the removed curve
-        Set<AbstractCurve> newCurves = new TreeSet<>(diagram.getActualDescription().getCurvesUnmodifiable());
+        Set<AbstractCurve> newCurves = new TreeSet<>(diagram.getActualDescription().getCurves());
         for (Iterator<AbstractCurve> it = newCurves.iterator(); it.hasNext(); ) {
-//            if (it.next().matchesLabel(curve)) {
-//                it.remove();
-//            }
+            if (it.next().matchesLabel(curve)) {
+                it.remove();
+            }
         }
 
-        Set<AbstractBasicRegion> newZones = new TreeSet<>(diagram.getActualDescription().getZonesUnmodifiable());
+        Set<AbstractBasicRegion> newZones = new TreeSet<>(diagram.getActualDescription().getZones());
         for (Iterator<AbstractBasicRegion> it = newZones.iterator(); it.hasNext(); ) {
             AbstractBasicRegion zone = it.next();
-//            if (zone.containsCurveWithLabel(curve.getLabel())) {
-//                it.remove();
-//            }
+            if (zone.contains(curve)) {
+                it.remove();
+            }
         }
 
         AbstractDescription actual = new AbstractDescription(newCurves, newZones);
 
         diagram.getCircles().removeIf(contour -> {
-            return true;
-            //return contour.getCurve().matchesLabel(curve);
+            return contour.getCurve().matchesLabel(curve);
         });
 
         List<PathContour> contours = new ArrayList<>(diagram.getContours());
@@ -155,7 +157,7 @@ public class BetterDiagramCreator extends DiagramCreator {
     public ConcreteDiagram createDiagram(AbstractDescription description, int size) throws CannotDrawException {
         original = description;
 
-        Decomposer decomposer = DecomposerFactory.newDecomposer(DecompositionStrategyType.PIERCED_FIRST);
+        Decomposer decomposer = DecomposerFactory.newDecomposer(DecompositionStrategyType.INNERMOST);
 
         Recomposer recomposer = new BetterBasicRecomposer(null);
         List<RecompositionStep> rs = recomposer.recompose(decomposer.decompose(description));
@@ -165,9 +167,6 @@ public class BetterDiagramCreator extends DiagramCreator {
     }
 
     public ConcreteDiagram createDiagramConcrete(AbstractDescription description, int size) throws CannotDrawException {
-        //AbstractCurve.resetIdCounter();
-        //AbstractBasicRegion.clearLibrary();
-
         ConcreteDiagram iCirclesDiagramOriginal = super.createDiagram(description, size);
 
         Map<AbstractCurve, List<CircleContour> > duplicates = iCirclesDiagramOriginal.findDuplicateContours();
@@ -181,19 +180,19 @@ public class BetterDiagramCreator extends DiagramCreator {
 
 
             AbstractDescription ad = cd.getActualDescription();
-            List<AbstractBasicRegion> zones = ad.getZonesUnmodifiable().stream()
-                    //.filter(z -> z.containsCurveWithLabel(curve.getLabel()))
+            List<AbstractBasicRegion> zones = ad.getZones().stream()
+                    .filter(z -> z.contains(curve))
                     .collect(Collectors.toList());
 
             log.debug("Zones in " + curve + ":" + zones.toString());
 
             zones = zones.stream()
-                    //.map(z -> z.moveOutsideLabel(curve.getLabel()))
+                    .map(z -> z.moveOutside(curve))
                     .collect(Collectors.toList());
 
             log.debug("Zones that will be in " + curve + ":" + zones.toString());
 
-            AbstractDualGraph graph = new AbstractDualGraph(new ArrayList<>(ad.getZonesUnmodifiable()));
+            AbstractDualGraph graph = new AbstractDualGraph(new ArrayList<>(ad.getZones()));
 
             // TODO: let's assume we found nodes which need to be connected to get a connected graph
 
@@ -356,22 +355,22 @@ public class BetterDiagramCreator extends DiagramCreator {
             // create new contour
             PathContour contour = new PathContour(curve, path);
 
-            Set<AbstractCurve> newCurves = new TreeSet<>(iCirclesDiagramNew.getActualDescription().getCurvesUnmodifiable());
+            Set<AbstractCurve> newCurves = new TreeSet<>(iCirclesDiagramNew.getActualDescription().getCurves());
             for (Iterator<AbstractCurve> it = newCurves.iterator(); it.hasNext(); ) {
-//                if (it.next().matchesLabel(curve)) {
-//                    it.remove();
-//                }
+                if (it.next().matchesLabel(curve)) {
+                    it.remove();
+                }
             }
 
             newCurves.add(curve);
 
             // GENERATE ACTUAL DESC
-            Set<AbstractBasicRegion> newZones = new TreeSet<>(iCirclesDiagramNew.getActualDescription().getZonesUnmodifiable());
+            Set<AbstractBasicRegion> newZones = new TreeSet<>(iCirclesDiagramNew.getActualDescription().getZones());
             for (Iterator<AbstractBasicRegion> it = newZones.iterator(); it.hasNext(); ) {
                 AbstractBasicRegion zone = it.next();
-//                if (zone.containsCurveWithLabel(curve.getLabel())) {
-//                    it.remove();
-//                }
+                if (zone.contains(curve)) {
+                    it.remove();
+                }
             }
 
             // some of it is wrong due to different objects

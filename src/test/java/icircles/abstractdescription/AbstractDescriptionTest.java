@@ -18,19 +18,14 @@ import static org.hamcrest.CoreMatchers.*;
  */
 public class AbstractDescriptionTest {
 
-//    private AbstractDescription ad1, ad2, ad3;
-//
-//    @Before
-//    public void setUp() {
-//        AbstractCurve.resetIdCounter();
-//        AbstractBasicRegion.clearLibrary();
-//    }
-//
-//    private void manualSetUp() {
-//        ad1 = new AbstractDescription("a ab abc bc ac");
-//        ad2 = new AbstractDescription("abc bc ab ac a");
-//        ad3 = new AbstractDescription("a ad abc bc ac");
-//    }
+    private AbstractDescription ad1, ad2, ad3;
+
+    @Before
+    public void setUp() {
+        ad1 = AbstractDescription.from("a ab abc bc ac");
+        ad2 = AbstractDescription.from("abc bc ab ac a");
+        ad3 = AbstractDescription.from("a ad abc bc ac");
+    }
 //
 //    @Test
 //    public void testConstructorCondition1Valid() {
@@ -140,24 +135,22 @@ public class AbstractDescriptionTest {
 //        assertEquals("a ac ad bc abc", ad3.getInformalDescription());
 //    }
 //
-//    @Test
-//    public void testToString() {
-//        manualSetUp();
-//        assertEquals(ad1.toString(), ad2.toString());
-//        assertNotEquals(ad1.toString(), ad3.toString());
-//
-//        assertEquals("{},{a},{a,b},{a,c},{b,c},{a,b,c}", ad1.toString());
-//        assertEquals("{},{a},{a,b},{a,c},{b,c},{a,b,c}", ad2.toString());
-//        assertEquals("{},{a},{a,c},{a,d},{b,c},{a,b,c}", ad3.toString());
-//    }
-//
-//    @Test
-//    public void testNumZonesIn() {
-//        manualSetUp();
-//        assertEquals(4, ad1.getNumZonesIn(getCurve(ad1, "a")));
-//        assertEquals(3, ad1.getNumZonesIn(getCurve(ad1, "b")));
-//        assertEquals(3, ad1.getNumZonesIn(getCurve(ad1, "c")));
-//    }
+    @Test
+    public void testToString() {
+        assertEquals(ad1.toString(), ad2.toString());
+        assertNotEquals(ad1.toString(), ad3.toString());
+
+        assertEquals("{},{a},{a,b},{a,c},{b,c},{a,b,c}", ad1.toString());
+        assertEquals("{},{a},{a,b},{a,c},{b,c},{a,b,c}", ad2.toString());
+        assertEquals("{},{a},{a,c},{a,d},{b,c},{a,b,c}", ad3.toString());
+    }
+
+    @Test
+    public void testNumZonesIn() {
+        assertEquals(4, ad1.getNumZonesIn(new AbstractCurve("a")));
+        assertEquals(3, ad1.getNumZonesIn(new AbstractCurve("b")));
+        assertEquals(3, ad1.getNumZonesIn(new AbstractCurve("c")));
+    }
 //
 //    @Test
 //    public void testZonesIn() {

@@ -42,7 +42,7 @@ public final class DecomposerFactory {
         return ad -> {
             List<AbstractCurve> result = new ArrayList<>();
 
-            ad.getCurvesUnmodifiable()
+            ad.getCurves()
                     .stream()
                     .reduce((curve1, curve2) -> ad.getNumZonesIn(curve1) <= ad.getNumZonesIn(curve2) ? curve1 : curve2)
                     .ifPresent(result::add);
@@ -52,11 +52,13 @@ public final class DecomposerFactory {
     }
 
     private static DecompositionStrategy alphabetical() {
-        return ad -> Collections.singletonList(ad.getFirstContour());
+        //return ad -> Collections.singletonList(ad.getFirstContour());
+        return null;
     }
 
     private static DecompositionStrategy reverseAlphabetical() {
-        return ad -> Collections.singletonList(ad.getLastContour());
+        //return ad -> Collections.singletonList(ad.getLastContour());
+        return null;
     }
 
     private static DecompositionStrategy piercing() {
@@ -68,7 +70,7 @@ public final class DecomposerFactory {
 
         int bestNZ = Integer.MAX_VALUE;
 
-        for (AbstractCurve curve : ad.getCurvesUnmodifiable()) {
+        for (AbstractCurve curve : ad.getCurves()) {
             if (isPiercingCurve(curve, ad)) {
                 int nz = ad.getNumZonesIn(curve);
                 if (nz < bestNZ) {
@@ -82,7 +84,7 @@ public final class DecomposerFactory {
         }
 
         if (result.isEmpty()) {
-            for (AbstractCurve curve : ad.getCurvesUnmodifiable()) {
+            for (AbstractCurve curve : ad.getCurves()) {
                 int nz = ad.getNumZonesIn(curve);
                 if (nz < bestNZ) {
                     result.clear();
@@ -103,12 +105,12 @@ public final class DecomposerFactory {
         ArrayList<AbstractBasicRegion> zonesInContour = new ArrayList<>();
 
         abrLoop:
-        for (AbstractBasicRegion zone : ad.getZonesUnmodifiable()) {
+        for (AbstractBasicRegion zone : ad.getZones()) {
             if (zone.contains(ac)) {
                 zonesInContour.add(zone);
 
                 // look for a partner zone
-                for (AbstractBasicRegion zone2 : ad.getZonesUnmodifiable()) {
+                for (AbstractBasicRegion zone2 : ad.getZones()) {
                     if (zone.getStraddledContour(zone2).orElse(null) == ac) {
                         continue abrLoop;
                     }
@@ -131,28 +133,28 @@ public final class DecomposerFactory {
                 .orElseThrow(() -> new RuntimeException("There are no zones in given contour"));
 
         // every other zone in ac must be a superset of that zone
-//        for (AbstractBasicRegion zone : zonesInContour) {
-//            for (AbstractCurve curve : smallestZone.getCurvesUnmodifiable()) {
-//                if (!zone.contains(curve)) {
-//                    return false;
-//                }
-//            }
-//        }
+        for (AbstractBasicRegion zone : zonesInContour) {
+            for (AbstractCurve curve : smallestZone.getInSet()) {
+                if (!zone.contains(curve)) {
+                    return false;
+                }
+            }
+        }
 
         // We have 2^n zones which are all supersets of smallestZone.
         // Check that they use exactly n contours from smallestZone.
         Set<AbstractCurve> addedContours = new TreeSet<>();
 
-//        for (AbstractBasicRegion zone : zonesInContour) {
-//            for (AbstractCurve curve : zone.getCurvesUnmodifiable()) {
-//                if (!smallestZone.contains(curve)) {
-//                    addedContours.add(curve);
-//                    if (addedContours.size() > power) {
-//                        return false;
-//                    }
-//                }
-//            }
-//        }
+        for (AbstractBasicRegion zone : zonesInContour) {
+            for (AbstractCurve curve : zone.getInSet()) {
+                if (!smallestZone.contains(curve)) {
+                    addedContours.add(curve);
+                    if (addedContours.size() > power) {
+                        return false;
+                    }
+                }
+            }
+        }
 
         return true;
     }

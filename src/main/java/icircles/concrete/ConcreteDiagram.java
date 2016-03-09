@@ -45,7 +45,7 @@ public class ConcreteDiagram {
         log.info("Final diagram  : " + actual);
 
         this.shadedZones = createShadedZones();
-        this.allZones = actual.getZonesUnmodifiable()
+        this.allZones = actual.getZones()
                 .stream()
                 .map(this::makeConcreteZone)
                 .collect(Collectors.toList());
@@ -70,9 +70,9 @@ public class ConcreteDiagram {
      * @return list of shaded zones
      */
     private List<ConcreteZone> createShadedZones() {
-        List<ConcreteZone> result = actual.getZonesUnmodifiable()
+        List<ConcreteZone> result = actual.getZones()
                 .stream()
-                .filter(zone -> !original.hasLabelEquivalentZone(zone))
+                .filter(zone -> !original.includesZone(zone))
                 .map(this::makeConcreteZone)
                 .collect(Collectors.toList());
 
@@ -92,12 +92,12 @@ public class ConcreteDiagram {
         List<Contour> excludingCircles = new ArrayList<>(circles);
         excludingCircles.addAll(contours);
 
-//        for (AbstractCurve curve : zone.getCurvesUnmodifiable()) {
-//            Contour contour = curveToContour.get(curve);
-//
-//            excludingCircles.remove(contour);
-//            includingCircles.add(contour);
-//        }
+        for (AbstractCurve curve : zone.getInSet()) {
+            Contour contour = curveToContour.get(curve);
+
+            excludingCircles.remove(contour);
+            includingCircles.add(contour);
+        }
 
         return new ConcreteZone(zone, includingCircles, excludingCircles);
     }
@@ -167,7 +167,7 @@ public class ConcreteDiagram {
 
     public ConcreteZone getOutsideZone() {
         return allZones.stream()
-                //.filter(z -> z.getAbstractZone() == AbstractBasicRegion.OUTSIDE)
+                .filter(z -> z.getAbstractZone() == AbstractBasicRegion.OUTSIDE)
                 .findAny()
                 .get();
     }
@@ -226,7 +226,7 @@ public class ConcreteDiagram {
         Map<AbstractCurve, List<CircleContour> > duplicates = new TreeMap<>();
         groups.forEach((label, contours) -> {
             if (contours.size() > 1)
-                duplicates.put(actual.getCurveByLabel(label).get(), contours);
+                duplicates.put(new AbstractCurve(label), contours);
         });
 
         return duplicates;
