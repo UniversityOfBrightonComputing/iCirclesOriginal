@@ -153,6 +153,10 @@ public class BetterDiagramCreator extends DiagramCreator {
 
     // a b c d e ab bc cd de , af ef  - new algorithm case
 
+    // a b c ab d e bc g af cd de df ef dg eg - split because 3 zones but connected
+
+    // a ac abc b - fails coz above
+
     @Override
     public ConcreteDiagram createDiagram(AbstractDescription description, int size) throws CannotDrawException {
         original = description;

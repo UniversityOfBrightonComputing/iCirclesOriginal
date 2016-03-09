@@ -68,6 +68,6 @@ public final class RecompositionStep {
 
     @Override
     public String toString() {
-        return "R_Step[From=" + from + " To=" + to + " Data=" + addedContourData + "]";
+        return "R_Step[Data=" + addedContourData + ",From=" + from + " To=" + to + "]";
     }
 }

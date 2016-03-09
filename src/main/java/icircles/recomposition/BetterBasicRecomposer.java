@@ -41,7 +41,7 @@ public class BetterBasicRecomposer extends BasicRecomposer {
         while (moved_it.hasNext()) {
             AbstractBasicRegion moved = moved_it.next();
 
-            System.out.println("Moved: " + moved);
+            //System.out.println("Moved: " + moved);
 
             AbstractBasicRegion to_split = matchedZones.get(moved);
 
@@ -64,7 +64,8 @@ public class BetterBasicRecomposer extends BasicRecomposer {
 
         log.debug("Zones to split (ORIGINAL): " + zonesToSplit);
 
-        if (zonesToSplit.size() >= 2 && !zonesToSplit.get(0).getStraddledContour(zonesToSplit.get(1)).isPresent()) {
+        if (zonesToSplit.size() >= 2 && !zonesToSplit.get(0).getStraddledContour(zonesToSplit.get(1)).isPresent()
+                /*|| zonesToSplit.size() == 3*/) {
             AbstractDualGraph graph = new AbstractDualGraph(new ArrayList<>(from.getZones()));
 
             List<AbstractDualNode> nodesToSplit = new ArrayList<>();
@@ -72,8 +73,35 @@ public class BetterBasicRecomposer extends BasicRecomposer {
             for (int i = 0; i < zonesToSplit.size(); i++) {
                 int j = i + 1 < zonesToSplit.size() ? i + 1 : 0;
 
+                AbstractBasicRegion zone1 = zonesToSplit.get(i);
+                AbstractBasicRegion zone2 = zonesToSplit.get(j);
+
+                // TODO: this fixes 3 zones
+//                if (i == 0 && zone1.equals(AbstractBasicRegion.OUTSIDE)) {
+//                    nodesToSplit.add(graph.getNodeByZone(zonesToSplit.get(i)));
+//                    graph.removeNode(graph.getNodeByZone(zonesToSplit.get(i)));
+//                    continue;
+//                } else if (j == 0 && zone2.equals(AbstractBasicRegion.OUTSIDE)) {
+//                    break;
+//                }
+
+
+                log.debug("Searching path zones: " + zonesToSplit.get(i) + " " + zonesToSplit.get(j));
+
                 AbstractDualNode node1 = graph.getNodeByZone(zonesToSplit.get(i));
                 AbstractDualNode node2 = graph.getNodeByZone(zonesToSplit.get(j));
+
+//                if (graph.isAdjacent(node1, node2)) {
+//                    nodesToSplit.add(node1);
+//                    //nodesToSplit.add(node2);
+//
+//                    graph.removeEdge(graph.getEdge(node1, node2));
+//
+//                    if (i != 0) {
+//                        graph.removeNode(node1);
+//                    }
+//                    continue;
+//                }
 
                 try {
                     List<AbstractDualNode> nodePath = graph.findShortestVertexPath(node1, node2);
@@ -113,11 +141,9 @@ public class BetterBasicRecomposer extends BasicRecomposer {
             zonesToSplit = nodesToSplit.stream()
                     .map(AbstractDualNode::getZone)
                     .collect(Collectors.toList());
-
-            log.debug("Zones to split: " + zonesToSplit);
         }
 
-
+        log.debug("Zones to split (FIXED): " + zonesToSplit);
 
 
 
@@ -125,7 +151,7 @@ public class BetterBasicRecomposer extends BasicRecomposer {
         List<Cluster> clusters = new ArrayList<>();
         clusters.add(new Cluster(zonesToSplit.toArray(new AbstractBasicRegion[0])));
 
-        System.out.println(clusters);
+        //System.out.println(clusters);
 
 
 
@@ -170,6 +196,7 @@ public class BetterBasicRecomposer extends BasicRecomposer {
     }
 
     private boolean isMultiPiercing(List<AbstractDualNode> nodes) {
+        // TODO: essentially check if one zone is nested in another recursively
         return true;
     }
 }

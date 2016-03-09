@@ -313,8 +313,12 @@ public class AbstractDualGraph {
                 .collect(Collectors.toList());
     }
 
-    private boolean isAdjacent(AbstractDualNode node1, AbstractDualNode node2) {
+    public boolean isAdjacent(AbstractDualNode node1, AbstractDualNode node2) {
         return graph.getEdge(node1, node2) != null;
+    }
+
+    public AbstractDualEdge getEdge(AbstractDualNode node1, AbstractDualNode node2) {
+        return graph.getEdge(node1, node2);
     }
 
     private Optional<AbstractBasicRegion> getMissingZone(AbstractBasicRegion zone1, AbstractBasicRegion zone2, AbstractBasicRegion sameZone, Set<AbstractBasicRegion> zones) {
