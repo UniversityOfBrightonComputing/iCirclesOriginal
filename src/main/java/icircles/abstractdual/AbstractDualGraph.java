@@ -57,6 +57,10 @@ public class AbstractDualGraph {
         }
     }
 
+//    public boolean isConnected(List<AbstractDualNode> subGraph) {
+//        return subGraph.stream().anyMatch(n -> graph.degreeOf(n) == 0);
+//    }
+
     public AbstractDualNode getNodeByZone(AbstractBasicRegion zone) {
         for (AbstractDualNode node : getNodes()) {
             if (node.getZone() == zone)
@@ -157,7 +161,7 @@ public class AbstractDualGraph {
     public AbstractDualEdge getLowDegreeEdge() {
         log.trace("Graph: " + graph);
 
-        // find a lowest-degree vertex, and from that ...
+        // find the lowest-degree vertex, and from that ...
         Optional<AbstractDualNode> lowestDegreeNode = graph.vertexSet()
                 .stream()
                 .filter(node -> graph.degreeOf(node) != 0)  // ignore isolated nodes when picking a low-degree edge

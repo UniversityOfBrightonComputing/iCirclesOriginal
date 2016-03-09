@@ -121,8 +121,12 @@ public class DiagramCreator {
         makeGuideSizes();
 
         circles = new ArrayList<>();
-        createCircles();
 
+        try {
+            createCircles();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return new ConcreteDiagram(getInitialDiagram(), getFinalDiagram(), circles, curveToContour, size, paths.toArray(new PathContour[0]));
     }
 

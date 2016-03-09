@@ -70,7 +70,11 @@ public class Controller {
         for (DecompositionStrategyType dType : DecompositionStrategyType.values()) {
             RadioMenuItem item = new RadioMenuItem(dType.getUiName());
             item.setToggleGroup(decompositionToggle);
-            item.setSelected(true);
+
+            if (dType == DecompositionStrategyType.INNERMOST) {
+                item.setSelected(true);
+            }
+
             item.setUserData(dType);
 
             drTypes.getItems().add(item);

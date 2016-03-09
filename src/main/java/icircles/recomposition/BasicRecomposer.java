@@ -140,7 +140,9 @@ public class BasicRecomposer implements Recomposer {
             List<AbstractBasicRegion> splitZones = new ArrayList<>();
             List<AbstractBasicRegion> addedZones = new ArrayList<>();
 
-            AbstractCurve newCurve = (i > 0) ? removedCurve.split() : new AbstractCurve(removedCurve.getLabel());
+            //AbstractCurve newCurve = (i > 0) ? removedCurve.split() : new AbstractCurve(removedCurve.getLabel());
+
+            AbstractCurve newCurve = new AbstractCurve(removedCurve.getLabel());
             newCurveSet.add(newCurve);
 
             for (AbstractBasicRegion z : cluster.zones()) {

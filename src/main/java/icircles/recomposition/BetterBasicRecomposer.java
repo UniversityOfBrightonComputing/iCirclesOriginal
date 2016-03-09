@@ -75,21 +75,38 @@ public class BetterBasicRecomposer extends BasicRecomposer {
                 AbstractDualNode node1 = graph.getNodeByZone(zonesToSplit.get(i));
                 AbstractDualNode node2 = graph.getNodeByZone(zonesToSplit.get(j));
 
-                List<AbstractDualNode> nodePath = graph.findShortestVertexPath(node1, node2);
+                try {
+                    List<AbstractDualNode> nodePath = graph.findShortestVertexPath(node1, node2);
 
-                nodesToSplit.addAll(nodePath);
-                nodesToSplit.remove(node2);
+                    log.debug("Found path between " + node1 + " and " + node2 + " Path: " + nodePath);
 
-                // if first, we keep it
-                if (i == 0) {
-                    nodePath.remove(node1);
+                    nodesToSplit.addAll(nodePath);
+                    nodesToSplit.remove(node2);
+
+                    // if first, we keep it
+                    if (i == 0) {
+                        nodePath.remove(node1);
+                    }
+
+                    nodePath.remove(node2);
+
+                    // remove visited edges and nodes
+                    graph.findShortestEdgePath(node1, node2).forEach(graph::removeEdge);
+                    nodePath.forEach(graph::removeNode);
+                } catch (Exception e) {
+
+                    if (j == 0) {
+                        // we know nodes are connected with a single chain, NOT a cycle
+                        if (isMultiPiercing(nodesToSplit)) {
+
+                            nodesToSplit.add(node1);
+
+                            break;
+                        }
+                    } else {
+                        throw new RuntimeException(e.getMessage() + " Failed to chain: " + nodesToSplit);
+                    }
                 }
-
-                nodePath.remove(node2);
-
-                // remove visited edges and nodes
-                graph.findShortestEdgePath(node1, node2).forEach(graph::removeEdge);
-                nodePath.forEach(graph::removeNode);
             }
 
 
@@ -150,5 +167,9 @@ public class BetterBasicRecomposer extends BasicRecomposer {
         AbstractDescription to = new AbstractDescription(newCurveSet, newZoneSet);
 
         return new RecompositionStep(from, to, addedContourData);
+    }
+
+    private boolean isMultiPiercing(List<AbstractDualNode> nodes) {
+        return true;
     }
 }
