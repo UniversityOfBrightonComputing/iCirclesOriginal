@@ -63,7 +63,7 @@ public class AbstractDualGraph {
 
     public AbstractDualNode getNodeByZone(AbstractBasicRegion zone) {
         for (AbstractDualNode node : getNodes()) {
-            if (node.getZone() == zone)
+            if (node.getZone().equals(zone))
                 return node;
         }
 

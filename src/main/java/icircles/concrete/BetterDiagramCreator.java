@@ -151,7 +151,7 @@ public class BetterDiagramCreator extends DiagramCreator {
         return original;
     }
 
-    // a b c d e ab bc cd de , af ef  - new algorithm case
+    // a b c d e ab bc cd de af ef  - new algorithm case
 
     // a b c ab d e bc g af cd de df ef dg eg - split because 3 zones but connected
 
@@ -168,6 +168,7 @@ public class BetterDiagramCreator extends DiagramCreator {
 
         return super.createDiagram(rs.get(rs.size() - 1).to(), size);
         //return createDiagramConcrete(description, size);
+        //return createDiagramConcrete(rs.get(rs.size() - 1).to(), size);
     }
 
     public ConcreteDiagram createDiagramConcrete(AbstractDescription description, int size) throws CannotDrawException {
@@ -184,6 +185,9 @@ public class BetterDiagramCreator extends DiagramCreator {
 
 
             AbstractDescription ad = cd.getActualDescription();
+
+            log.debug("Actual Description: " + ad);
+
             List<AbstractBasicRegion> zones = ad.getZones().stream()
                     .filter(z -> z.contains(curve))
                     .collect(Collectors.toList());
@@ -197,9 +201,6 @@ public class BetterDiagramCreator extends DiagramCreator {
             log.debug("Zones that will be in " + curve + ":" + zones.toString());
 
             AbstractDualGraph graph = new AbstractDualGraph(new ArrayList<>(ad.getZones()));
-
-            // TODO: let's assume we found nodes which need to be connected to get a connected graph
-
             //graph.removeNode(graph.getNodeByZone(AbstractBasicRegion.OUTSIDE));
 
             List<AbstractDualNode> nodesToSplit = new ArrayList<>();
@@ -207,10 +208,26 @@ public class BetterDiagramCreator extends DiagramCreator {
             for (int i = 0; i < zones.size(); i++) {
                 int j = i + 1 < zones.size() ? i + 1 : 0;
 
+                AbstractBasicRegion zone1 = zones.get(i);
+                AbstractBasicRegion zone2 = zones.get(j);
+
+                log.debug("Searching path zones: " + zones.get(i) + " " + zones.get(j));
+
+//                //TODO: this fixes 3 zones
+//                if (i == 0 && zone1.equals(AbstractBasicRegion.OUTSIDE)) {
+//                    nodesToSplit.add(graph.getNodeByZone(zones.get(i)));
+//                    graph.removeNode(graph.getNodeByZone(zones.get(i)));
+//                    continue;
+//                } else if (j == 0 && zone2.equals(AbstractBasicRegion.OUTSIDE)) {
+//                    break;
+//                }
+
                 AbstractDualNode node1 = graph.getNodeByZone(zones.get(i));
                 AbstractDualNode node2 = graph.getNodeByZone(zones.get(j));
 
                 List<AbstractDualNode> nodePath = graph.findShortestVertexPath(node1, node2);
+
+                log.debug("Found path between " + node1 + " and " + node2 + " Path: " + nodePath);
 
                 nodesToSplit.addAll(nodePath);
                 nodesToSplit.remove(node2);
@@ -226,25 +243,6 @@ public class BetterDiagramCreator extends DiagramCreator {
                 graph.findShortestEdgePath(node1, node2).forEach(graph::removeEdge);
                 nodePath.forEach(graph::removeNode);
             }
-
-
-//            AbstractBasicRegion zoneStart = zones.get(0);
-//            AbstractBasicRegion zoneTarget = zones.get(1);
-//
-//            AbstractDualNode nodeStart = null, nodeTarget = null;
-//
-//            for (AbstractDualNode node : graph.getNodes()) {
-//                if (node.getZone() == zoneStart) {
-//                    nodeStart = node;
-//                } else if (node.getZone() == zoneTarget) {
-//                    nodeTarget = node;
-//                }
-//            }
-
-//            List<AbstractBasicRegion> zonesToSplit = graph.findCycle(nodeStart, nodeTarget)
-//                    .stream()
-//                    .map(AbstractDualNode::getZone)
-//                    .collect(Collectors.toList());
 
             List<AbstractBasicRegion> zonesToSplit = nodesToSplit.stream()
                     .map(AbstractDualNode::getZone)
@@ -377,7 +375,6 @@ public class BetterDiagramCreator extends DiagramCreator {
                 }
             }
 
-            // some of it is wrong due to different objects
             for (AbstractBasicRegion zone : zonesToSplit) {
                 newZones.add(zone.moveInside(curve));
             }
