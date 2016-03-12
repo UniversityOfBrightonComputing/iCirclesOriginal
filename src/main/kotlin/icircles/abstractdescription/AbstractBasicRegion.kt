@@ -11,6 +11,9 @@ import java.util.stream.Stream
  */
 data class AbstractBasicRegion(private val inSetInternal: Set<AbstractCurve>) : Comparable<AbstractBasicRegion> {
 
+//    constructor(curves: String) : this(curves.map { AbstractCurve(it.toString()) }.toSet()) {
+//    }
+
     val inSet: SortedSet<AbstractCurve>
 
     init {
