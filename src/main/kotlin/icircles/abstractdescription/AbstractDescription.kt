@@ -10,12 +10,21 @@ import java.util.stream.Collectors
  */
 data class AbstractDescription(private val curvesInternal: Set<AbstractCurve>, private val zonesInternal: Set<AbstractBasicRegion>) {
 
-    val curves: Set<AbstractCurve>
-    val zones: Set<AbstractBasicRegion>
+//    val curves: Set<AbstractCurve>
+//    val zones: Set<AbstractBasicRegion>
+//
+//    init {
+//        curves = Collections.unmodifiableSet(curvesInternal)
+//        zones = Collections.unmodifiableSet(zonesInternal)
+//    }
+
+
+    val curves: SortedSet<AbstractCurve>
+    val zones: SortedSet<AbstractBasicRegion>
 
     init {
-        curves = Collections.unmodifiableSet(curvesInternal)
-        zones = Collections.unmodifiableSet(zonesInternal)
+        curves = Collections.unmodifiableSortedSet(curvesInternal.toSortedSet())
+        zones = Collections.unmodifiableSortedSet(zonesInternal.toSortedSet())
     }
 
     fun getNumZonesIn(curve: AbstractCurve) = zones.filter { it.contains(curve) }.count()

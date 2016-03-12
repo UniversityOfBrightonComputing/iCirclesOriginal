@@ -51,15 +51,23 @@ public class AbstractDualGraph {
 
                     graph.addEdge(e.from, e.to, e);
 
-                    System.out.println("Adding edge: from, to" + n + " " + n2 + " " + e);
+                    //System.out.println("Adding edge: from, to" + n + " " + n2 + " " + e);
                 });
             }
         }
     }
 
-//    public boolean isConnected(List<AbstractDualNode> subGraph) {
-//        return subGraph.stream().anyMatch(n -> graph.degreeOf(n) == 0);
-//    }
+    private AbstractDualGraph(Set<AbstractDualNode> nodes, Set<AbstractDualEdge> edges) {
+        nodes.forEach(graph::addVertex);
+        edges.forEach(e -> graph.addEdge(e.from, e.to, e));
+    }
+
+    /**
+     * @return true iff this graph is connected
+     */
+    public boolean isConnected() {
+        return getNodes().size() <= 1 || !getNodes().stream().anyMatch(n -> graph.degreeOf(n) == 0);
+    }
 
     public AbstractDualNode getNodeByZone(AbstractBasicRegion zone) {
         for (AbstractDualNode node : getNodes()) {
@@ -134,6 +142,17 @@ public class AbstractDualGraph {
 
         //result.add(target);
         return result;
+    }
+
+    public List<AbstractDualNode> findShortestVertexPath(AbstractDualNode start, AbstractDualNode target, List<AbstractDualNode> busy) {
+        Set<AbstractDualNode> nodes = new HashSet<>(getNodes());    // copy to be sure
+        nodes.removeAll(busy);
+
+        return new AbstractDualGraph(nodes, graph.edgeSet()
+                .stream()
+                .filter(e -> nodes.contains(e.from) && nodes.contains(e.to))
+                .collect(Collectors.toSet()))
+                .findShortestVertexPath(start, target);
     }
 
     public List<AbstractDualNode> findCycle(AbstractDualNode start, AbstractDualNode target) {

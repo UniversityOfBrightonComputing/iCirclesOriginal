@@ -89,29 +89,6 @@ public class BetterDiagramCreator extends DiagramCreator {
 //                log.trace(outsideShape.contains(center) + " " + outsideShape.contains(new Point2D(center.getX(), 550)));
 //
 //            }
-
-
-
-        // a b c ab bc abd bcd
-        // a b c ab ag ah bh cf cg agy cgy
-        // a b c ab ag ah ax az bh cf cg yz cgx
-        // a b c ab bc bd cd abe bcd bce
-
-        // t at bt ct ft abt agt aht bht cft cgt tyz agty atyz cftx cgtx cgty ctyz
-
-        // Examples where wrong
-
-        // a b c d ab ac bc bd be bf cd cf de abc - 2pierce disjoint
-
-        // y Ac Af bc bd bj cf cl de fh hi hq ik iy ky Acf Acl abc bfg fhz hiz - encloses region it shouldnt
-        // b c g h q ab ag ah aq adg adh adq - NPE
-
-        // a b c d e f ac ae bc be ce acf bce bcf bde - not enough covered (doesnot know what to do because it cant draw > 4)
-
-        // a b d ac bc ce bcd bde - when both paths are short need to choose better one
-        // a c ab bc cd cf df abc abf ace cde
-        // a b c ab ag ah bh cf cg hz yz agy cgy
-        // p q pr ps qr qs rs rt prt qrt rst
     }
 
     private ConcreteDiagram removeCurveFromDiagram(AbstractCurve curve, ConcreteDiagram diagram, int size) {
@@ -151,11 +128,34 @@ public class BetterDiagramCreator extends DiagramCreator {
         return original;
     }
 
+    // GOOD
     // a b c d e ab bc cd de af ef  - new algorithm case
+    // a e abc abcd abcde
+    // a ac abc b
+    // a b d ac bc bcd
+    // a b c ab bc abd bcd
+    // a b c ab ag ah bh cf cg agy cgy
+    // a b c ab ag ah ax az bh cf cg yz cgx
+    // a b c ab bc bd cd abe bcd bce
 
-    // a b c ab d e bc g af cd de df ef dg eg - split because 3 zones but connected
 
-    // a ac abc b - fails coz above
+    // BAD
+    // a b c d e g ab af bc cd de df ef dg eg - too many
+    // a b c ab d e bc g af cd de eg afg - weird looking
+    // t at bt ct ft abt agt aht bht cft cgt tyz agty atyz cftx cgtx cgty ctyz - no free nodes
+    // a b c d ab ac bc bd be bf cd cf de abc - no free nodes
+    // y Ac Af bc bd bj cf cl de fh hi hq ik iy ky Acf Acl abc bfg fhz hiz - no free nodes
+    // a b ab c ac bc abc p q pq r pr qr pqr x bx px
+
+    // b c g h q ab ag ah aq adg adh adq - 2piercing + disjoint
+    // a b c d e f ac ae bc be ce acf bce bcf bde - not enough covered (doesnot know what to do because it cant draw > 4) no free nodes
+
+    // a b d ac bc ce bcd bde - when both paths are short need to choose better one, failed to find path ?
+    // a c ab bc cd cf df abc abf ace cde - no free nodes
+
+    // a b c ab ag ah bh cf cg hz yz agy cgy - double piercing on non int
+    // p q pr ps qr qs rs rt prt qrt rst - 2piercing + disjoint - topological adjacency corrupted
+
 
     @Override
     public ConcreteDiagram createDiagram(AbstractDescription description, int size) throws CannotDrawException {
