@@ -207,7 +207,10 @@ public class BetterBasicRecomposer extends BasicRecomposer {
 
     private boolean isCycle(List<AbstractBasicRegion> zones) {
         // TODO: check cycle
-        //return zones.size() == 4;
-        return false;
+        // NPE produce if none
+        if (zones.size() == 4)
+            return new AbstractDualGraph(zones).getFourTuple().stream().filter(n -> !zones.contains(n.getZone())).count() == 0;
+        else
+            return false;
     }
 }

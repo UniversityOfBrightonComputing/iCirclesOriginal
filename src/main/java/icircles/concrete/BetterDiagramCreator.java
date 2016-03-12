@@ -141,16 +141,17 @@ public class BetterDiagramCreator extends DiagramCreator {
 
     // BAD
     // a b c d e g ab af bc cd de df ef dg eg - too many
-    // a b c ab d e bc g af cd de eg afg - weird looking
-    // t at bt ct ft abt agt aht bht cft cgt tyz agty atyz cftx cgtx cgty ctyz - no free nodes
+    // a b c ab d e bc g af cd de eg afg - weird looking (disconnected zone)
+    // t at bt ct ft abt agt aht bht cft cgt tyz agty atyz cftx cgtx cgty ctyz - no free nodes no fit
     // a b c d ab ac bc bd be bf cd cf de abc - no free nodes
-    // y Ac Af bc bd bj cf cl de fh hi hq ik iy ky Acf Acl abc bfg fhz hiz - no free nodes
+    // y Ac Af bc bd bj cf cl de fh hi hq ik iy ky Acf Acl abc bfg fhz hiz - no free nodes (cannot fit)
     // a b ab c ac bc abc p q pq r pr qr pqr x bx px
 
     // b c g h q ab ag ah aq adg adh adq - 2piercing + disjoint
     // a b c d e f ac ae bc be ce acf bce bcf bde - not enough covered (doesnot know what to do because it cant draw > 4) no free nodes
 
-    // a b d ac bc ce bcd bde - when both paths are short need to choose better one, failed to find path ?
+    // fails in original icircles
+    // a b d ac bc ce bcd bde - when both paths are short need to choose better one, failed to find path ? 1piercing no fit
     // a c ab bc cd cf df abc abf ace cde - no free nodes
 
     // a b c ab ag ah bh cf cg hz yz agy cgy - double piercing on non int
