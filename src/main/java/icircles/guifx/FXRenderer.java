@@ -1,6 +1,7 @@
 package icircles.guifx;
 
 import icircles.concrete.*;
+import icircles.graph.EulerDualGraph;
 import icircles.gui.Renderer;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
@@ -15,6 +16,7 @@ import javafx.scene.shape.Shape;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Almas Baimagambetov (AlmasB) (almaslvl@gmail.com)
@@ -79,6 +81,12 @@ public class FXRenderer extends Pane implements Renderer {
         for (PathContour contour : diagram.getContours()) {
             freeRoot.getChildren().addAll(contour.getShape());
         }
+
+
+        EulerDualGraph dual = new EulerDualGraph(diagram);
+        drawPoints(dual.getNodes().stream().map(n -> n.getZone().getCenter()).collect(Collectors.toList()));
+
+        dual.getEdges().forEach(q -> freeRoot.getChildren().addAll(q));
     }
 
     private void drawShadedZone(ConcreteZone zone, Rectangle bbox) {
@@ -147,6 +155,12 @@ public class FXRenderer extends Pane implements Renderer {
         };
 
         g.strokePolygon(xPoints, yPoints, xPoints.length);
+    }
+
+    private void drawPoints(List<Point2D> points) {
+        points.forEach(p -> {
+            g.fillOval(p.getX() - 5, p.getY() - 5, 10, 10);
+        });
     }
 
     private void clearRenderer() {

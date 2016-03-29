@@ -247,6 +247,8 @@ public class Controller {
         currentDescription = description;
         int size = (int) Math.min(renderer.getWidth(), renderer.getHeight());
 
+        //System.out.println(size);
+
         Task<ConcreteDiagram> task = new CreateDiagramTask(description, size);
 
         Thread t = new Thread(task);
@@ -310,19 +312,23 @@ public class Controller {
             // TODO: handle any drawing errors
             ConcreteDiagram diagram = getValue();
 
-            renderer.draw(diagram);
+            try {
+                renderer.draw(diagram);
 
-            // highlighting
-            renderer.getShadedZones().forEach(zone -> {
-                zone.setOnMouseEntered(e -> {
-                    ((Shape)zone).setFill(Color.YELLOW);
-                    areaInfo.setText(((ConcreteZone)zone.getUserData()).toDebugString());
-                });
+                // highlighting
+                renderer.getShadedZones().forEach(zone -> {
+                    zone.setOnMouseEntered(e -> {
+                        ((Shape) zone).setFill(Color.YELLOW);
+                        areaInfo.setText(((ConcreteZone) zone.getUserData()).toDebugString());
+                    });
 
-                zone.setOnMouseExited(e -> {
-                    ((Shape)zone).setFill(Color.TRANSPARENT);
+                    zone.setOnMouseExited(e -> {
+                        ((Shape) zone).setFill(Color.TRANSPARENT);
+                    });
                 });
-            });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
             progressDialog.hide();
         }

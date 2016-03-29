@@ -84,7 +84,8 @@ public class ConcreteZone {
 //    }
 
     public Shape getShape() {
-        Shape shape = new javafx.scene.shape.Rectangle(1000, 1000);
+        //Shape shape = new javafx.scene.shape.Rectangle(1000, 1000);
+        Shape shape = new javafx.scene.shape.Rectangle(600, 600);
 
         for (Contour contour : getContainingContours()) {
             shape = Shape.intersect(shape, contour.getShape());
@@ -122,12 +123,15 @@ public class ConcreteZone {
         Point2D center = new Point2D(minX + width / 2, minY + height / 2);
         Point2D newCenter = center;
 
-        int step = 10;
+        // this regulates preciseness
+        int step = 1;
 
         Point2D delta = new Point2D(step, 0);
         int i = 0;
 
-        while (!shape.contains(newCenter)) {
+        int safetyCount = 0;
+
+        while (!shape.contains(newCenter) && safetyCount < 100) {
             newCenter = center.add(delta);
             i++;
 
@@ -160,9 +164,49 @@ public class ConcreteZone {
                 delta = new Point2D(step, 0);
                 step *= 2;
             }
+
+            safetyCount++;
+        }
+
+        if (safetyCount == 100) {
+            System.out.println("Failed to find center");
+            return center;
         }
 
         return newCenter;
+    }
+
+    public boolean isTopologicallyAdjacent(ConcreteZone other) {
+        if (zone.getStraddledContour(other.zone).isPresent()) {
+            Shape shape2 = other.getShape();
+
+            shape2.setTranslateX(shape2.getTranslateX() - 5);
+
+            if (intersects(shape2)) {
+                return true;
+            }
+
+            shape2.setTranslateX(shape2.getTranslateX() + 10);
+
+            if (intersects(shape2)) {
+                return true;
+            }
+
+            shape2.setTranslateX(shape2.getTranslateX() - 5);
+            shape2.setTranslateY(shape2.getTranslateY() - 5);
+
+            if (intersects(shape2)) {
+                return true;
+            }
+
+            shape2.setTranslateY(shape2.getTranslateY() + 10);
+
+            if (intersects(shape2)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public String toDebugString() {
