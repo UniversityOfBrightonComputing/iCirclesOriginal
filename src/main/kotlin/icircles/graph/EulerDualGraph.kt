@@ -3,11 +3,10 @@ package icircles.graph
 import icircles.abstractdescription.AbstractCurve
 import icircles.concrete.CircleContour
 import icircles.concrete.ConcreteDiagram
+import icircles.graph.elem.GraphHandling
 import javafx.geometry.Point2D
 import javafx.scene.paint.Color
-import javafx.scene.shape.CubicCurve
-import javafx.scene.shape.QuadCurve
-import javafx.scene.shape.Shape
+import javafx.scene.shape.*
 import java.util.*
 
 /**
@@ -19,6 +18,7 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
 
     val nodes = ArrayList<EulerDualNode>()
     val edges = ArrayList<EulerDualEdge>()
+    val cycles = ArrayList<ArrayList<EulerDualNode> >()
 
     init {
         diagram.allZones
@@ -125,7 +125,8 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
                         c.controlY2 = 50.0
 
                         //edges.add(q)
-                        edges.add(EulerDualEdge(node1, node2, c))
+                        // TODO: fix cubic curve
+                        //edges.add(EulerDualEdge(node1, node2, c))
                     } else {
                         edges.add(EulerDualEdge(node1, node2, q))
                     }
@@ -136,7 +137,50 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
                 j++
             }
         }
+
+        // ENUMERATE ALL VALID CYCLES
+
+        val graph = GraphHandling()
+        nodes.forEach { graph.addVertex(it) }
+        edges.forEach { graph.addEdge(it.v1, it.v2, it) }
+
+        graph.computeCycles().filter { cycle ->
+            val path = Path()
+            val moveTo = MoveTo(cycle.nodes.get(0).zone.center.x, cycle.nodes.get(0).zone.center.y)
+            path.elements.addAll(moveTo)
+
+            tmpPoint = cycle.nodes.get(0).zone.center
+
+            cycle.edges.map { it.curve }.forEach { q ->
+                val quadCurveTo = QuadCurveTo()
+
+                // we do this coz source and end vertex might be swapped
+                if (tmpPoint == Point2D(q.startX, q.startY)) {
+                    quadCurveTo.x = q.endX
+                    quadCurveTo.y = q.endY
+                } else {
+                    quadCurveTo.x = q.startX
+                    quadCurveTo.y = q.startY
+                }
+
+                tmpPoint = Point2D(quadCurveTo.x, quadCurveTo.y)
+
+                quadCurveTo.controlX = q.getControlX()
+                quadCurveTo.controlY = q.getControlY()
+
+                path.elements.addAll(quadCurveTo)
+            }
+
+            path.elements.add(ClosePath())
+            path.fill = Color.TRANSPARENT
+
+
+            return@filter nodes.filter { !cycle.nodes.contains(it) }.none { path.contains(it.zone.center) }
+        }
+        .forEach { println(it) }
     }
+
+    private var tmpPoint = Point2D.ZERO
 
     fun isOK(q: QuadCurve, actual: AbstractCurve, curves: List<CircleContour>): Boolean {
         val list = curves.filter {

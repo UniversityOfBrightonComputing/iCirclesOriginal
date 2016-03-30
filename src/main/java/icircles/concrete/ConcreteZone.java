@@ -107,6 +107,8 @@ public class ConcreteZone {
         return intersects(other.getShape());
     }
 
+    private Point2D center = null;
+
     /**
      * TODO: computation is based on BBOX but shape can be non-regular.
      * Hence point may not be within zone at all.
@@ -114,6 +116,10 @@ public class ConcreteZone {
      * @return center point of this concrete zone in 2D space
      */
     public Point2D getCenter() {
+        if (center != null) {
+            return center;
+        }
+
         Shape shape = getShape();
         shape.setFill(Color.RED);
 
@@ -145,7 +151,10 @@ public class ConcreteZone {
                     if (Shape.subtract(circle, shape).getLayoutBounds().isEmpty()) {
                         System.out.println("Found! " + zone + " radius: " + radius +
                             " point: " + new Point2D(x + radius, y + radius));
-                        return new Point2D(x + radius, y + radius);
+
+                        center = new Point2D(x + radius, y + radius);
+
+                        return center;
                     }
                 }
             }
@@ -159,7 +168,9 @@ public class ConcreteZone {
 
         System.out.println("Failed to find circle: " + zone);
 
-        return getCenterOld();
+        center = getCenterOld();
+
+        return center;
     }
 
     private Point2D getCenterOld() {
