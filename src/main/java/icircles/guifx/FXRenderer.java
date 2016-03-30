@@ -9,6 +9,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
@@ -83,11 +84,66 @@ public class FXRenderer extends Pane implements Renderer {
         }
 
 
+
         EulerDualGraph dual = new EulerDualGraph(diagram);
         drawPoints(dual.getNodes().stream().map(n -> n.getZone().getCenter()).collect(Collectors.toList()));
+        dual.getEdges().forEach(e -> freeRoot.getChildren().addAll(e.getCurve()));
 
-        dual.getEdges().forEach(q -> freeRoot.getChildren().addAll(q));
+
+
+//        dual.getEdges().forEach(q -> {
+//            Point2D center1 = q.getV1().getZone().getCenter();
+//            Point2D center2 = q.getV2().getZone().getCenter();
+//
+//            MovablePoint p1 = new MovablePoint(center1.getX(), center1.getY());
+//            MovablePoint p2 = new MovablePoint(center2.getX(), center2.getY());
+//
+//            q.getCurve().startXProperty().bind(p1.layoutXProperty());
+//            q.getCurve().startYProperty().bind(p1.layoutYProperty());
+//            q.getCurve().endXProperty().bind(p2.layoutXProperty());
+//            q.getCurve().endYProperty().bind(p2.layoutYProperty());
+//
+//            freeRoot.getChildren().addAll(q.getCurve(), p1, p2);
+//        });
     }
+
+
+
+    private class MovablePoint extends StackPane {
+        private double mouseX, mouseY;
+        private double oldX, oldY;
+
+        public MovablePoint(double x, double y) {
+            relocate(x, y);
+
+            oldX = x;
+            oldY = y;
+
+            Circle c = new Circle(5, Color.RED);
+            c.setCenterX(5);
+            c.setCenterY(5);
+
+            getChildren().addAll(c);
+
+            setOnMousePressed(e -> {
+                mouseX = e.getSceneX();
+                mouseY = e.getSceneY();
+            });
+
+            setOnMouseDragged(e -> {
+                relocate(e.getSceneX() - mouseX + oldX, e.getSceneY() - mouseY + oldY);
+            });
+
+            setOnMouseReleased(e -> {
+                oldX = getLayoutX();
+                oldY = getLayoutY();
+            });
+        }
+    }
+
+
+
+
 
     private void drawShadedZone(ConcreteZone zone, Rectangle bbox) {
         Shape shape = bbox;
@@ -158,8 +214,10 @@ public class FXRenderer extends Pane implements Renderer {
     }
 
     private void drawPoints(List<Point2D> points) {
+        double r = 5;
+
         points.forEach(p -> {
-            g.fillOval(p.getX() - 5, p.getY() - 5, 10, 10);
+            g.fillOval(p.getX() - r / 2, p.getY() - r / 2, r, r);
         });
     }
 

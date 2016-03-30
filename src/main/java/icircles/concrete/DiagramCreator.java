@@ -15,6 +15,8 @@ import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
 import javafx.scene.shape.QuadCurve;
 import javafx.scene.shape.QuadCurveTo;
+import javafx.scene.transform.Scale;
+import javafx.scene.transform.Translate;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -605,6 +607,8 @@ public class DiagramCreator {
                 .collect(Collectors.toList());
 
         PathContour contour = makePathContour(rd.getAddedCurve(), points);
+        //contour.getShape().getTransforms().addAll(new Scale(2.5, 2.5, 0, 0), new Translate(-400, -370));
+
         curveToContour.put(rd.getAddedCurve(), contour);
 
         addPath(contour);

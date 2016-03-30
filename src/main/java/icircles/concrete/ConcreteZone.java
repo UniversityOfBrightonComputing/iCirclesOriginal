@@ -3,6 +3,7 @@ package icircles.concrete;
 import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.geometry.Rectangle;
 import javafx.geometry.Point2D;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Shape;
 
@@ -114,6 +115,55 @@ public class ConcreteZone {
      */
     public Point2D getCenter() {
         Shape shape = getShape();
+        shape.setFill(Color.RED);
+
+        double minX = shape.getLayoutBounds().getMinX();
+        double minY = shape.getLayoutBounds().getMinY();
+        double width = shape.getLayoutBounds().getWidth();
+        double height = shape.getLayoutBounds().getHeight();
+
+        //minX = 0;
+        //minY = 0;
+
+        boolean shouldTry = true;
+        double radius = 100;
+
+        while (shouldTry) {
+            javafx.scene.shape.Rectangle circle = new javafx.scene.shape.Rectangle(radius*2, radius*2);
+            //Circle circle = new Circle(radius, radius, radius);
+            circle.setStroke(Color.BLACK);
+
+            //System.out.println(zone);
+            //System.out.println(shape.getLayoutBounds());
+            //System.out.println(circle.getLayoutBounds());
+
+            for (int y = (int) minY; y < minY + height - radius; y += 5) {
+                for (int x = (int) minX; x < minX + width - radius; x += 5) {
+                    circle.setX(x);
+                    circle.setY(y);
+
+                    if (Shape.subtract(circle, shape).getLayoutBounds().isEmpty()) {
+                        System.out.println("Found! " + zone + " radius: " + radius +
+                            " point: " + new Point2D(x + radius, y + radius));
+                        return new Point2D(x + radius, y + radius);
+                    }
+                }
+            }
+
+            radius -= 25;
+
+            if (radius == 0) {
+                shouldTry = false;
+            }
+        }
+
+        System.out.println("Failed to find circle: " + zone);
+
+        return getCenterOld();
+    }
+
+    private Point2D getCenterOld() {
+        Shape shape = getShape();
 
         double minX = shape.getLayoutBounds().getMinX();
         double minY = shape.getLayoutBounds().getMinY();
@@ -124,7 +174,7 @@ public class ConcreteZone {
         Point2D newCenter = center;
 
         // this regulates preciseness
-        int step = 1;
+        int step = 5;
 
         Point2D delta = new Point2D(step, 0);
         int i = 0;
@@ -171,6 +221,13 @@ public class ConcreteZone {
         if (safetyCount == 100) {
             System.out.println("Failed to find center");
             return center;
+        } else {
+            delta = newCenter.subtract(center);
+
+            if (shape.contains(newCenter.add(delta.multiply(3)))) {
+                //System.out.println("returning new");
+                //return newCenter.add(delta.multiply(3));
+            }
         }
 
         return newCenter;

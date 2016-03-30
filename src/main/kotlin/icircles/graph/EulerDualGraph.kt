@@ -5,6 +5,7 @@ import icircles.concrete.CircleContour
 import icircles.concrete.ConcreteDiagram
 import javafx.geometry.Point2D
 import javafx.scene.paint.Color
+import javafx.scene.shape.CubicCurve
 import javafx.scene.shape.QuadCurve
 import javafx.scene.shape.Shape
 import java.util.*
@@ -17,7 +18,7 @@ import java.util.*
 class EulerDualGraph(val diagram: ConcreteDiagram) {
 
     val nodes = ArrayList<EulerDualNode>()
-    val edges = ArrayList<QuadCurve>()
+    val edges = ArrayList<EulerDualEdge>()
 
     init {
         diagram.allZones
@@ -88,17 +89,46 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
                         safetyCount++
                     }
 
-                    //println("End Searching")
+                    // a b c ab ac bc abc bd bcd
+                    println("End Searching with $safetyCount tries")
 
                     // we failed to find the correct spot
-                    if (safetyCount == 100) {
+                    if (safetyCount == 500) {
                         println("Failed to find correct control point: ${node1.zone} - ${node2.zone}")
                         q.controlX = x
                         q.controlY = y
+
+                        val c = CubicCurve()
+                        c.fill = null
+                        c.stroke = Color.BROWN
+                        c.startX = q.startX
+                        c.startY = q.startY
+                        c.endX = q.endX
+                        c.endY = q.endY
+
+                        val vector = p2.subtract(p1)
+                        val perpen = Point2D(-vector.y, vector.x).multiply(-1.0).normalize()
+
+                        val perpen2 = Point2D(-perpen.y, perpen.x).multiply(-1.0).normalize()
+
+                        c.controlX1 = x + perpen.x * 300 + perpen2.x * 300
+                        c.controlY1 = y + perpen.y * 300 + perpen2.y * 300
+
+                        c.controlX2 = x + perpen.x * 300 - perpen2.x * 300
+                        c.controlY2 = y + perpen.y * 300 - perpen2.y * 300
+
+                        // TODO: find algorithm
+                        c.controlX1 = 300.0
+                        c.controlY1 = 0.0
+
+                        c.controlX2 = 500.0
+                        c.controlY2 = 50.0
+
+                        //edges.add(q)
+                        edges.add(EulerDualEdge(node1, node2, c))
+                    } else {
+                        edges.add(EulerDualEdge(node1, node2, q))
                     }
-
-
-                    edges.add(q)
                 } else {
                     //println("NOT ADJ")
                 }
@@ -117,10 +147,12 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
             !Shape.intersect(s, q).getLayoutBounds().isEmpty()
         }
 
-        //println(list)
+
 
         if (list.size != 1)
             return false
+
+        println("Found: $list")
 
         return list.get(0).curve == actual
     }
