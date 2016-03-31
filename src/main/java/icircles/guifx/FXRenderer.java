@@ -1,5 +1,7 @@
 package icircles.guifx;
 
+import icircles.abstractdescription.AbstractBasicRegion;
+import icircles.abstractdescription.AbstractCurve;
 import icircles.concrete.*;
 import icircles.graph.EulerDualGraph;
 import icircles.gui.Renderer;
@@ -16,7 +18,9 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -89,6 +93,13 @@ public class FXRenderer extends Pane implements Renderer {
         drawPoints(dual.getNodes().stream().map(n -> n.getZone().getCenter()).collect(Collectors.toList()));
         dual.getEdges().forEach(e -> freeRoot.getChildren().addAll(e.getCurve()));
 
+        List<AbstractBasicRegion> zones = Arrays.asList(new AbstractBasicRegion(makeCurves("a", "c")),
+                new AbstractBasicRegion(makeCurves("c")),
+                new AbstractBasicRegion(makeCurves("b", "c")),
+                AbstractBasicRegion.OUTSIDE);
+
+        System.out.println("Searching:");
+        dual.computeCycle(zones).ifPresent(System.out::println);
 
 
 //        dual.getEdges().forEach(q -> {
@@ -107,7 +118,12 @@ public class FXRenderer extends Pane implements Renderer {
 //        });
     }
 
-
+    private Set<AbstractCurve> makeCurves(String... curveLabels) {
+        return Arrays.asList(curveLabels)
+                .stream()
+                .map(AbstractCurve::new)
+                .collect(Collectors.toSet());
+    }
 
     private class MovablePoint extends StackPane {
         private double mouseX, mouseY;

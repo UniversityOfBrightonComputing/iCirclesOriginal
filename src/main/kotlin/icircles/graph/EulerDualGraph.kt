@@ -1,5 +1,6 @@
 package icircles.graph
 
+import icircles.abstractdescription.AbstractBasicRegion
 import icircles.abstractdescription.AbstractCurve
 import icircles.concrete.CircleContour
 import icircles.concrete.ConcreteDiagram
@@ -18,7 +19,7 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
 
     val nodes = ArrayList<EulerDualNode>()
     val edges = ArrayList<EulerDualEdge>()
-    val cycles = ArrayList<ArrayList<EulerDualNode> >()
+    val cycles = ArrayList<GraphCycle>()
 
     init {
         diagram.allZones
@@ -177,7 +178,11 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
 
             return@filter nodes.filter { !cycle.nodes.contains(it) }.none { path.contains(it.zone.center) }
         }
-        .forEach { println(it) }
+        .sortedWith(Comparator { c1, c2 -> c1.length() - c2.length() })
+        .forEach { cycles.add(it) }
+
+        println("Found valid cycles:")
+        cycles.forEach { println(it) }
     }
 
     private var tmpPoint = Point2D.ZERO
@@ -199,5 +204,9 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
         println("Found: $list")
 
         return list.get(0).curve == actual
+    }
+
+    fun computeCycle(zonesToSplit: List<AbstractBasicRegion>): Optional<GraphCycle> {
+        return Optional.ofNullable(cycles.filter { it.contains(zonesToSplit) }.firstOrNull())
     }
 }
