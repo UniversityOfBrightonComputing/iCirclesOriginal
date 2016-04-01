@@ -1,77 +1,74 @@
-package icircles.graph.elem;
-
+package icircles.graph.cycles;
 
 import java.util.*;
 
-import icircles.graph.EulerDualEdge;
-import icircles.graph.EulerDualNode;
 import icircles.graph.GraphCycle;
-import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.graph.SimpleGraph;
 
+public class GraphHandling<V, E> {
 
-public class GraphHandling {
-
-    private UndirectedGraph<EulerDualNode, EulerDualEdge> graph;
-    private List<EulerDualNode> vertexList;
+    private UndirectedGraph<V, E> graph;
+    private List<V> vertexList;
     private boolean adjMatrix[][];
 
-    public GraphHandling() {
-        this.graph = new SimpleGraph<>(EulerDualEdge.class);
+    public GraphHandling(Class<E> type) {
+        this.graph = new SimpleGraph<>(type);
         this.vertexList = new ArrayList<>();
     }
 
-    public void addVertex(EulerDualNode vertex) {
+    public void addVertex(V vertex) {
         this.graph.addVertex(vertex);
         this.vertexList.add(vertex);
     }
 
-    public void addEdge(EulerDualNode vertex1, EulerDualNode vertex2, EulerDualEdge edge) {
+    public void addEdge(V vertex1, V vertex2, E edge) {
         this.graph.addEdge(vertex1, vertex2, edge);
     }
 
-    public UndirectedGraph<EulerDualNode, EulerDualEdge> getGraph() {
+    public UndirectedGraph<V, E> getGraph() {
         return graph;
     }
 
-    public List<GraphCycle> computeCycles() {
-        List<GraphCycle> graphCycles = new ArrayList<>();
+    public List<GraphCycle<V, E>> computeCycles() {
+        List<GraphCycle<V, E>> graphCycles = new ArrayList<>();
 
-        List<List<EulerDualNode> > cycles = getAllCycles();
+        List<List<V> > cycles = getAllCycles();
 
-        for (List<EulerDualNode> cycle : cycles) {
-            List<EulerDualEdge> edges = new ArrayList<>();
+        for (List<V> cycle : cycles) {
+            List<E> edges = new ArrayList<>();
 
             for (int i = 0; i < cycle.size(); i++) {
                 int j = i + 1 < cycle.size() ? i + 1 : 0;
 
-                EulerDualNode v1 = cycle.get(i);
-                EulerDualNode v2 = cycle.get(j);
+                V v1 = cycle.get(i);
+                V v2 = cycle.get(j);
 
                 edges.add(graph.getEdge(v1, v2));
             }
 
-            graphCycles.add(new GraphCycle(cycle, edges));
+            graphCycles.add(new GraphCycle<V, E>(cycle, edges));
         }
+
+        Collections.sort(graphCycles, (c1, c2) -> c1.length() - c2.length());
 
         return graphCycles;
     }
 
-    public List<List<EulerDualNode>> getAllCycles() {
+    public List<List<V>> getAllCycles() {
         this.buildAdjancyMatrix();
 
         @SuppressWarnings("unchecked")
-        EulerDualNode[] vertexArray = this.vertexList.toArray(new EulerDualNode[0]);
+        V[] vertexArray = (V[]) this.vertexList.toArray();
         ElementaryCyclesSearch ecs = new ElementaryCyclesSearch(this.adjMatrix, vertexArray);
 
         @SuppressWarnings("unchecked")
-        List<List<EulerDualNode>> cycles0 = ecs.getElementaryCycles();
+        List<List<V>> cycles0 = ecs.getElementaryCycles();
 
         // remove cycles of size 2
-        Iterator<List<EulerDualNode>> listIt = cycles0.iterator();
+        Iterator<List<V>> listIt = cycles0.iterator();
         while (listIt.hasNext()) {
-            List<EulerDualNode> cycle = listIt.next();
+            List<V> cycle = listIt.next();
 
             if (cycle.size() == 2) {
                 listIt.remove();
@@ -79,9 +76,9 @@ public class GraphHandling {
         }
 
         // remove repeated cycles (two cycles are repeated if they have the same vertex (no matter the order)
-        List<List<EulerDualNode>> cycles1 = removeRepeatedLists(cycles0);
+        List<List<V>> cycles1 = removeRepeatedLists(cycles0);
 
-//        for (List<EulerDualNode> cycle : cycles1) {
+//        for (List<V> cycle : cycles1) {
 //            System.out.println(cycle);
 //        }
 
@@ -90,13 +87,13 @@ public class GraphHandling {
     }
 
     private void buildAdjancyMatrix() {
-        Set<EulerDualEdge> edges = this.graph.edgeSet();
+        Set<E> edges = this.graph.edgeSet();
         Integer nVertex = this.vertexList.size();
         this.adjMatrix = new boolean[nVertex][nVertex];
 
-        for (EulerDualEdge edge : edges) {
-            EulerDualNode v1 = this.graph.getEdgeSource(edge);
-            EulerDualNode v2 = this.graph.getEdgeTarget(edge);
+        for (E edge : edges) {
+            V v1 = this.graph.getEdgeSource(edge);
+            V v2 = this.graph.getEdgeTarget(edge);
 
             int i = this.vertexList.indexOf(v1);
             int j = this.vertexList.indexOf(v2);
@@ -108,21 +105,21 @@ public class GraphHandling {
 
     /* Here repeated lists are those with the same elements, no matter the order,
      * and it is assumed that there are no repeated elements on any of the lists*/
-    private List<List<EulerDualNode>> removeRepeatedLists(List<List<EulerDualNode>> listOfLists) {
-        List<List<EulerDualNode>> inputListOfLists = new ArrayList<List<EulerDualNode>>(listOfLists);
-        List<List<EulerDualNode>> outputListOfLists = new ArrayList<List<EulerDualNode>>();
+    private List<List<V>> removeRepeatedLists(List<List<V>> listOfLists) {
+        List<List<V>> inputListOfLists = new ArrayList<>(listOfLists);
+        List<List<V>> outputListOfLists = new ArrayList<>();
 
         while (!inputListOfLists.isEmpty()) {
             // get the first element
-            List<EulerDualNode> thisList = inputListOfLists.get(0);
+            List<V> thisList = inputListOfLists.get(0);
             // remove it
             inputListOfLists.remove(0);
             outputListOfLists.add(thisList);
             // look for duplicates
             Integer nEl = thisList.size();
-            Iterator<List<EulerDualNode>> listIt = inputListOfLists.iterator();
+            Iterator<List<V>> listIt = inputListOfLists.iterator();
             while (listIt.hasNext()) {
-                List<EulerDualNode> remainingList = listIt.next();
+                List<V> remainingList = listIt.next();
 
                 if (remainingList.size() == nEl) {
                     if (remainingList.containsAll(thisList)) {

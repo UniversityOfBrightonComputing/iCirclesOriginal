@@ -4,7 +4,7 @@ import icircles.abstractdescription.AbstractBasicRegion
 import icircles.abstractdescription.AbstractCurve
 import icircles.concrete.CircleContour
 import icircles.concrete.ConcreteDiagram
-import icircles.graph.elem.GraphHandling
+import icircles.graph.cycles.GraphHandling
 import javafx.geometry.Point2D
 import javafx.scene.paint.Color
 import javafx.scene.shape.*
@@ -19,7 +19,7 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
 
     val nodes = ArrayList<EulerDualNode>()
     val edges = ArrayList<EulerDualEdge>()
-    val cycles = ArrayList<GraphCycle>()
+    val cycles = ArrayList<GraphCycle<EulerDualNode, EulerDualEdge>>()
 
     init {
         diagram.allZones
@@ -141,7 +141,7 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
 
         // ENUMERATE ALL VALID CYCLES
 
-        val graph = GraphHandling()
+        val graph = GraphHandling<EulerDualNode, EulerDualEdge>(EulerDualEdge::class.java)
         nodes.forEach { graph.addVertex(it) }
         edges.forEach { graph.addEdge(it.v1, it.v2, it) }
 
@@ -178,7 +178,7 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
 
             return@filter nodes.filter { !cycle.nodes.contains(it) }.none { path.contains(it.zone.center) }
         }
-        .sortedWith(Comparator { c1, c2 -> c1.length() - c2.length() })
+        //.sortedWith(Comparator { c1, c2 -> c1.length() - c2.length() })
         .forEach { cycles.add(it) }
 
         println("Found valid cycles:")
@@ -206,7 +206,7 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
         return list.get(0).curve == actual
     }
 
-    fun computeCycle(zonesToSplit: List<AbstractBasicRegion>): Optional<GraphCycle> {
-        return Optional.ofNullable(cycles.filter { it.contains(zonesToSplit) }.firstOrNull())
+    fun computeCycle(zonesToSplit: List<AbstractBasicRegion>): Optional<GraphCycle<EulerDualNode, EulerDualEdge>> {
+        return Optional.ofNullable(cycles.filter { it.nodes.map { it.zone.abstractZone }.containsAll(zonesToSplit) }.firstOrNull())
     }
 }

@@ -1,4 +1,4 @@
-package icircles.graph.elem;
+package icircles.graph.cycles;
 
 import java.util.List;
 import java.util.Vector;

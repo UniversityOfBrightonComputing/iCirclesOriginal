@@ -2,6 +2,8 @@ package icircles.abstractdual;
 
 import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdescription.AbstractCurve;
+import icircles.graph.GraphCycle;
+import icircles.graph.cycles.GraphHandling;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jgrapht.EdgeFactory;
@@ -23,6 +25,8 @@ public class AbstractDualGraph {
 
     // we do not specify the edge factory because we instantiate edges ourselves
     private final UndirectedGraph<AbstractDualNode, AbstractDualEdge> graph = new SimpleGraph<>(AbstractDualEdge.class);
+
+    private List<GraphCycle<AbstractDualNode, AbstractDualEdge> > cycles = new ArrayList<>();
 
     /**
      * Constructs a dual graph from given zones.
@@ -55,11 +59,26 @@ public class AbstractDualGraph {
                 });
             }
         }
+
+        GraphHandling<AbstractDualNode, AbstractDualEdge> cycleFinder = new GraphHandling<>(AbstractDualEdge.class);
+        graph.vertexSet().forEach(cycleFinder::addVertex);
+        graph.edgeSet().forEach(edge -> cycleFinder.addEdge(edge.from, edge.to, edge));
+
+        cycles = cycleFinder.computeCycles();
     }
 
     private AbstractDualGraph(Set<AbstractDualNode> nodes, Set<AbstractDualEdge> edges) {
         nodes.forEach(graph::addVertex);
         edges.forEach(e -> graph.addEdge(e.from, e.to, e));
+    }
+
+    public Optional<GraphCycle<AbstractDualNode, AbstractDualEdge> > computeCycle(List<AbstractBasicRegion> zones) {
+        return cycles.stream()
+                .filter(c -> c.getNodes().stream()
+                        .map(AbstractDualNode::getZone)
+                        .collect(Collectors.toList())
+                        .containsAll(zones))
+                .findFirst();
     }
 
     /**

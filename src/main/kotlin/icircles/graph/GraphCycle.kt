@@ -7,13 +7,13 @@ import icircles.abstractdescription.AbstractBasicRegion
  *
  * @author Almas Baimagambetov (almaslvl@gmail.com)
  */
-data class GraphCycle(val nodes: List<EulerDualNode>, val edges: List<EulerDualEdge>) {
+data class GraphCycle<V, E>(val nodes: List<V>, val edges: List<E>) {
 
     fun length() = nodes.size
 
-    fun contains(zones: List<AbstractBasicRegion>): Boolean {
-        val mappedNodes = nodes.map { it.zone.abstractZone }
-
-        return mappedNodes.containsAll(zones)
-    }
+//    fun contains(zones: List<AbstractBasicRegion>): Boolean {
+//        val mappedNodes = nodes.map { it.zone.abstractZone }
+//
+//        return mappedNodes.containsAll(zones)
+//    }
 }

@@ -65,6 +65,8 @@ public class BetterBasicRecomposer extends BasicRecomposer {
         log.debug("Recomposing curve: " + decompStep.removed());
         log.debug("Zones to split (ORIGINAL): " + zonesToSplit);
 
+
+
         AbstractDualGraph subGraph = new AbstractDualGraph(zonesToSplit);
 
         if (subGraph.isConnected()) {
@@ -76,11 +78,33 @@ public class BetterBasicRecomposer extends BasicRecomposer {
                 // OK
             } else {
                 // FIX
-                zonesToSplit = fix(zonesToSplit, from);
+                //zonesToSplit = fix(zonesToSplit, from);
+                new AbstractDualGraph(new ArrayList<>(from.getZones()))
+                        .computeCycle(zonesToSplit)
+                        .ifPresent(cycle -> {
+                            System.out.println("Found appopriate cycle: " + cycle);
+
+                            zonesToSplit.clear();
+                            zonesToSplit.addAll(cycle.getNodes()
+                                    .stream()
+                                    .map(AbstractDualNode::getZone)
+                                    .collect(Collectors.toList()));
+                        });
             }
         } else {
             // FIX
-            zonesToSplit = fix(zonesToSplit, from);
+            //zonesToSplit = fix(zonesToSplit, from);
+            new AbstractDualGraph(new ArrayList<>(from.getZones()))
+                    .computeCycle(zonesToSplit)
+                    .ifPresent(cycle -> {
+                        System.out.println("Found appopriate cycle: " + cycle);
+
+                        zonesToSplit.clear();
+                        zonesToSplit.addAll(cycle.getNodes()
+                                .stream()
+                                .map(AbstractDualNode::getZone)
+                                .collect(Collectors.toList()));
+                    });
         }
 
         log.debug("Zones to split (FIXED): " + zonesToSplit);
