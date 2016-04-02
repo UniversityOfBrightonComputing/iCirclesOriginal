@@ -175,6 +175,7 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
             path.elements.add(ClosePath())
             path.fill = Color.TRANSPARENT
 
+            cycle.path = path
 
             return@filter nodes.filter { !cycle.nodes.contains(it) }.none { path.contains(it.zone.center) }
         }
@@ -208,5 +209,29 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
 
     fun computeCycle(zonesToSplit: List<AbstractBasicRegion>): Optional<GraphCycle<EulerDualNode, EulerDualEdge>> {
         return Optional.ofNullable(cycles.filter { it.nodes.map { it.zone.abstractZone }.containsAll(zonesToSplit) }.firstOrNull())
+        //return Optional.ofNullable(cycles.filter { containsAll(it.nodes.map { it.zone.abstractZone }, zonesToSplit) }.firstOrNull())
     }
+
+//    private fun containsAll(allZones: List<AbstractBasicRegion>, zonesToSplit: List<AbstractBasicRegion>): Boolean {
+//        for (z in zonesToSplit) {
+//            if (!contains(allZones, z)) {
+//                return false
+//            }
+//        }
+//
+//        return true
+//    }
+//
+//    private fun contains(allZones: List<AbstractBasicRegion>, zone: AbstractBasicRegion): Boolean {
+//        println("All zones: $allZones and zone is $zone")
+//        println("${allZones.contains(zone)}")
+//
+//        for (z in allZones) {
+//            if (z == zone) {
+//                return true
+//            }
+//        }
+//
+//        return false
+//    }
 }

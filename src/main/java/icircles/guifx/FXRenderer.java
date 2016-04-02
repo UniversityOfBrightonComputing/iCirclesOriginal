@@ -89,17 +89,17 @@ public class FXRenderer extends Pane implements Renderer {
 
 
 
-        EulerDualGraph dual = new EulerDualGraph(diagram);
-        drawPoints(dual.getNodes().stream().map(n -> n.getZone().getCenter()).collect(Collectors.toList()));
-        dual.getEdges().forEach(e -> freeRoot.getChildren().addAll(e.getCurve()));
-
-        List<AbstractBasicRegion> zones = Arrays.asList(new AbstractBasicRegion(makeCurves("a", "c")),
-                new AbstractBasicRegion(makeCurves("c")),
-                new AbstractBasicRegion(makeCurves("b", "c")),
-                AbstractBasicRegion.OUTSIDE);
-
-        System.out.println("Searching:");
-        dual.computeCycle(zones).ifPresent(System.out::println);
+//        EulerDualGraph dual = new EulerDualGraph(diagram);
+//        drawPoints(dual.getNodes().stream().map(n -> n.getZone().getCenter()).collect(Collectors.toList()));
+//        dual.getEdges().forEach(e -> freeRoot.getChildren().addAll(e.getCurve()));
+//
+//        List<AbstractBasicRegion> zones = Arrays.asList(new AbstractBasicRegion(makeCurves("a", "c")),
+//                new AbstractBasicRegion(makeCurves("c")),
+//                new AbstractBasicRegion(makeCurves("b", "c")),
+//                AbstractBasicRegion.OUTSIDE);
+//
+//        System.out.println("Searching:");
+//        dual.computeCycle(zones).ifPresent(System.out::println);
 
 
 //        dual.getEdges().forEach(q -> {

@@ -210,6 +210,8 @@ public class ConcreteDiagram {
         for (CircleContour cc : circles) {
             cc.shift(size * 0.5, size * 0.5);
         }
+
+        // TODO: also scale path contours
     }
 
     /**

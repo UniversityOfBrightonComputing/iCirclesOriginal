@@ -1,10 +1,7 @@
 package icircles.guifx;
 
 import icircles.abstractdescription.AbstractDescription;
-import icircles.concrete.BetterDiagramCreator;
-import icircles.concrete.ConcreteDiagram;
-import icircles.concrete.ConcreteZone;
-import icircles.concrete.DiagramCreator;
+import icircles.concrete.*;
 import icircles.decomposition.DecomposerFactory;
 import icircles.decomposition.DecompositionStrategyType;
 import icircles.recomposition.RecomposerFactory;
@@ -295,9 +292,11 @@ public class Controller {
                         .reduce((d1, d2) -> d2.getContours().size() < d1.getContours().size() ? d2 : d1)
                         .orElseThrow(() -> new RuntimeException("Cannot generate"));
             } else {
-                DiagramCreator creator = rType == RecompositionStrategyType.DOUBLY_PIERCED_EXTRA_ZONES
-                        ? new BetterDiagramCreator(DecomposerFactory.newDecomposer(dType), RecomposerFactory.newRecomposer(rType))
-                        : new DiagramCreator(DecomposerFactory.newDecomposer(dType), RecomposerFactory.newRecomposer(rType));
+//                DiagramCreator creator = rType == RecompositionStrategyType.DOUBLY_PIERCED_EXTRA_ZONES
+//                        ? new BetterDiagramCreator(DecomposerFactory.newDecomposer(dType), RecomposerFactory.newRecomposer(rType))
+//                        : new DiagramCreator(DecomposerFactory.newDecomposer(dType), RecomposerFactory.newRecomposer(rType));
+
+                DiagramCreator creator = new TwoStepDiagramCreator();
 
                 diagram = creator.createDiagram(description, size);
             }

@@ -158,6 +158,9 @@ public class BetterDiagramCreator extends DiagramCreator {
     // p q pr ps qr qs rs rt prt qrt rst - 2piercing + disjoint - topological adjacency corrupted
 
 
+    // a b c f ab ac bc cd df - case for 1 degree vertex?
+
+
     @Override
     public ConcreteDiagram createDiagram(AbstractDescription description, int size) throws CannotDrawException {
         original = description;

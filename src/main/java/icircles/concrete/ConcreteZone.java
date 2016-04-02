@@ -159,7 +159,7 @@ public class ConcreteZone {
                 }
             }
 
-            radius -= 25;
+            radius -= 10;
 
             if (radius == 0) {
                 shouldTry = false;
