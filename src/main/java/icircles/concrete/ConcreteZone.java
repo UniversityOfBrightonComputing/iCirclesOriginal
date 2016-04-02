@@ -85,8 +85,8 @@ public class ConcreteZone {
 //    }
 
     public Shape getShape() {
-        //Shape shape = new javafx.scene.shape.Rectangle(1000, 1000);
-        Shape shape = new javafx.scene.shape.Rectangle(600, 600);
+        //Shape shape = new javafx.scene.shape.Rectangle(600, 600);
+        Shape shape = new javafx.scene.shape.Rectangle(1000, 1000);
 
         for (Contour contour : getContainingContours()) {
             shape = Shape.intersect(shape, contour.getShape());

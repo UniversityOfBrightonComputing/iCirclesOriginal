@@ -272,6 +272,11 @@ public class Controller {
 
             ConcreteDiagram diagram = null;
 
+            if (rType == RecompositionStrategyType.DOUBLY_PIERCED) {
+                return new DiagramCreator(DecomposerFactory.newDecomposer(DecompositionStrategyType.INNERMOST),
+                        RecomposerFactory.newRecomposer(rType)).createDiagram(description, size);
+            }
+
             if (cbBruteforce.isSelected()) {
                 // generate diagrams and select which has less path contours
 

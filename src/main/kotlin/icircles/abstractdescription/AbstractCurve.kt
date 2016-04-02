@@ -19,6 +19,10 @@ data class AbstractCurve(val label: String) : Comparable<AbstractCurve> {
 
     override fun toString() = label
 
+//    override fun hashCode(): Int {
+//        return super.hashCode()
+//    }
+
 //    override fun equals(other: Any?): Boolean {
 //        return matchesLabel(other as AbstractCurve)
 //    }

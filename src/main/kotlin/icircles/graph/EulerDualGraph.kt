@@ -4,6 +4,7 @@ import icircles.abstractdescription.AbstractBasicRegion
 import icircles.abstractdescription.AbstractCurve
 import icircles.concrete.CircleContour
 import icircles.concrete.ConcreteDiagram
+import icircles.concrete.Contour
 import icircles.graph.cycles.GraphHandling
 import javafx.geometry.Point2D
 import javafx.scene.paint.Color
@@ -65,7 +66,7 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
 
                     println("Searching ${node1.zone} - ${node2.zone} : $curve")
 
-                    while (!isOK(q, curve, diagram.circles) && safetyCount < 500) {
+                    while (!isOK(q, curve, diagram.allContours) && safetyCount < 500) {
                         q.controlX = x + delta.x
                         q.controlY = y + delta.y
 
@@ -188,7 +189,7 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
 
     private var tmpPoint = Point2D.ZERO
 
-    fun isOK(q: QuadCurve, actual: AbstractCurve, curves: List<CircleContour>): Boolean {
+    fun isOK(q: QuadCurve, actual: AbstractCurve, curves: List<Contour>): Boolean {
         val list = curves.filter {
             val s = it.shape
             s.fill = null

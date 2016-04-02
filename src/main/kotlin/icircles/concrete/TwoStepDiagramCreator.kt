@@ -8,6 +8,7 @@ import icircles.decomposition.DecompositionStrategyType
 import icircles.graph.EulerDualGraph
 import icircles.recomposition.RecomposerFactory
 import icircles.recomposition.RecompositionStrategyType
+import icircles.util.CannotDrawException
 import org.apache.logging.log4j.LogManager
 import java.util.*
 import java.util.stream.Collectors
@@ -39,7 +40,7 @@ class TwoStepDiagramCreator : DiagramCreator(
         val it = newZones.iterator()
         while (it.hasNext()) {
             val zone = it.next()
-            if (zone.contains(curve)) {
+            if (zone.hasCurveWithlabel(curve.label)) {
                 it.remove()
             }
         }
@@ -57,11 +58,29 @@ class TwoStepDiagramCreator : DiagramCreator(
 
     override fun createDiagram(description: AbstractDescription, size: Int): ConcreteDiagram {
         initial = description
+
+        log.debug("Using Original Algorithm")
         val diagram0 = super.createDiagram(description, size)
 
         val duplicates = diagram0.findDuplicateContours()
         if (duplicates.isEmpty())
             return diagram0
+
+        log.debug("Running post-processing")
+        var d = postProcess(diagram0, size)
+
+        // REORDER
+
+        //println("Generating for: ${d.actualDescription}")
+        dSteps = null
+        rSteps = null
+        d = super.createDiagram(d.actualDescription, size)
+
+        return postProcess(d, size)
+    }
+
+    private fun postProcess(diagram0: ConcreteDiagram, size: Int): ConcreteDiagram {
+        val duplicates = diagram0.findDuplicateContours()
 
         var d = diagram0
 
@@ -71,82 +90,73 @@ class TwoStepDiagramCreator : DiagramCreator(
             val ad = d.getActualDescription()
 
             log.debug("Actual Description: " + ad)
+            log.debug("Removed curve description: ${iCirclesDiagramNew.actualDescription}")
 
-            var zones = ad.zones.filter({ z -> z.contains(curve) })
+            var zones = ad.zones.filter({ z -> z.hasCurveWithlabel(curve.label) })
 
             log.debug("Zones in " + curve + ":" + zones.toString())
 
-            zones = zones.map({ z -> z.moveOutside(curve) })
+            zones = zones.map({ z -> z.moveOutsideNew(curve) })
 
             log.debug("Zones that will be in " + curve + ":" + zones.toString())
 
             val graph = EulerDualGraph(iCirclesDiagramNew)
 
-            graph.computeCycle(zones).ifPresent {
-                println("Found approriate: $it")
+            //CannotDrawException("No cycle found")
+            val cycleMaybe = graph.computeCycle(zones)
 
-                // create new contour
-                val contour = PathContour(curve, it.path)
+            if (!cycleMaybe.isPresent)
+                continue
 
-                val newCurves = TreeSet(iCirclesDiagramNew.actualDescription.curves)
-                run {
-                    val iter = newCurves.iterator()
-                    while (iter.hasNext()) {
-                        if (iter.next().matchesLabel(curve)) {
-                            iter.remove()
-                        }
-                    }
-                }
+            val cycle = cycleMaybe.get()
 
-                newCurves.add(curve)
+            println("Found approriate: $cycle")
 
-                // GENERATE ACTUAL DESC
-                val newZones = TreeSet(iCirclesDiagramNew.actualDescription.zones)
-                val iter = newZones.iterator()
+            // create new contour
+            val contour = PathContour(curve, cycle.path)
+
+            val newCurves = TreeSet(iCirclesDiagramNew.actualDescription.curves)
+            run {
+                val iter = newCurves.iterator()
                 while (iter.hasNext()) {
-                    val zone = iter.next()
-                    if (zone.contains(curve)) {
+                    if (iter.next().matchesLabel(curve)) {
                         iter.remove()
                     }
                 }
-
-                for (zone in it.nodes.map { it.zone.abstractZone }) {
-                    newZones.add(zone.moveInside(curve))
-                }
-
-                val actual = AbstractDescription(newCurves, newZones)
-
-                println("New actual: $actual")
-
-                // put mapping from abstract to conrete curve
-                iCirclesDiagramNew.curveToContour.put(curve, contour)
-
-                val contours = ArrayList(iCirclesDiagramNew.contours)
-                contours.add(contour)
-
-                d = ConcreteDiagram(iCirclesDiagramNew.originalDescription, actual,
-                        iCirclesDiagramNew.circles, iCirclesDiagramNew.curveToContour, size, *contours.toTypedArray())
             }
+
+            newCurves.add(curve)
+
+            // GENERATE ACTUAL DESC
+            val newZones = TreeSet(iCirclesDiagramNew.actualDescription.zones)
+            val iter = newZones.iterator()
+            while (iter.hasNext()) {
+                val zone = iter.next()
+                if (zone.hasCurveWithlabel(curve.label)) {
+                    iter.remove()
+                }
+            }
+
+            for (zone in cycle.nodes.map { it.zone.abstractZone }) {
+                newZones.add(zone.moveInside(curve))
+            }
+
+            val actual = AbstractDescription(newCurves, newZones)
+
+            println("New actual: $actual")
+
+            // put mapping from abstract to conrete curve
+            iCirclesDiagramNew.curveToContour.put(curve, contour)
+
+            val contours = ArrayList(iCirclesDiagramNew.contours)
+            contours.add(contour)
+
+            d = ConcreteDiagram(iCirclesDiagramNew.originalDescription, actual,
+                    iCirclesDiagramNew.circles, iCirclesDiagramNew.curveToContour, size, *contours.toTypedArray())
+
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        println("Generating for: ${d.actualDescription}")
-        dSteps = null
-        rSteps = null
-        return super.createDiagram(d.actualDescription, size)
+        return d
     }
 
     private lateinit var initial: AbstractDescription
