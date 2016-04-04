@@ -54,8 +54,6 @@ public class AbstractDualGraph {
                     AbstractDualEdge e = new AbstractDualEdge(n, n2, curve);
 
                     graph.addEdge(e.from, e.to, e);
-
-                    //System.out.println("Adding edge: from, to" + n + " " + n2 + " " + e);
                 });
             }
         }

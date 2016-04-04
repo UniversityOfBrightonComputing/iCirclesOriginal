@@ -97,7 +97,7 @@ public class CircleContour extends Contour {
     }
 
     public String toDebugString() {
-        return String.format("CircleCountour[center=(%.0f,%.0f),radius=%.0f,curve=%s]",
+        return String.format("Circle[center=(%.0f,%.0f),radius=%.0f,curve=%s]",
                 centerX, centerY, radius, getCurve());
     }
 

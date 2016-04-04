@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  */
 public class BetterDiagramCreator extends DiagramCreator {
 
-    private static final Logger log = LogManager.getLogger(DiagramCreator.class);
+    private static final Logger log = LogManager.getLogger(BetterDiagramCreator.class);
 
     public BetterDiagramCreator(Decomposer decomposer, Recomposer recomposer) {
         super(decomposer, recomposer);
