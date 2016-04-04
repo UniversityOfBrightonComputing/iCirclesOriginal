@@ -22,8 +22,6 @@ public class BasicRecomposer implements Recomposer {
     @Override
     public List<RecompositionStep> recompose(List<DecompositionStep> decompSteps) {
         Map<AbstractBasicRegion, AbstractBasicRegion> matchedZones = new TreeMap<>(AbstractBasicRegion::compareTo);
-        //Map<AbstractBasicRegion, AbstractBasicRegion> matchedZones = new HashMap<>();
-
 
         int numSteps = decompSteps.size();
 
