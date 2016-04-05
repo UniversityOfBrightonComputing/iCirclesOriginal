@@ -5,7 +5,7 @@ import icircles.abstractdescription.AbstractCurve
 import icircles.concrete.CircleContour
 import icircles.concrete.ConcreteDiagram
 import icircles.concrete.Contour
-import icircles.graph.cycles.GraphHandling
+import icircles.graph.cycles.CycleFinder
 import javafx.geometry.Point2D
 import javafx.scene.paint.Color
 import javafx.scene.shape.*
@@ -142,7 +142,7 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
 
         // ENUMERATE ALL VALID CYCLES
 
-        val graph = GraphHandling<EulerDualNode, EulerDualEdge>(EulerDualEdge::class.java)
+        val graph = CycleFinder<EulerDualNode, EulerDualEdge>(EulerDualEdge::class.java)
         nodes.forEach { graph.addVertex(it) }
         edges.forEach { graph.addEdge(it.v1, it.v2, it) }
 

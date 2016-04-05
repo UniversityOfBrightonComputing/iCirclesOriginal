@@ -6,13 +6,18 @@ import icircles.graph.GraphCycle;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.graph.SimpleGraph;
 
-public class GraphHandling<V, E> {
+/**
+ * This is an adapted version from the following stackoverflow answer:
+ * http://stackoverflow.com/questions/14146165/find-all-the-paths-forming-simple-cycles-on-an-undirected-graph
+ * from 13 Jan 2013.
+ */
+public class CycleFinder<V, E> {
 
     private UndirectedGraph<V, E> graph;
     private List<V> vertexList;
     private boolean adjMatrix[][];
 
-    public GraphHandling(Class<E> type) {
+    public CycleFinder(Class<E> type) {
         this.graph = new SimpleGraph<>(type);
         this.vertexList = new ArrayList<>();
     }
@@ -78,11 +83,6 @@ public class GraphHandling<V, E> {
         // remove repeated cycles (two cycles are repeated if they have the same vertex (no matter the order)
         List<List<V>> cycles1 = removeRepeatedLists(cycles0);
 
-//        for (List<V> cycle : cycles1) {
-//            System.out.println(cycle);
-//        }
-
-
         return cycles1;
     }
 
@@ -132,5 +132,4 @@ public class GraphHandling<V, E> {
 
         return outputListOfLists;
     }
-
 }

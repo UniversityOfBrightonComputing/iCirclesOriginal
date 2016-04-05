@@ -3,14 +3,11 @@ package icircles.abstractdual;
 import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdescription.AbstractCurve;
 import icircles.graph.GraphCycle;
-import icircles.graph.cycles.GraphHandling;
+import icircles.graph.cycles.CycleFinder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jgrapht.EdgeFactory;
-import org.jgrapht.Graph;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.alg.DijkstraShortestPath;
-import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.SimpleGraph;
 
 import java.util.*;
@@ -58,7 +55,7 @@ public class AbstractDualGraph {
             }
         }
 
-        GraphHandling<AbstractDualNode, AbstractDualEdge> cycleFinder = new GraphHandling<>(AbstractDualEdge.class);
+        CycleFinder<AbstractDualNode, AbstractDualEdge> cycleFinder = new CycleFinder<>(AbstractDualEdge.class);
         graph.vertexSet().forEach(cycleFinder::addVertex);
         graph.edgeSet().forEach(edge -> cycleFinder.addEdge(edge.from, edge.to, edge));
 
