@@ -10,15 +10,6 @@ import java.util.stream.Collectors
  */
 data class AbstractDescription(private val curvesInternal: Set<AbstractCurve>, private val zonesInternal: Set<AbstractBasicRegion>) {
 
-//    val curves: Set<AbstractCurve>
-//    val zones: Set<AbstractBasicRegion>
-//
-//    init {
-//        curves = Collections.unmodifiableSet(curvesInternal)
-//        zones = Collections.unmodifiableSet(zonesInternal)
-//    }
-
-
     val curves: SortedSet<AbstractCurve>
     val zones: SortedSet<AbstractBasicRegion>
 
@@ -62,22 +53,6 @@ data class AbstractDescription(private val curvesInternal: Set<AbstractCurve>, p
                     .forEach { tmpZones.add(it) }
 
             return AbstractDescription(tmpZones.flatMap { it.inSet }.toSet(), tmpZones)
-
-//            val curves = HashMap<String, AbstractCurve>()
-//
-//            for (zoneName in informalDescription.split(" +")) {
-//                val zoneCurves = TreeSet<AbstractCurve>()
-//
-//                for (k in zoneName.toCharArray()) {
-//                    val label = k.toString()
-//
-//                    zoneCurves.add(AbstractCurve(label))
-//                }
-//
-//                tmpZones.add(AbstractBasicRegion(zoneCurves));
-//            }
-//
-//            return AbstractDescription(curves.values.toSet(), tmpZones)
         }
     }
 }
