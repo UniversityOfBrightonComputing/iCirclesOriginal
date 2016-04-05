@@ -21,16 +21,8 @@ public class CirclesMain {
 
         log = LogManager.getLogger(CirclesMain.class);
 
-        /*
-         * If no arguments given, we try JavaFX GUI first.
-         * Likely failure causes - no jfx runtime, so try Swing.
-         * If Swing fails, we are probably running headless.
-         */
         if (args.length == 0) {
             boolean guiOK = launchFXGUI(args);
-            if (!guiOK) {
-                guiOK = launchSwingGUI(args);
-            }
 
             if (!guiOK) {
                 log.warn("No GUI available");
@@ -54,7 +46,7 @@ public class CirclesMain {
         options.addOption(Option.builder("gui")
                 .hasArg()
                 .argName("GUI")
-                .desc("Launches with specified GUI, where GUI can be one of the following: fx, swing, none")
+                .desc("Launches with specified GUI, where GUI can be one of the following: fx, none")
                 .build());
 
         CommandLineParser parser = new DefaultParser();
@@ -90,9 +82,6 @@ public class CirclesMain {
             switch (gui) {
                 case "fx":
                     launchFXGUI(line.getArgs());
-                    break;
-                case "swing":
-                    launchSwingGUI(line.getArgs());
                     break;
                 case "none":
                     break;
@@ -134,29 +123,6 @@ public class CirclesMain {
         } catch (Exception e) {
             log.error("Failed to launch FX GUI: " + e.getClass().getSimpleName() + ":" + e.getMessage());
             log.info("Try running with gui swing");
-            return false;
-        }
-    }
-
-    /**
-     * Launch iCircles using Swing GUI.
-     *
-     * @param args cmd line args
-     * @return true if successful
-     */
-    private static boolean launchSwingGUI(String[] args) {
-        log.info("Launching Swing GUI...");
-        try {
-            Class.forName("javax.swing.JFrame");
-
-            CirclesGUI gui = (CirclesGUI) Class.forName("icircles.guiswing.SwingCirclesGUI").newInstance();
-
-            // this is NOT a blocking call
-            gui.launchGUI(args);
-            return true;
-        } catch (Exception e) {
-            log.error("Failed to launch Swing GUI: " + e.getClass().getSimpleName() + ":" + e.getMessage());
-            log.info("Try running with gui none");
             return false;
         }
     }
