@@ -9,6 +9,7 @@ import icircles.graph.cycles.CycleFinder
 import javafx.geometry.Point2D
 import javafx.scene.paint.Color
 import javafx.scene.shape.*
+import org.apache.logging.log4j.LogManager
 import java.util.*
 
 /**
@@ -18,26 +19,25 @@ import java.util.*
  */
 class EulerDualGraph(val diagram: ConcreteDiagram) {
 
-    val nodes = ArrayList<EulerDualNode>()
+    private val log = LogManager.getLogger(javaClass)
+
+    val nodes: List<EulerDualNode>
     val edges = ArrayList<EulerDualEdge>()
-    val cycles = ArrayList<GraphCycle<EulerDualNode, EulerDualEdge>>()
+    val cycles: List<GraphCycle<EulerDualNode, EulerDualEdge>>
 
     init {
-        diagram.allZones
-            .forEach { nodes.add(EulerDualNode(it)) }
+        nodes = diagram.allZones.map { EulerDualNode(it) }
 
         for (i in nodes.indices) {
             var j = i + 1
             while (j < nodes.size) {
-                //println("$i, $j vs ${nodes.size}")
-
                 val node1 = nodes[i]
                 val node2 = nodes[j]
 
-                //println("Nodes: ${node1.zone} ${node2.zone}")
-
+                // if zones are topologically adjacent then there exists
+                // a curve segment between zone centers
                 if (node1.zone.isTopologicallyAdjacent(node2.zone)) {
-                    //println("ADJ")
+                    log.trace("${node1.zone} and ${node2.zone} are adjacent")
 
                     val p1 = node1.zone.center
                     val p2 = node2.zone.center
@@ -45,12 +45,12 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
                     val q = QuadCurve()
                     q.fill = null
                     q.stroke = Color.BLACK
-                    q.startX = p1.getX()
-                    q.startY = p1.getY()
-                    q.endX = p2.getX()
-                    q.endY = p2.getY()
-                    q.controlX = (p1.getX() + p2.getX()) / 2
-                    q.controlY = (p1.getY() + p2.getY()) / 2
+                    q.startX = p1.x
+                    q.startY = p1.y
+                    q.endX = p2.x
+                    q.endY = p2.y
+                    q.controlX = (p1.x + p2.x) / 2
+                    q.controlY = (p1.y + p2.y) / 2
 
 
                     val x = (p1.x + p2.x) / 2
@@ -62,9 +62,11 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
                     var delta = Point2D(step.toDouble(), 0.0)
                     var s = 0
 
+                    // the new curve segment must pass through the straddled curve
+                    // and only through that curve
                     val curve = node1.zone.abstractZone.getStraddledContour(node2.zone.abstractZone).get()
 
-                    println("Searching ${node1.zone} - ${node2.zone} : $curve")
+                    log.trace("Searching ${node1.zone} - ${node2.zone} : $curve")
 
                     while (!isOK(q, curve, diagram.allContours) && safetyCount < 500) {
                         q.controlX = x + delta.x
@@ -91,8 +93,7 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
                         safetyCount++
                     }
 
-                    // a b c ab ac bc abc bd bcd
-                    println("End Searching with $safetyCount tries")
+                    log.trace("End Searching with $safetyCount tries")
 
                     // we failed to find the correct spot
                     if (safetyCount == 500) {
@@ -126,27 +127,30 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
                         c.controlX2 = 500.0
                         c.controlY2 = 50.0
 
-                        //edges.add(q)
-                        // TODO: fix cubic curve
                         //edges.add(EulerDualEdge(node1, node2, c))
                     } else {
                         edges.add(EulerDualEdge(node1, node2, q))
                     }
-                } else {
-                    //println("NOT ADJ")
                 }
 
                 j++
             }
         }
 
-        // ENUMERATE ALL VALID CYCLES
+        cycles = computeValidCycles()
+        log.debug("Valid cycles: $cycles")
+    }
 
+    /**
+     * Compute all valid cycles.
+     * A cycle is valid if it can be used to embed a curve.
+     */
+    private fun computeValidCycles(): List<GraphCycle<EulerDualNode, EulerDualEdge>> {
         val graph = CycleFinder<EulerDualNode, EulerDualEdge>(EulerDualEdge::class.java)
         nodes.forEach { graph.addVertex(it) }
         edges.forEach { graph.addEdge(it.v1, it.v2, it) }
 
-        graph.computeCycles().filter { cycle ->
+        return graph.computeCycles().filter { cycle ->
             val path = Path()
             val moveTo = MoveTo(cycle.nodes.get(0).zone.center.x, cycle.nodes.get(0).zone.center.y)
             path.elements.addAll(moveTo)
@@ -154,6 +158,7 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
             tmpPoint = cycle.nodes.get(0).zone.center
 
             cycle.edges.map { it.curve }.forEach { q ->
+                // TODO: cubicCurveTo if necessary
                 val quadCurveTo = QuadCurveTo()
 
                 // we do this coz source and end vertex might be swapped
@@ -167,8 +172,8 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
 
                 tmpPoint = Point2D(quadCurveTo.x, quadCurveTo.y)
 
-                quadCurveTo.controlX = q.getControlX()
-                quadCurveTo.controlY = q.getControlY()
+                quadCurveTo.controlX = q.controlX
+                quadCurveTo.controlY = q.controlY
 
                 path.elements.addAll(quadCurveTo)
             }
@@ -180,11 +185,6 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
 
             return@filter nodes.filter { !cycle.nodes.contains(it) }.none { path.contains(it.zone.center) }
         }
-        //.sortedWith(Comparator { c1, c2 -> c1.length() - c2.length() })
-        .forEach { cycles.add(it) }
-
-        println("Found valid cycles:")
-        cycles.forEach { println(it) }
     }
 
     private var tmpPoint = Point2D.ZERO
@@ -198,12 +198,8 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
             !Shape.intersect(s, q).getLayoutBounds().isEmpty()
         }
 
-
-
         if (list.size != 1)
             return false
-
-        println("Found: $list")
 
         return list.get(0).curve == actual
     }
