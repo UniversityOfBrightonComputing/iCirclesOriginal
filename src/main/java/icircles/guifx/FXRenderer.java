@@ -49,6 +49,21 @@ public class FXRenderer extends Pane implements Renderer {
         canvas.setHeight(h);
     }
 
+    public void draw(ConcreteDiagram diagram, boolean showDual) {
+        draw(diagram);
+
+        if (!showDual) {
+            return;
+        }
+
+        EulerDualGraph dual = new EulerDualGraph(diagram);
+        drawPoints(dual.getNodes().stream().map(n -> n.getZone().getCenter()).collect(Collectors.toList()));
+        dual.getEdges().forEach(e -> {
+            e.getCurve().setStroke(Color.RED);
+            freeRoot.getChildren().addAll(e.getCurve());
+        });
+    }
+
     @Override
     public void draw(ConcreteDiagram diagram) {
         Rectangle bbox = toFXRectangle(diagram.getBoundingBox());
@@ -87,14 +102,6 @@ public class FXRenderer extends Pane implements Renderer {
             freeRoot.getChildren().addAll(contour.getShape());
         }
 
-
-
-        EulerDualGraph dual = new EulerDualGraph(diagram);
-        drawPoints(dual.getNodes().stream().map(n -> n.getZone().getCenter()).collect(Collectors.toList()));
-        dual.getEdges().forEach(e -> {
-            e.getCurve().setStroke(Color.RED);
-            freeRoot.getChildren().addAll(e.getCurve());
-        });
 
 //        List<AbstractBasicRegion> zones = Arrays.asList(new AbstractBasicRegion(makeCurves("a", "c")),
 //                new AbstractBasicRegion(makeCurves("c")),

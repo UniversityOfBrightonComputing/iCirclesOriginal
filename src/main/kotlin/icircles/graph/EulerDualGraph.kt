@@ -141,6 +141,11 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
         log.debug("Valid cycles: $cycles")
     }
 
+    // TODO: this would return a bezier curve
+//    private fun findCurveShape(): Shape {
+//
+//    }
+
     /**
      * Compute all valid cycles.
      * A cycle is valid if it can be used to embed a curve.

@@ -27,6 +27,7 @@
 
                 <Menu fx:id="drTypes" text="Decomposition/Recomposition">
                     <CheckMenuItem fx:id="cbBruteforce" text="Bruteforce" />
+                    <CheckMenuItem fx:id="cbEulerDual" text="Show Euler Dual" />
                     <SeparatorMenuItem />
                 </Menu>
 

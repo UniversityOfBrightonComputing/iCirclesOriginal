@@ -53,6 +53,8 @@ public class Controller {
 
     @FXML
     private CheckMenuItem cbBruteforce;
+    @FXML
+    private CheckMenuItem cbEulerDual;
 
     private Alert progressDialog = new Alert(Alert.AlertType.INFORMATION);
 
@@ -317,7 +319,7 @@ public class Controller {
             ConcreteDiagram diagram = getValue();
 
             try {
-                renderer.draw(diagram);
+                renderer.draw(diagram, cbEulerDual.isSelected());
 
                 // highlighting
                 renderer.getShadedZones().forEach(zone -> {
