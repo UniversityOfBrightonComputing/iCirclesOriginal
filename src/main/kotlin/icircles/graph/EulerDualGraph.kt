@@ -21,6 +21,8 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
 
     private val log = LogManager.getLogger(javaClass)
 
+    private val CONTROL_POINT_STEP = 5
+
     val nodes: List<EulerDualNode>
     val edges = ArrayList<EulerDualEdge>()
     val cycles: List<GraphCycle<EulerDualNode, EulerDualEdge>>
@@ -56,7 +58,7 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
                     val x = (p1.x + p2.x) / 2
                     val y = (p1.y + p2.y) / 2
 
-                    var step = 1
+                    var step = CONTROL_POINT_STEP
                     var safetyCount = 0
 
                     var delta = Point2D(step.toDouble(), 0.0)

@@ -143,7 +143,7 @@ public class ConcreteZone {
             radius -= RADIUS_STEP;
 
             if (radius <= 0) {
-                throw new RuntimeException("Cannot find center of a zone");
+                throw new RuntimeException("Cannot find zone center: " + zone);
             }
         }
     }

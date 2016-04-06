@@ -1,6 +1,5 @@
 package icircles.guifx;
 
-import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdescription.AbstractCurve;
 import icircles.concrete.*;
 import icircles.graph.EulerDualGraph;
@@ -31,7 +30,7 @@ public class FXRenderer extends Pane implements Renderer {
     private Pane rootShadedZones = new Pane();
     private Canvas canvas = new Canvas();
 
-    private Pane freeRoot = new Pane();
+    private Pane rootSceneGraph = new Pane();
 
     private GraphicsContext g;
 
@@ -39,9 +38,9 @@ public class FXRenderer extends Pane implements Renderer {
         canvas.setMouseTransparent(true);
         g = canvas.getGraphicsContext2D();
 
-        freeRoot.setMouseTransparent(true);
+        rootSceneGraph.setMouseTransparent(true);
 
-        getChildren().addAll(rootShadedZones, freeRoot, canvas);
+        getChildren().addAll(rootShadedZones, rootSceneGraph, canvas);
     }
 
     private void setCanvasSize(double w, double h) {
@@ -60,7 +59,7 @@ public class FXRenderer extends Pane implements Renderer {
         drawPoints(dual.getNodes().stream().map(n -> n.getZone().getCenter()).collect(Collectors.toList()));
         dual.getEdges().forEach(e -> {
             e.getCurve().setStroke(Color.RED);
-            freeRoot.getChildren().addAll(e.getCurve());
+            rootSceneGraph.getChildren().addAll(e.getCurve());
         });
     }
 
@@ -84,48 +83,11 @@ public class FXRenderer extends Pane implements Renderer {
         for (CircleContour contour : diagram.getCircles())
             drawCircleContour(contour);
 
-//        for (PolygonContour contour : diagram.getContours())
-//            drawPolygonContour(contour);
-
-
-
-
-
-
-        freeRoot.getChildren().clear();
-
-//        for (Shape shape : diagram.shapes) {
-//            freeRoot.getChildren().addAll(shape);
-//        }
+        rootSceneGraph.getChildren().clear();
 
         for (PathContour contour : diagram.getContours()) {
-            freeRoot.getChildren().addAll(contour.getShape());
+            rootSceneGraph.getChildren().addAll(contour.getShape());
         }
-
-
-//        List<AbstractBasicRegion> zones = Arrays.asList(new AbstractBasicRegion(makeCurves("a", "c")),
-//                new AbstractBasicRegion(makeCurves("c")),
-//                new AbstractBasicRegion(makeCurves("b", "c")),
-//                AbstractBasicRegion.OUTSIDE);
-//
-//        System.out.println("Searching:");
-//        dual.computeCycle(zones).ifPresent(System.out::println);
-
-
-//        dual.getEdges().forEach(q -> {
-//            Point2D center1 = q.getV1().getZone().getCenter();
-//            Point2D center2 = q.getV2().getZone().getCenter();
-//
-//            MovablePoint p1 = new MovablePoint(center1.getX(), center1.getY());
-//            MovablePoint p2 = new MovablePoint(center2.getX(), center2.getY());
-//
-//            q.getCurve().startXProperty().bind(p1.layoutXProperty());
-//            q.getCurve().startYProperty().bind(p1.layoutYProperty());
-//            q.getCurve().endXProperty().bind(p2.layoutXProperty());
-//            q.getCurve().endYProperty().bind(p2.layoutYProperty());
-//
-//            freeRoot.getChildren().addAll(q.getCurve(), p1, p2);
-//        });
     }
 
     private Set<AbstractCurve> makeCurves(String... curveLabels) {
@@ -138,6 +100,21 @@ public class FXRenderer extends Pane implements Renderer {
     private class MovablePoint extends StackPane {
         private double mouseX, mouseY;
         private double oldX, oldY;
+
+        //        dual.getEdges().forEach(q -> {
+//            Point2D center1 = q.getV1().getZone().getCenter();
+//            Point2D center2 = q.getV2().getZone().getCenter();
+//
+//            MovablePoint p1 = new MovablePoint(center1.getX(), center1.getY());
+//            MovablePoint p2 = new MovablePoint(center2.getX(), center2.getY());
+//
+//            q.getCurve().startXProperty().bind(p1.layoutXProperty());
+//            q.getCurve().startYProperty().bind(p1.layoutYProperty());
+//            q.getCurve().endXProperty().bind(p2.layoutXProperty());
+//            q.getCurve().endYProperty().bind(p2.layoutYProperty());
+//
+//            rootSceneGraph.getChildren().addAll(q.getCurve(), p1, p2);
+//        });
 
         public MovablePoint(double x, double y) {
             relocate(x, y);
@@ -167,10 +144,6 @@ public class FXRenderer extends Pane implements Renderer {
         }
     }
 
-
-
-
-
     private void drawShadedZone(ConcreteZone zone, Rectangle bbox) {
         Shape shape = bbox;
 
@@ -189,8 +162,6 @@ public class FXRenderer extends Pane implements Renderer {
     }
 
     private void drawNormalZone(ConcreteZone zone, Rectangle bbox) {
-        //System.out.println(zone.toDebugString());
-
         Shape shape = bbox;
 
         for (Contour contour : zone.getContainingContours()) {
@@ -219,24 +190,6 @@ public class FXRenderer extends Pane implements Renderer {
 
         g.strokeOval(x, y, w, h);
         g.fillText(contour.getCurve().getLabel(), contour.getLabelXPosition(), contour.getLabelYPosition());
-    }
-
-    private void drawPolygonContour(PolygonContour contour) {
-        g.setStroke(Color.BLUE);
-
-        double[] xPoints = new double[contour.getCriticalPoints().size()];
-        double[] yPoints = new double[contour.getCriticalPoints().size()];
-
-        int i = 0;
-        for (Point2D p : contour.getCriticalPoints()) {
-            xPoints[i] = p.getX();
-            yPoints[i] = p.getY();
-            i++;
-
-            //System.out.println("Points: " + p.x + " " + p.y);
-        };
-
-        g.strokePolygon(xPoints, yPoints, xPoints.length);
     }
 
     private void drawPoints(List<Point2D> points) {

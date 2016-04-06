@@ -27,7 +27,7 @@ public class ConcreteDiagram {
     private final AbstractDescription original, actual;
     private final Map<AbstractCurve, Contour> curveToContour;
 
-    public final List<Shape> shapes = new ArrayList<>();
+    //public final List<Shape> shapes = new ArrayList<>();
 
     ConcreteDiagram(AbstractDescription original, AbstractDescription actual,
                     List<CircleContour> circles,
