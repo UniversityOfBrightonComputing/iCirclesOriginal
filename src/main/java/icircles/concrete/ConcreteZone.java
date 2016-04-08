@@ -3,6 +3,8 @@ package icircles.concrete;
 import icircles.abstractdescription.AbstractBasicRegion;
 import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -102,6 +104,11 @@ public class ConcreteZone {
         return center;
     }
 
+    // Examples:
+
+    // b h ab ac bd bj cf de fh hi hk hq ik abc
+    // b h l m s ab ac ar bc bd bp cl cn cq cx de hk hq ik mn rz abc bfg
+
     /**
      * Scans the zone using a smaller radius circle each time
      * until the circle is completely within the zone.
@@ -118,24 +125,48 @@ public class ConcreteZone {
         double width = shape.getLayoutBounds().getWidth();
         double height = shape.getLayoutBounds().getHeight();
 
-        // TODO: width < height ? width : height;
-        double radius = 100;
+        // radius is width/height * 0.5
+        // we use 0.45 for heuristics
+        int radius = (int) ((width < height ? width : height) * 0.45);
 
+        // limit max radius
+        if (radius > 100) {
+            radius = 100;
+        }
+
+        boolean useCircleApprox = false;
+        
         while (true) {
-            // TODO: replace with circle
-            javafx.scene.shape.Rectangle circle = new javafx.scene.shape.Rectangle(radius*2, radius*2);
-            //Circle circle = new Circle(radius, radius, radius);
-            circle.setStroke(Color.BLACK);
+            if (useCircleApprox) {
+                Circle circle = new Circle(radius, radius, radius);
+                circle.setStroke(Color.BLACK);
 
-            for (int y = (int) minY; y < minY + height - radius; y += 5) {
-                circle.setY(y);
+                for (int y = (int) minY + radius; y < minY + height - radius; y += 5) {
+                    circle.setCenterY(y);
 
-                for (int x = (int) minX; x < minX + width - radius; x += 5) {
-                    circle.setX(x);
+                    for (int x = (int) minX + radius; x < minX + width - radius; x += 5) {
+                        circle.setCenterX(x);
 
-                    // if circle is completely enclosed by this zone
-                    if (Shape.subtract(circle, shape).getLayoutBounds().isEmpty()) {
-                        return new Point2D(x + radius, y + radius);
+                        // if circle is completely enclosed by this zone
+                        if (Shape.subtract(circle, shape).getLayoutBounds().isEmpty()) {
+                            return new Point2D(x, y);
+                        }
+                    }
+                }
+            } else {
+                Rectangle rect = new Rectangle(radius*2, radius*2);
+                rect.setStroke(Color.BLACK);
+
+                for (int y = (int) minY; y < minY + height - radius*2; y += 5) {
+                    rect.setY(y);
+
+                    for (int x = (int) minX; x < minX + width - radius*2; x += 5) {
+                        rect.setX(x);
+
+                        // if circle is completely enclosed by this zone
+                        if (Shape.subtract(rect, shape).getLayoutBounds().isEmpty()) {
+                            return new Point2D(x + radius, y + radius);
+                        }
                     }
                 }
             }

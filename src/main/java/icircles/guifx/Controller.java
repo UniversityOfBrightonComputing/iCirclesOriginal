@@ -272,6 +272,8 @@ public class Controller {
         private AbstractDescription description;
         private int size;
 
+        private long generationTime;
+
         public CreateDiagramTask(AbstractDescription description, int size) {
             this.description = description;
             this.size = size;
@@ -279,15 +281,23 @@ public class Controller {
 
         @Override
         protected ConcreteDiagram call() throws Exception {
+            long startTime = System.nanoTime();
+
             DecompositionStrategyType dType = (DecompositionStrategyType) decompositionToggle.getSelectedToggle().getUserData();
             RecompositionStrategyType rType = (RecompositionStrategyType) recompositionToggle.getSelectedToggle().getUserData();
 
+            ConcreteDiagram diagram;
+
             if (rType == RecompositionStrategyType.DOUBLY_PIERCED) {
-                return new DiagramCreator(DecomposerFactory.newDecomposer(dType),
+                diagram = new DiagramCreator(DecomposerFactory.newDecomposer(dType),
                         RecomposerFactory.newRecomposer(rType)).createDiagram(description, size);
             } else {
-                return new TwoStepDiagramCreator().createDiagram(description, size);
+                diagram = new TwoStepDiagramCreator().createDiagram(description, size);
             }
+
+            generationTime = System.nanoTime() - startTime;
+
+            return diagram;
         }
 
         @Override
@@ -295,6 +305,8 @@ public class Controller {
             ConcreteDiagram diagram = getValue();
 
             try {
+                long startTime = System.nanoTime();
+
                 renderer.draw(diagram, cbEulerDual.isSelected());
 
                 // highlighting
@@ -308,6 +320,11 @@ public class Controller {
                         ((Shape) zone).setFill(Color.TRANSPARENT);
                     });
                 });
+
+                long estimatedTime = System.nanoTime() - startTime;
+
+                System.out.printf("Diagram creation took: %.3f sec\n", generationTime / 1000000000.0);
+                System.out.printf("Diagram drawing took:  %.3f sec\n", estimatedTime / 1000000000.0);
             } catch (Exception e) {
                 showError(e);
             }
