@@ -58,6 +58,7 @@ public class Controller {
 
     private Alert progressDialog = new Alert(Alert.AlertType.INFORMATION);
 
+    private ToggleGroup diagramCreatorToggle = new ToggleGroup();
     private ToggleGroup decompositionToggle = new ToggleGroup();
     private ToggleGroup recompositionToggle = new ToggleGroup();
 
@@ -66,6 +67,14 @@ public class Controller {
     private AbstractDescription currentDescription = AbstractDescription.from("");
 
     public void initialize() {
+        RadioMenuItem item1 = new RadioMenuItem("Original Creator");
+        RadioMenuItem item2 = new RadioMenuItem("TwoStep Creator");
+
+        item1.setToggleGroup(diagramCreatorToggle);
+        item2.setToggleGroup(diagramCreatorToggle);
+
+        item2.setSelected(true);
+
         for (DecompositionStrategyType dType : DecompositionStrategyType.values()) {
             RadioMenuItem item = new RadioMenuItem(dType.getUiName());
             item.setToggleGroup(decompositionToggle);
@@ -152,7 +161,7 @@ public class Controller {
             Parent root = FXMLLoader.load(getClass().getResource("ui_main.fxml"));
             Stage stage = new Stage();
             stage.setScene(new Scene(root));
-            stage.setTitle("iCircles FX");
+            stage.setTitle("iCirclesFX");
             stage.show();
         } catch (Exception e) {
             showError(e);
@@ -226,13 +235,16 @@ public class Controller {
     @FXML
     private void about() {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("About iCircles");
+        alert.setTitle("About iCirclesFX");
         alert.setHeaderText(null);
-        alert.setContentText("iCircles is a set visualization library.");
+        alert.setContentText("iCirclesFX is a set visualization library.");
         alert.show();
     }
 
     private void showError(Throwable e) {
+        System.out.println("Caught error:\n");
+        e.printStackTrace();
+
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Ooops");
         alert.setContentText(e.getMessage());
@@ -246,11 +258,9 @@ public class Controller {
         currentDescription = description;
         int size = (int) Math.min(renderer.getWidth(), renderer.getHeight());
 
-        //System.out.println(size);
-
         Task<ConcreteDiagram> task = new CreateDiagramTask(description, size);
 
-        Thread t = new Thread(task);
+        Thread t = new Thread(task, "Diagram Creation Thread");
         t.start();
     }
 
@@ -272,50 +282,16 @@ public class Controller {
             DecompositionStrategyType dType = (DecompositionStrategyType) decompositionToggle.getSelectedToggle().getUserData();
             RecompositionStrategyType rType = (RecompositionStrategyType) recompositionToggle.getSelectedToggle().getUserData();
 
-            ConcreteDiagram diagram = null;
-
             if (rType == RecompositionStrategyType.DOUBLY_PIERCED) {
-                return new DiagramCreator(DecomposerFactory.newDecomposer(DecompositionStrategyType.INNERMOST),
+                return new DiagramCreator(DecomposerFactory.newDecomposer(dType),
                         RecomposerFactory.newRecomposer(rType)).createDiagram(description, size);
-            }
-
-            if (cbBruteforce.isSelected()) {
-                // generate diagrams and select which has less path contours
-
-                List<ConcreteDiagram> diagrams = new ArrayList<>();
-
-                for (DecompositionStrategyType type : DecompositionStrategyType.values()) {
-                    try {
-                        DiagramCreator creator = new BetterDiagramCreator(DecomposerFactory.newDecomposer(type), RecomposerFactory.newRecomposer(rType));
-                        diagrams.add(creator.createDiagram(description, size));
-                    } catch (Exception e) {
-                        //e.printStackTrace();
-                    }
-                }
-
-                Collections.reverse(diagrams);
-
-                diagram = diagrams.stream()
-                        .reduce((d1, d2) -> d2.getContours().size() < d1.getContours().size() ? d2 : d1)
-                        .orElseThrow(() -> new RuntimeException("Cannot generate"));
             } else {
-//                DiagramCreator creator = rType == RecompositionStrategyType.DOUBLY_PIERCED_EXTRA_ZONES
-//                        ? new BetterDiagramCreator(DecomposerFactory.newDecomposer(dType), RecomposerFactory.newRecomposer(rType))
-//                        : new DiagramCreator(DecomposerFactory.newDecomposer(dType), RecomposerFactory.newRecomposer(rType));
-
-                DiagramCreator creator = new TwoStepDiagramCreator();
-
-                diagram = creator.createDiagram(description, size);
+                return new TwoStepDiagramCreator().createDiagram(description, size);
             }
-
-
-
-            return diagram;
         }
 
         @Override
         protected void succeeded() {
-            // TODO: handle any drawing errors
             ConcreteDiagram diagram = getValue();
 
             try {
@@ -333,7 +309,7 @@ public class Controller {
                     });
                 });
             } catch (Exception e) {
-                e.printStackTrace();
+                showError(e);
             }
 
             progressDialog.hide();
@@ -344,11 +320,10 @@ public class Controller {
             progressDialog.hide();
 
             Throwable error = getException();
-            error.printStackTrace();
-
-            if (error == null || error.getMessage() == null || error.getMessage().isEmpty())
-                error = new RuntimeException("NullPointerException");
-            showError(error);
+            if (error != null)
+                showError(error);
+            else
+                showError(new RuntimeException("Unresolved error. Exception returned null"));
         }
     }
 }

@@ -16,7 +16,7 @@ public class FXApplication extends Application {
         Parent root = FXMLLoader.load(getClass().getResource("ui_main.fxml"));
 
         stage.setScene(new Scene(root));
-        stage.setTitle("iCircles FX");
+        stage.setTitle("iCirclesFX");
         stage.show();
     }
 }

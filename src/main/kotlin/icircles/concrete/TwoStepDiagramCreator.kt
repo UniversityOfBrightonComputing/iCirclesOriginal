@@ -105,10 +105,10 @@ class TwoStepDiagramCreator : DiagramCreator(
             //CannotDrawException("No cycle found")
             val cycleMaybe = graph.computeCycle(zones)
 
-            if (!cycleMaybe.isPresent)
-                continue
+//            if (!cycleMaybe.isPresent)
+//                continue
 
-            val cycle = cycleMaybe.get()
+            val cycle = cycleMaybe.orElseThrow { CannotDrawException("No cycle found for $zones") }
 
             println("Found approriate: $cycle")
 
