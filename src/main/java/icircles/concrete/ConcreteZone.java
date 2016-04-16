@@ -1,6 +1,7 @@
 package icircles.concrete;
 
 import icircles.abstractdescription.AbstractBasicRegion;
+import icircles.abstractdescription.AbstractCurve;
 import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -10,6 +11,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Concrete form of AbstractBasicRegion.
@@ -19,6 +22,7 @@ public class ConcreteZone {
     private static final Logger log = LogManager.getLogger(ConcreteZone.class);
 
     private static final int RADIUS_STEP = 5;
+    private static final int SCAN_STEP = 5;
 
     /**
      * The abstract basic region of this concrete zone.
@@ -34,6 +38,8 @@ public class ConcreteZone {
      * Contours outside of this zone.
      */
     private final List<Contour> excludingContours;
+
+    public Shape bbox = null;
 
     /**
      * Constructs a concrete zone from abstract zone given containing and excluding contours.
@@ -68,7 +74,8 @@ public class ConcreteZone {
 
     public Shape getShape() {
         //Shape shape = new javafx.scene.shape.Rectangle(600, 600);
-        Shape shape = new javafx.scene.shape.Rectangle(1000, 1000);
+        //Shape shape = new javafx.scene.shape.Rectangle(1000, 1000);
+        Shape shape = bbox;
 
         for (Contour contour : getContainingContours()) {
             shape = Shape.intersect(shape, contour.getShape());
@@ -109,6 +116,10 @@ public class ConcreteZone {
     // b h ab ac bd bj cf de fh hi hk hq ik abc
     // b h l m s ab ac ar bc bd bp cl cn cq cx de hk hq ik mn rz abc bfg
 
+    // Finding zones:
+
+    // a b c d ab ac ad bc abc abd bcd abcd
+
     /**
      * Scans the zone using a smaller radius circle each time
      * until the circle is completely within the zone.
@@ -125,6 +136,8 @@ public class ConcreteZone {
         double width = shape.getLayoutBounds().getWidth();
         double height = shape.getLayoutBounds().getHeight();
 
+
+
         // radius is width/height * 0.5
         // we use 0.45 for heuristics
         int radius = (int) ((width < height ? width : height) * 0.45);
@@ -134,17 +147,34 @@ public class ConcreteZone {
             radius = 100;
         }
 
+//        System.out.println("Zone: " + zone + " Radius: " + radius + " Layout Bounds: " + shape.getLayoutBounds());
+//
+//        Set<AbstractCurve> set = new TreeSet<>();
+//        set.add(new AbstractCurve("c"));
+//
+//        if (zone.equals(new AbstractBasicRegion(set))) {
+//            Rectangle rect = new Rectangle(5, 5, Color.BLUE);
+//            rect.setX(550);
+//            rect.setY(300);
+//            rect.setStroke(Color.YELLOW);
+//
+//            System.out.println("Empty: " + Shape.subtract(rect, shape).getLayoutBounds().isEmpty());
+//        }
+
+
+
+
         boolean useCircleApprox = false;
-        
+
         while (true) {
             if (useCircleApprox) {
                 Circle circle = new Circle(radius, radius, radius);
                 circle.setStroke(Color.BLACK);
 
-                for (int y = (int) minY + radius; y < minY + height - radius; y += 5) {
+                for (int y = (int) minY + radius; y < minY + height - radius; y += SCAN_STEP) {
                     circle.setCenterY(y);
 
-                    for (int x = (int) minX + radius; x < minX + width - radius; x += 5) {
+                    for (int x = (int) minX + radius; x < minX + width - radius; x += SCAN_STEP) {
                         circle.setCenterX(x);
 
                         // if circle is completely enclosed by this zone
@@ -157,13 +187,13 @@ public class ConcreteZone {
                 Rectangle rect = new Rectangle(radius*2, radius*2);
                 rect.setStroke(Color.BLACK);
 
-                for (int y = (int) minY; y < minY + height - radius*2; y += 5) {
+                for (int y = (int) minY; y < minY + height - radius*2; y += SCAN_STEP) {
                     rect.setY(y);
 
-                    for (int x = (int) minX; x < minX + width - radius*2; x += 5) {
+                    for (int x = (int) minX; x < minX + width - radius*2; x += SCAN_STEP) {
                         rect.setX(x);
 
-                        // if circle is completely enclosed by this zone
+                        // if square is completely enclosed by this zone
                         if (Shape.subtract(rect, shape).getLayoutBounds().isEmpty()) {
                             return new Point2D(x + radius, y + radius);
                         }

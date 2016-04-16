@@ -99,7 +99,10 @@ public class ConcreteDiagram {
             includingCircles.add(contour);
         }
 
-        return new ConcreteZone(zone, includingCircles, excludingCircles);
+        ConcreteZone cz = new ConcreteZone(zone, includingCircles, excludingCircles);
+        cz.bbox = new javafx.scene.shape.Rectangle(box.getWidth(), box.getHeight());
+
+        return cz;
     }
 
     /**

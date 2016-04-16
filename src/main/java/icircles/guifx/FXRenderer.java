@@ -1,5 +1,6 @@
 package icircles.guifx;
 
+import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdescription.AbstractCurve;
 import icircles.concrete.*;
 import icircles.graph.EulerDualGraph;
@@ -16,10 +17,7 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -162,20 +160,43 @@ public class FXRenderer extends Pane implements Renderer {
     }
 
     private void drawNormalZone(ConcreteZone zone, Rectangle bbox) {
-        Shape shape = bbox;
+        //Shape shape = bbox;
 
-        for (Contour contour : zone.getContainingContours()) {
-            shape = Shape.intersect(shape, contour.getShape());
-        }
-
-        for (Contour contour : zone.getExcludingContours()) {
-            shape = Shape.subtract(shape, contour.getShape());
-        }
+        Shape shape = zone.getShape();
+//        for (Contour contour : zone.getContainingContours()) {
+//            shape = Shape.intersect(shape, contour.getShape());
+//        }
+//
+//        for (Contour contour : zone.getExcludingContours()) {
+//            shape = Shape.subtract(shape, contour.getShape());
+//        }
 
         Tooltip.install(shape, new Tooltip(zone.toDebugString()));
         shape.setUserData(zone);
         shape.setFill(Color.TRANSPARENT);
+
+//        Set<AbstractCurve> set = new TreeSet<>();
+//        set.add(new AbstractCurve("c"));
+//
+//        Rectangle rect = null;
+//
+//        if (zone.getAbstractZone().equals(new AbstractBasicRegion(set))) {
+//            shape.setFill(Color.RED);
+//
+//            rect = new Rectangle(5, 5, Color.BLUE);
+//            rect.setX(550);
+//            rect.setY(300);
+//            rect.setStroke(Color.YELLOW);
+//
+//            System.out.println("Render shape bounds: " + shape.getLayoutBounds());
+//            System.out.println("Render Empty: " + Shape.subtract(rect, shape).getLayoutBounds().isEmpty());
+//        }
+
         rootShadedZones.getChildren().add(shape);
+
+//        if (rect != null) {
+//            rootShadedZones.getChildren().addAll(rect);
+//        }
     }
 
     private void drawCircleContour(CircleContour contour) {

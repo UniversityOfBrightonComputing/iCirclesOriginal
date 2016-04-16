@@ -19,14 +19,13 @@ public class PathContour extends Contour {
         path.setFill(Color.TRANSPARENT);
     }
 
-    public Path getPath() {
-        return path;
-    }
-
     @Override
     public Shape getShape() {
-        //return Shape.intersect(new Rectangle(1000, 1000), path);
+        Shape shape = Shape.intersect(new Rectangle(1000, 1000), path);
+        shape.setFill(Color.TRANSPARENT);
+        shape.setStroke(Color.DARKBLUE);
+        shape.setStrokeWidth(2);
 
-        return path;
+        return shape;
     }
 }
