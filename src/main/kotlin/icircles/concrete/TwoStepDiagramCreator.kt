@@ -59,25 +59,32 @@ class TwoStepDiagramCreator : DiagramCreator(
     override fun createDiagram(description: AbstractDescription, size: Int): ConcreteDiagram {
         initial = description
 
-        log.debug("Using Original Algorithm")
-        val diagram0 = super.createDiagram(description, size)
+        try {
+            log.debug("Using Original Algorithm")
+            val diagram0 = super.createDiagram(description, size)
 
-        val duplicates = diagram0.findDuplicateContours()
-        if (duplicates.isEmpty())
-            return diagram0
+            val duplicates = diagram0.findDuplicateContours()
+            if (duplicates.isEmpty())
+                return diagram0
 
-        log.debug("Running post-processing")
-        var d = postProcess(diagram0, size)
+            log.debug("Running post-processing")
+            var d = postProcess(diagram0, size)
 
-        // REORDER
+            // REORDER
 
-        //println("Generating for: ${d.actualDescription}")
-        dSteps = null
-        rSteps = null
-        d = super.createDiagram(d.actualDescription, size)
+            //println("Generating for: ${d.actualDescription}")
+            dSteps = null
+            rSteps = null
+            d = super.createDiagram(d.actualDescription, size)
 
-        return postProcess(d, size)
+            return postProcess(d, size)
+        } catch(e: Exception) {
+            return BetterDiagramCreator(DecomposerFactory.newDecomposer(DecompositionStrategyType.INNERMOST),
+                    RecomposerFactory.newRecomposer(RecompositionStrategyType.DOUBLY_PIERCED)).createDiagram(description, size)
+        }
     }
+
+    // Fails: a b d ab ac ad bd acd
 
     private fun postProcess(diagram0: ConcreteDiagram, size: Int): ConcreteDiagram {
         val duplicates = diagram0.findDuplicateContours()
@@ -104,6 +111,7 @@ class TwoStepDiagramCreator : DiagramCreator(
 
             //CannotDrawException("No cycle found")
             val cycleMaybe = graph.computeCycle(zones)
+            //val cycleMaybe = graph.computeCycleIncomplete(zones)
 
 //            if (!cycleMaybe.isPresent)
 //                continue

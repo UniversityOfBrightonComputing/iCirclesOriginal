@@ -51,12 +51,15 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
                     q.startY = p1.y
                     q.endX = p2.x
                     q.endY = p2.y
-                    q.controlX = (p1.x + p2.x) / 2
-                    q.controlY = (p1.y + p2.y) / 2
+
+                    q.controlX = p1.midpoint(p2).x
+                    q.controlY = p1.midpoint(p2).y
+                    //q.controlX = (p1.x + p2.x) / 2
+                    //q.controlY = (p1.y + p2.y) / 2
 
 
-                    val x = (p1.x + p2.x) / 2
-                    val y = (p1.y + p2.y) / 2
+                    val x = q.controlX
+                    val y = q.controlY
 
                     var step = CONTROL_POINT_STEP
                     var safetyCount = 0
@@ -214,6 +217,14 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
     fun computeCycle(zonesToSplit: List<AbstractBasicRegion>): Optional<GraphCycle<EulerDualNode, EulerDualEdge>> {
         return Optional.ofNullable(cycles.filter { it.nodes.map { it.zone.abstractZone }.containsAll(zonesToSplit) }.firstOrNull())
         //return Optional.ofNullable(cycles.filter { containsAll(it.nodes.map { it.zone.abstractZone }, zonesToSplit) }.firstOrNull())
+    }
+
+    fun computeCycleIncomplete(zonesToSplit: List<AbstractBasicRegion>): Optional<GraphCycle<EulerDualNode, EulerDualEdge>> {
+        return Optional.ofNullable(cycles.sortedByDescending { countMatches(it.nodes.map { it.zone.abstractZone }, zonesToSplit) }.firstOrNull())
+    }
+
+    fun countMatches(zones: List<AbstractBasicRegion>, zonesToSplit: List<AbstractBasicRegion>): Int {
+        return zones.intersect(zonesToSplit).size
     }
 
 //    private fun containsAll(allZones: List<AbstractBasicRegion>, zonesToSplit: List<AbstractBasicRegion>): Boolean {
