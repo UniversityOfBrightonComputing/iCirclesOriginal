@@ -28,7 +28,7 @@ public class FXRenderer extends Pane implements Renderer {
     private Pane rootShadedZones = new Pane();
     private Canvas canvas = new Canvas();
 
-    private Pane rootSceneGraph = new Pane();
+    Pane rootSceneGraph = new Pane();
 
     private GraphicsContext g;
 
@@ -41,7 +41,7 @@ public class FXRenderer extends Pane implements Renderer {
         getChildren().addAll(rootShadedZones, rootSceneGraph, canvas);
     }
 
-    private void setCanvasSize(double w, double h) {
+    public void setCanvasSize(double w, double h) {
         canvas.setWidth(w);
         canvas.setHeight(h);
     }
@@ -213,15 +213,15 @@ public class FXRenderer extends Pane implements Renderer {
         g.fillText(contour.getCurve().getLabel(), contour.getLabelXPosition(), contour.getLabelYPosition());
     }
 
-    private void drawPoints(List<Point2D> points) {
+    public void drawPoints(List<Point2D> points) {
         double r = 5;
 
         points.forEach(p -> {
-            g.fillOval(p.getX() - r / 2, p.getY() - r / 2, r, r);
+            g.fillOval(300 + p.getX() - r / 2, 300 + p.getY() - r / 2, r, r);
         });
     }
 
-    private void clearRenderer() {
+    public void clearRenderer() {
         rootShadedZones.getChildren().clear();
         g.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
     }

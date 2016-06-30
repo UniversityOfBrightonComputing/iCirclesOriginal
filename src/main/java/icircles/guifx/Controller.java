@@ -4,6 +4,8 @@ import icircles.abstractdescription.AbstractDescription;
 import icircles.concrete.*;
 import icircles.decomposition.DecomposerFactory;
 import icircles.decomposition.DecompositionStrategyType;
+import icircles.graph.EulerDualNode;
+import icircles.graph.MED;
 import icircles.recomposition.RecomposerFactory;
 import icircles.recomposition.RecompositionStrategyType;
 import icircles.util.ExampleData;
@@ -13,6 +15,7 @@ import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Point2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -29,8 +32,10 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Almas Baimagambetov (AlmasB) (almaslvl@gmail.com)
@@ -67,6 +72,9 @@ public class Controller {
     private AbstractDescription currentDescription = AbstractDescription.from("");
 
     public void initialize() {
+        areaInfo.setVisible(false);
+
+
         RadioMenuItem item1 = new RadioMenuItem("Original Creator");
         RadioMenuItem item2 = new RadioMenuItem("TwoStep Creator");
 
@@ -274,6 +282,8 @@ public class Controller {
 
         private long generationTime;
 
+        private HamiltonianDiagramCreator newCreator;
+
         public CreateDiagramTask(AbstractDescription description, int size) {
             this.description = description;
             this.size = size;
@@ -292,7 +302,9 @@ public class Controller {
                 diagram = new DiagramCreator(DecomposerFactory.newDecomposer(dType),
                         RecomposerFactory.newRecomposer(rType)).createDiagram(description, size);
             } else {
-                diagram = new TwoStepDiagramCreator().createDiagram(description, size);
+                //diagram = new TwoStepDiagramCreator().createDiagram(description, size);
+                newCreator = new HamiltonianDiagramCreator();
+                diagram = newCreator.createDiagram(description, size);
             }
 
             generationTime = System.nanoTime() - startTime;
@@ -304,30 +316,57 @@ public class Controller {
         protected void succeeded() {
             ConcreteDiagram diagram = getValue();
 
-            try {
-                long startTime = System.nanoTime();
+            MED modifiedDual = newCreator.getModifiedDual();
+            Collection<Contour> contours = newCreator.getCurveToContour().values();
 
-                renderer.draw(diagram, cbEulerDual.isSelected());
+            renderer.setCanvasSize(1000, 1000);
+            renderer.clearRenderer();
 
-                // highlighting
-                renderer.getShadedZones().forEach(zone -> {
-                    zone.setOnMouseEntered(e -> {
-                        ((Shape) zone).setFill(Color.YELLOW);
-                        areaInfo.setText(((ConcreteZone) zone.getUserData()).toDebugString());
-                    });
+            renderer.rootSceneGraph.relocate(300, 300);
 
-                    zone.setOnMouseExited(e -> {
-                        ((Shape) zone).setFill(Color.TRANSPARENT);
-                    });
-                });
+            renderer.rootSceneGraph.getChildren().addAll(contours.stream().map(c -> {
+                Shape s = c.getShape();
+                s.setStroke(Color.BLACK);
+                s.setFill(null);
+                return s;
+            }).collect(Collectors.toList()));
 
-                long estimatedTime = System.nanoTime() - startTime;
+            List<Point2D> points = modifiedDual.getNodes().stream().map(EulerDualNode::getPoint).collect(Collectors.toList());
 
-                System.out.printf("Diagram creation took: %.3f sec\n", generationTime / 1000000000.0);
-                System.out.printf("Diagram drawing took:  %.3f sec\n", estimatedTime / 1000000000.0);
-            } catch (Exception e) {
-                showError(e);
-            }
+            System.out.println(points);
+
+            renderer.drawPoints(points);
+            modifiedDual.getEdges().forEach(e -> {
+                e.getCurve().setStroke(Color.RED);
+                renderer.rootSceneGraph.getChildren().addAll(e.getCurve());
+            });
+
+            renderer.rootSceneGraph.getChildren().addAll(modifiedDual.getBoundingCircle());
+
+//            try {
+//                long startTime = System.nanoTime();
+//
+//                renderer.draw(diagram, cbEulerDual.isSelected());
+//
+//                // highlighting
+//                renderer.getShadedZones().forEach(zone -> {
+//                    zone.setOnMouseEntered(e -> {
+//                        ((Shape) zone).setFill(Color.YELLOW);
+//                        areaInfo.setText(((ConcreteZone) zone.getUserData()).toDebugString());
+//                    });
+//
+//                    zone.setOnMouseExited(e -> {
+//                        ((Shape) zone).setFill(Color.TRANSPARENT);
+//                    });
+//                });
+//
+//                long estimatedTime = System.nanoTime() - startTime;
+//
+//                System.out.printf("Diagram creation took: %.3f sec\n", generationTime / 1000000000.0);
+//                System.out.printf("Diagram drawing took:  %.3f sec\n", estimatedTime / 1000000000.0);
+//            } catch (Exception e) {
+//                showError(e);
+//            }
 
             progressDialog.hide();
         }

@@ -34,8 +34,8 @@ public class DiagramCreator {
 
     private static final int SMALLEST_RADIUS = 3;
 
-    private Decomposer decomposer;
-    private Recomposer recomposer;
+    protected Decomposer decomposer;
+    protected Recomposer recomposer;
 
     protected List<DecompositionStep> dSteps;
     protected List<RecompositionStep> rSteps;

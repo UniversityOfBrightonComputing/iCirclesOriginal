@@ -1,14 +1,15 @@
 package icircles.graph
 
-import icircles.abstractdescription.AbstractBasicRegion
 import icircles.abstractdescription.AbstractCurve
-import icircles.concrete.CircleContour
 import icircles.concrete.ConcreteDiagram
+import icircles.concrete.ConcreteZone
 import icircles.concrete.Contour
-import icircles.graph.cycles.CycleFinder
 import javafx.geometry.Point2D
 import javafx.scene.paint.Color
-import javafx.scene.shape.*
+import javafx.scene.shape.Circle
+import javafx.scene.shape.CubicCurve
+import javafx.scene.shape.QuadCurve
+import javafx.scene.shape.Shape
 import org.apache.logging.log4j.LogManager
 import java.util.*
 
@@ -17,18 +18,18 @@ import java.util.*
  *
  * @author Almas Baimagambetov (almaslvl@gmail.com)
  */
-class EulerDualGraph(val diagram: ConcreteDiagram) {
+class MED(allZones: List<ConcreteZone>, allContours: List<Contour>, val boundingCircle: Circle) {
 
     private val log = LogManager.getLogger(javaClass)
 
     private val CONTROL_POINT_STEP = 5
 
-    val nodes: List<EulerDualNode>
+    val nodes: MutableList<EulerDualNode>
     val edges = ArrayList<EulerDualEdge>()
-    val cycles: List<GraphCycle<EulerDualNode, EulerDualEdge>>
+    //val cycles: List<GraphCycle<EulerDualNode, EulerDualEdge>>
 
     init {
-        nodes = diagram.allZones.map { EulerDualNode(it, it.center) }
+        nodes = allZones.map { EulerDualNode(it, it.center) }.toMutableList()
 
         for (i in nodes.indices) {
             var j = i + 1
@@ -73,7 +74,7 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
 
                     log.trace("Searching ${node1.zone} - ${node2.zone} : $curve")
 
-                    while (!isOK(q, curve, diagram.allContours) && safetyCount < 500) {
+                    while (!isOK(q, curve, allContours) && safetyCount < 500) {
                         q.controlX = x + delta.x
                         q.controlY = y + delta.y
 
@@ -142,59 +143,8 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
             }
         }
 
-        cycles = computeValidCycles()
-        log.debug("Valid cycles: $cycles")
-    }
-
-    // TODO: this would return a bezier curve
-//    private fun findCurveShape(): Shape {
-//
-//    }
-
-    /**
-     * Compute all valid cycles.
-     * A cycle is valid if it can be used to embed a curve.
-     */
-    private fun computeValidCycles(): List<GraphCycle<EulerDualNode, EulerDualEdge>> {
-        val graph = CycleFinder<EulerDualNode, EulerDualEdge>(EulerDualEdge::class.java)
-        nodes.forEach { graph.addVertex(it) }
-        edges.forEach { graph.addEdge(it.v1, it.v2, it) }
-
-        return graph.computeCycles().filter { cycle ->
-            val path = Path()
-            val moveTo = MoveTo(cycle.nodes.get(0).zone.center.x, cycle.nodes.get(0).zone.center.y)
-            path.elements.addAll(moveTo)
-
-            tmpPoint = cycle.nodes.get(0).zone.center
-
-            cycle.edges.map { it.curve }.forEach { q ->
-                // TODO: cubicCurveTo if necessary
-                val quadCurveTo = QuadCurveTo()
-
-                // we do this coz source and end vertex might be swapped
-                if (tmpPoint == Point2D(q.startX, q.startY)) {
-                    quadCurveTo.x = q.endX
-                    quadCurveTo.y = q.endY
-                } else {
-                    quadCurveTo.x = q.startX
-                    quadCurveTo.y = q.startY
-                }
-
-                tmpPoint = Point2D(quadCurveTo.x, quadCurveTo.y)
-
-                quadCurveTo.controlX = q.controlX
-                quadCurveTo.controlY = q.controlY
-
-                path.elements.addAll(quadCurveTo)
-            }
-
-            path.elements.add(ClosePath())
-            path.fill = Color.TRANSPARENT
-
-            cycle.path = path
-
-            return@filter nodes.filter { !cycle.nodes.contains(it) }.none { path.contains(it.zone.center) }
-        }
+        //cycles = computeValidCycles()
+        //log.debug("Valid cycles: $cycles")
     }
 
     private var tmpPoint = Point2D.ZERO
@@ -213,40 +163,4 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
 
         return list.get(0).curve == actual
     }
-
-    fun computeCycle(zonesToSplit: List<AbstractBasicRegion>): Optional<GraphCycle<EulerDualNode, EulerDualEdge>> {
-        return Optional.ofNullable(cycles.filter { it.nodes.map { it.zone.abstractZone }.containsAll(zonesToSplit) }.firstOrNull())
-        //return Optional.ofNullable(cycles.filter { containsAll(it.nodes.map { it.zone.abstractZone }, zonesToSplit) }.firstOrNull())
-    }
-
-    fun computeCycleIncomplete(zonesToSplit: List<AbstractBasicRegion>): Optional<GraphCycle<EulerDualNode, EulerDualEdge>> {
-        return Optional.ofNullable(cycles.sortedByDescending { countMatches(it.nodes.map { it.zone.abstractZone }, zonesToSplit) }.firstOrNull())
-    }
-
-    fun countMatches(zones: List<AbstractBasicRegion>, zonesToSplit: List<AbstractBasicRegion>): Int {
-        return zones.intersect(zonesToSplit).size
-    }
-
-//    private fun containsAll(allZones: List<AbstractBasicRegion>, zonesToSplit: List<AbstractBasicRegion>): Boolean {
-//        for (z in zonesToSplit) {
-//            if (!contains(allZones, z)) {
-//                return false
-//            }
-//        }
-//
-//        return true
-//    }
-//
-//    private fun contains(allZones: List<AbstractBasicRegion>, zone: AbstractBasicRegion): Boolean {
-//        println("All zones: $allZones and zone is $zone")
-//        println("${allZones.contains(zone)}")
-//
-//        for (z in allZones) {
-//            if (z == zone) {
-//                return true
-//            }
-//        }
-//
-//        return false
-//    }
 }
