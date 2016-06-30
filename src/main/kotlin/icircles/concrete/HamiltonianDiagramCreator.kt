@@ -31,12 +31,12 @@ class HamiltonianDiagramCreator
 
     lateinit var modifiedDual: MED
 
+    private var firstCurve = true
+
     override fun createDiagram(description: AbstractDescription, size: Int): ConcreteDiagram? {
 
         dSteps = decomposer.decompose(description)
         rSteps = recomposer.recompose(dSteps)
-
-        var firstCurve = true
 
         var i = 0
         for (step in rSteps) {
@@ -44,12 +44,11 @@ class HamiltonianDiagramCreator
             val data = step.addedContourData[0]
 
             if (i == 0) {
+
                 // BASE CASE
                 val contour = CircleContour(100.0, 100.0, 100.0, data.addedCurve)
                 curveToContour[data.addedCurve] = contour
 
-                // this adds first curve zone + OUTSIDE
-                //abstractZones.add(AbstractBasicRegion.OUTSIDE)
                 abstractZones.addAll(data.newZones)
 
             } else if (i == 1) {
@@ -58,13 +57,22 @@ class HamiltonianDiagramCreator
                 val contour = CircleContour(200.0, 100.0, 100.0, data.addedCurve)
                 curveToContour[data.addedCurve] = contour
 
-                // this adds first curve zone + OUTSIDE
-                //abstractZones.add(AbstractBasicRegion.OUTSIDE)
                 abstractZones.addAll(data.newZones)
 
             } else {
+
                 // MED
+                createMED()
+
+                val cycle = modifiedDual.computeCycle(
+                        data.splitZones
+                ).orElseThrow { Exception("Failed to find cycle") }
+
                 // AP cycle
+                val contour = PathContour(data.addedCurve, cycle.path)
+                curveToContour[data.addedCurve] = contour
+
+                abstractZones.addAll(data.newZones)
             }
 
             // embed curve
@@ -115,13 +123,13 @@ class HamiltonianDiagramCreator
         val maxY = bounds.map { it.maxY }.max()
 
         val center = Point2D((minX!! + maxX!!) / 2, (minY!! + maxY!!) / 2)
-        val radius = Math.max(maxX - minX, maxY - minY) / 2 + 100
+        val radius = Math.max(maxX - minX, maxY - minY) / 2 + 100   // how much bigger is the MED
 
         println(center)
         println(radius)
 
         val boundingCircle = Circle(center.x, center.y, radius, null)
-        boundingCircle.stroke = Color.BLUE
+        boundingCircle.stroke = Color.GREEN
 
         modifiedDual = MED(concreteZones, curveToContour.values.toList(), boundingCircle)
 
@@ -152,12 +160,42 @@ class HamiltonianDiagramCreator
                     q.controlX = p1.midpoint(p2).x
                     q.controlY = p1.midpoint(p2).y
 
-                    val node = EulerDualNode(outside, p2)
+                    // make "distinct" nodes so that jgrapht doesnt think it's a loop
+                    val node = EulerDualNode(makeConcreteZone(AbstractBasicRegion.OUTSIDE), p2)
                     nodesMED.add(node)
                     modifiedDual.edges.add(EulerDualEdge(it, node, q))
                 }
 
         modifiedDual.nodes.addAll(nodesMED)
 
+        // TODO: order outside nodes using vectors ?
+        // TODO: add edges between outside nodes
+
+        // HARDCODED
+
+        if (firstCurve) {
+
+            val p1 = nodesMED[0].point
+            val p2 = nodesMED[1].point
+
+            val q = QuadCurve()
+            q.fill = null
+            q.stroke = Color.BLACK
+            q.startX = p1.x
+            q.startY = p1.y
+            q.endX = p2.x
+            q.endY = p2.y
+
+            q.controlX = p1.midpoint(p2).x
+            q.controlY = p1.midpoint(p2).y + 500
+
+            modifiedDual.edges.add(EulerDualEdge(nodesMED[0], nodesMED[1], q))
+
+            modifiedDual.initCycles()
+
+            firstCurve = false
+        } else {
+            modifiedDual.initCycles()
+        }
     }
 }

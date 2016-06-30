@@ -1,15 +1,14 @@
 package icircles.graph
 
+import icircles.abstractdescription.AbstractBasicRegion
 import icircles.abstractdescription.AbstractCurve
 import icircles.concrete.ConcreteDiagram
 import icircles.concrete.ConcreteZone
 import icircles.concrete.Contour
+import icircles.graph.cycles.CycleFinder
 import javafx.geometry.Point2D
 import javafx.scene.paint.Color
-import javafx.scene.shape.Circle
-import javafx.scene.shape.CubicCurve
-import javafx.scene.shape.QuadCurve
-import javafx.scene.shape.Shape
+import javafx.scene.shape.*
 import org.apache.logging.log4j.LogManager
 import java.util.*
 
@@ -26,7 +25,7 @@ class MED(allZones: List<ConcreteZone>, allContours: List<Contour>, val bounding
 
     val nodes: MutableList<EulerDualNode>
     val edges = ArrayList<EulerDualEdge>()
-    //val cycles: List<GraphCycle<EulerDualNode, EulerDualEdge>>
+    lateinit var cycles: List<GraphCycle<EulerDualNode, EulerDualEdge>>
 
     init {
         nodes = allZones.map { EulerDualNode(it, it.center) }.toMutableList()
@@ -143,8 +142,7 @@ class MED(allZones: List<ConcreteZone>, allContours: List<Contour>, val bounding
             }
         }
 
-        //cycles = computeValidCycles()
-        //log.debug("Valid cycles: $cycles")
+
     }
 
     private var tmpPoint = Point2D.ZERO
@@ -162,5 +160,61 @@ class MED(allZones: List<ConcreteZone>, allContours: List<Contour>, val bounding
             return false
 
         return list.get(0).curve == actual
+    }
+
+    /**
+     * Compute all valid cycles.
+     * A cycle is valid if it can be used to embed a curve.
+     */
+    private fun computeValidCycles(): List<GraphCycle<EulerDualNode, EulerDualEdge>> {
+        val graph = CycleFinder<EulerDualNode, EulerDualEdge>(EulerDualEdge::class.java)
+        nodes.forEach { graph.addVertex(it) }
+        edges.forEach { graph.addEdge(it.v1, it.v2, it) }
+
+        return graph.computeCycles().filter { cycle ->
+            val path = Path()
+            val moveTo = MoveTo(cycle.nodes.get(0).point.x, cycle.nodes.get(0).point.y)
+            path.elements.addAll(moveTo)
+
+            tmpPoint = cycle.nodes.get(0).point
+
+            cycle.edges.map { it.curve }.forEach { q ->
+                // TODO: cubicCurveTo if necessary
+                val quadCurveTo = QuadCurveTo()
+
+                // we do this coz source and end vertex might be swapped
+                if (tmpPoint == Point2D(q.startX, q.startY)) {
+                    quadCurveTo.x = q.endX
+                    quadCurveTo.y = q.endY
+                } else {
+                    quadCurveTo.x = q.startX
+                    quadCurveTo.y = q.startY
+                }
+
+                tmpPoint = Point2D(quadCurveTo.x, quadCurveTo.y)
+
+                quadCurveTo.controlX = q.controlX
+                quadCurveTo.controlY = q.controlY
+
+                path.elements.addAll(quadCurveTo)
+            }
+
+            path.elements.add(ClosePath())
+            path.fill = Color.TRANSPARENT
+
+            cycle.path = path
+
+            return@filter nodes.filter { !cycle.nodes.contains(it) }.none { path.contains(it.zone.center) }
+        }
+    }
+
+    fun initCycles() {
+        cycles = computeValidCycles()
+        log.debug("Valid cycles: $cycles")
+    }
+
+    fun computeCycle(zonesToSplit: List<AbstractBasicRegion>): Optional<GraphCycle<EulerDualNode, EulerDualEdge>> {
+        return Optional.ofNullable(cycles.filter { it.nodes.map { it.zone.abstractZone }.containsAll(zonesToSplit) }.firstOrNull())
+        //return Optional.ofNullable(cycles.filter { containsAll(it.nodes.map { it.zone.abstractZone }, zonesToSplit) }.firstOrNull())
     }
 }

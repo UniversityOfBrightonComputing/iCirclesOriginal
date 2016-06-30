@@ -42,7 +42,9 @@
     </top>
 
     <center>
-        <FXRenderer fx:id="renderer" />
+        <ScrollPane fx:id="scrollPane">
+            <FXRenderer fx:id="renderer" />
+        </ScrollPane>
     </center>
 
     <left>

@@ -46,6 +46,9 @@ public class Controller {
     private FXRenderer renderer;
 
     @FXML
+    private ScrollPane scrollPane;
+
+    @FXML
     private Menu drTypes;
     @FXML
     private Menu menuDiagrams;
@@ -322,18 +325,21 @@ public class Controller {
             renderer.setCanvasSize(1000, 1000);
             renderer.clearRenderer();
 
+            renderer.rootSceneGraph.getChildren().clear();
+
             renderer.rootSceneGraph.relocate(300, 300);
 
             renderer.rootSceneGraph.getChildren().addAll(contours.stream().map(c -> {
                 Shape s = c.getShape();
-                s.setStroke(Color.BLACK);
+                s.setStrokeWidth(2);
+                s.setStroke(Color.BLUE);
                 s.setFill(null);
                 return s;
             }).collect(Collectors.toList()));
 
             List<Point2D> points = modifiedDual.getNodes().stream().map(EulerDualNode::getPoint).collect(Collectors.toList());
 
-            System.out.println(points);
+            //System.out.println(points);
 
             renderer.drawPoints(points);
             modifiedDual.getEdges().forEach(e -> {
