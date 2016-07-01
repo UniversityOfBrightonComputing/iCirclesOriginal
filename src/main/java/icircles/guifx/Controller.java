@@ -24,6 +24,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Shape;
+import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
@@ -334,13 +335,23 @@ public class Controller {
 
             renderer.rootSceneGraph.relocate(300, 300);
 
+            List<Text> labels = new ArrayList<>();
+
             renderer.rootSceneGraph.getChildren().addAll(contours.stream().map(c -> {
                 Shape s = c.getShape();
                 s.setStrokeWidth(2);
                 s.setStroke(Color.BLUE);
                 s.setFill(null);
+
+                Text label = new Text(c.getCurve().getLabel());
+                label.setTranslateX(s.getLayoutBounds().getMaxX());
+                label.setTranslateY(s.getLayoutBounds().getMinY());
+                labels.add(label);
+
                 return s;
             }).collect(Collectors.toList()));
+
+            labels.forEach(renderer.rootSceneGraph.getChildren()::add);
 
             List<Point2D> points = modifiedDual.getNodes().stream().map(EulerDualNode::getPoint).collect(Collectors.toList());
 

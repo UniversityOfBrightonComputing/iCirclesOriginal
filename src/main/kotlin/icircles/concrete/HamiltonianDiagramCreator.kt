@@ -8,6 +8,7 @@ import icircles.decomposition.DecompositionStrategyType
 import icircles.graph.EulerDualEdge
 import icircles.graph.EulerDualNode
 import icircles.graph.MED
+import icircles.recomposition.BetterBasicRecomposer
 import icircles.recomposition.RecomposerFactory
 import icircles.recomposition.RecompositionStrategyType
 import javafx.geometry.Point2D
@@ -24,7 +25,8 @@ import java.util.*
  */
 class HamiltonianDiagramCreator
 : DiagramCreator(DecomposerFactory.newDecomposer(DecompositionStrategyType.INNERMOST),
-        RecomposerFactory.newRecomposer(RecompositionStrategyType.DOUBLY_PIERCED_EXTRA_ZONES)) {
+        //RecomposerFactory.newRecomposer(RecompositionStrategyType.DOUBLY_PIERCED_EXTRA_ZONES)
+        BetterBasicRecomposer(null)) {
 
     val curveToContour = LinkedHashMap<AbstractCurve, Contour>()
 
@@ -77,7 +79,8 @@ class HamiltonianDiagramCreator
                 val contour = PathContour(data.addedCurve, cycle.path)
                 curveToContour[data.addedCurve] = contour
 
-                abstractZones.addAll(data.newZones)
+                // ADD NEW ZONES
+                abstractZones.addAll(cycle.nodes.map { it.zone.abstractZone.moveInside(data.addedCurve) })
             }
 
             // embed curve

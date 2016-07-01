@@ -67,45 +67,45 @@ public class BetterBasicRecomposer extends BasicRecomposer {
 
 
 
-        AbstractDualGraph subGraph = new AbstractDualGraph(zonesToSplit);
-
-        if (subGraph.isConnected()) {
-            if (subGraph.getNodes().size() == 1 || subGraph.getNodes().size() == 2) {
-                // OK
-            } else if (isCycle(zonesToSplit)) {
-                // OK
-            } else if (isMultiPiercing(subGraph.getNodes().stream().collect(Collectors.toList()))) {
-                // OK
-            } else {
-                // FIX
-                //zonesToSplit = fix(zonesToSplit, from);
-                new AbstractDualGraph(new ArrayList<>(from.getZones()))
-                        .computeCycle(zonesToSplit)
-                        .ifPresent(cycle -> {
-                            System.out.println("Found appopriate cycle: " + cycle);
-
-                            zonesToSplit.clear();
-                            zonesToSplit.addAll(cycle.getNodes()
-                                    .stream()
-                                    .map(AbstractDualNode::getZone)
-                                    .collect(Collectors.toList()));
-                        });
-            }
-        } else {
-            // FIX
-            //zonesToSplit = fix(zonesToSplit, from);
-            new AbstractDualGraph(new ArrayList<>(from.getZones()))
-                    .computeCycle(zonesToSplit)
-                    .ifPresent(cycle -> {
-                        System.out.println("Found appopriate cycle: " + cycle);
-
-                        zonesToSplit.clear();
-                        zonesToSplit.addAll(cycle.getNodes()
-                                .stream()
-                                .map(AbstractDualNode::getZone)
-                                .collect(Collectors.toList()));
-                    });
-        }
+//        AbstractDualGraph subGraph = new AbstractDualGraph(zonesToSplit);
+//
+//        if (subGraph.isConnected()) {
+//            if (subGraph.getNodes().size() == 1 || subGraph.getNodes().size() == 2) {
+//                // OK
+//            } else if (isCycle(zonesToSplit)) {
+//                // OK
+//            } else if (isMultiPiercing(subGraph.getNodes().stream().collect(Collectors.toList()))) {
+//                // OK
+//            } else {
+//                // FIX
+//                //zonesToSplit = fix(zonesToSplit, from);
+//                new AbstractDualGraph(new ArrayList<>(from.getZones()))
+//                        .computeCycle(zonesToSplit)
+//                        .ifPresent(cycle -> {
+//                            System.out.println("Found appopriate cycle: " + cycle);
+//
+//                            zonesToSplit.clear();
+//                            zonesToSplit.addAll(cycle.getNodes()
+//                                    .stream()
+//                                    .map(AbstractDualNode::getZone)
+//                                    .collect(Collectors.toList()));
+//                        });
+//            }
+//        } else {
+//            // FIX
+//            //zonesToSplit = fix(zonesToSplit, from);
+//            new AbstractDualGraph(new ArrayList<>(from.getZones()))
+//                    .computeCycle(zonesToSplit)
+//                    .ifPresent(cycle -> {
+//                        System.out.println("Found appopriate cycle: " + cycle);
+//
+//                        zonesToSplit.clear();
+//                        zonesToSplit.addAll(cycle.getNodes()
+//                                .stream()
+//                                .map(AbstractDualNode::getZone)
+//                                .collect(Collectors.toList()));
+//                    });
+//        }
 
         log.debug("Zones to split (FIXED): " + zonesToSplit);
 
