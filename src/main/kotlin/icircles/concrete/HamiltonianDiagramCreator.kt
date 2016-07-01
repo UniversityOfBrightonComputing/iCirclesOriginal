@@ -14,6 +14,7 @@ import javafx.geometry.Point2D
 import javafx.scene.paint.Color
 import javafx.scene.shape.Circle
 import javafx.scene.shape.QuadCurve
+import javafx.scene.shape.Shape
 import java.util.*
 
 /**
@@ -33,6 +34,10 @@ class HamiltonianDiagramCreator
 
     private var firstCurve = true
 
+    private val BASE_CURVE_RADIUS = 200.0
+    private val MED_RADIUS = 100.0
+    private val CONTROL_POINT_STEP = 5
+
     override fun createDiagram(description: AbstractDescription, size: Int): ConcreteDiagram? {
 
         dSteps = decomposer.decompose(description)
@@ -46,7 +51,7 @@ class HamiltonianDiagramCreator
             if (i == 0) {
 
                 // BASE CASE
-                val contour = CircleContour(100.0, 100.0, 100.0, data.addedCurve)
+                val contour = CircleContour(BASE_CURVE_RADIUS + 300, BASE_CURVE_RADIUS + 300, BASE_CURVE_RADIUS, data.addedCurve)
                 curveToContour[data.addedCurve] = contour
 
                 abstractZones.addAll(data.newZones)
@@ -54,7 +59,7 @@ class HamiltonianDiagramCreator
             } else if (i == 1) {
 
                 // BASE CASE
-                val contour = CircleContour(200.0, 100.0, 100.0, data.addedCurve)
+                val contour = CircleContour((BASE_CURVE_RADIUS + 0) * 2 + 300, BASE_CURVE_RADIUS + 300, BASE_CURVE_RADIUS, data.addedCurve)
                 curveToContour[data.addedCurve] = contour
 
                 abstractZones.addAll(data.newZones)
@@ -123,10 +128,10 @@ class HamiltonianDiagramCreator
         val maxY = bounds.map { it.maxY }.max()
 
         val center = Point2D((minX!! + maxX!!) / 2, (minY!! + maxY!!) / 2)
-        val radius = Math.max(maxX - minX, maxY - minY) / 2 + 100   // how much bigger is the MED
+        val radius = Math.max(maxX - minX, maxY - minY) / 2 + MED_RADIUS   // how much bigger is the MED
 
-        println(center)
-        println(radius)
+        //println(center)
+        //println(radius)
 
         val boundingCircle = Circle(center.x, center.y, radius, null)
         boundingCircle.stroke = Color.GREEN
@@ -168,15 +173,24 @@ class HamiltonianDiagramCreator
 
         modifiedDual.nodes.addAll(nodesMED)
 
-        // TODO: order outside nodes using vectors ?
-        // TODO: add edges between outside nodes
+        // SORT NODES ALONG THE MED RING
+        Collections.sort(nodesMED, { node1, node2 ->
+            val v1 = node1.point.subtract(center)
+            val angle1 = -Math.toDegrees(Math.atan2(v1.y, v1.x))
 
-        // HARDCODED
+            val v2 = node2.point.subtract(center)
+            val angle2 = -Math.toDegrees(Math.atan2(v2.y, v2.x))
 
-        if (firstCurve) {
+            (angle1 - angle2).toInt()
+        })
 
-            val p1 = nodesMED[0].point
-            val p2 = nodesMED[1].point
+        // ADD EDGES
+        for (i in nodesMED.indices) {
+            val node1 = nodesMED[i]
+            val node2 = if (i == nodesMED.size - 1) nodesMED[0] else nodesMED[i+1]
+
+            val p1 = node1.point
+            val p2 = node2.point
 
             val q = QuadCurve()
             q.fill = null
@@ -187,15 +201,69 @@ class HamiltonianDiagramCreator
             q.endY = p2.y
 
             q.controlX = p1.midpoint(p2).x
-            q.controlY = p1.midpoint(p2).y + 500
+            q.controlY = p1.midpoint(p2).y
 
-            modifiedDual.edges.add(EulerDualEdge(nodesMED[0], nodesMED[1], q))
+            // ATTEMPT TO ROUTE THE EDGE
+            val x = q.controlX
+            val y = q.controlY
 
-            modifiedDual.initCycles()
+            var step = CONTROL_POINT_STEP
+            var safetyCount = 0
 
-            firstCurve = false
-        } else {
-            modifiedDual.initCycles()
+            var delta = Point2D(step.toDouble(), 0.0)
+            var s = 0
+
+            // the new curve segment must pass through the straddled curve
+            // and only through that curve
+            //val curve = node1.zone.abstractZone.getStraddledContour(node2.zone.abstractZone).get()
+
+            //log.trace("Searching ${node1.zone} - ${node2.zone} : $curve")
+
+            while (!isOKMED(q) && safetyCount < 500) {
+                q.controlX = x + delta.x
+                q.controlY = y + delta.y
+
+                s++
+
+                when (s) {
+                    1 -> delta = Point2D(step.toDouble(), step.toDouble())
+                    2 -> delta = Point2D(0.0, step.toDouble())
+                    3 -> delta = Point2D((-step).toDouble(), step.toDouble())
+                    4 -> delta = Point2D((-step).toDouble(), 0.0)
+                    5 -> delta = Point2D((-step).toDouble(), (-step).toDouble())
+                    6 -> delta = Point2D(0.0, (-step).toDouble())
+                    7 -> delta = Point2D(step.toDouble(), (-step).toDouble())
+                }
+
+                if (s == 8) {
+                    s = 0
+                    delta = Point2D(step.toDouble(), 0.0)
+                    step *= 2
+                }
+
+                safetyCount++
+            }
+
+            if (safetyCount == 500) {
+                println("FAILED, NO CONTROL POINT")
+            }
+
+            modifiedDual.edges.add(EulerDualEdge(node1, node2, q))
         }
+
+        // ASK MED TO GEN CYCLES
+        modifiedDual.initCycles()
+    }
+
+    fun isOKMED(q: QuadCurve): Boolean {
+        val list = curveToContour.values.filter {
+            val s = it.shape
+            s.fill = null
+            s.stroke = Color.BROWN
+
+            !Shape.intersect(s, q).getLayoutBounds().isEmpty()
+        }
+
+        return list.isEmpty()
     }
 }

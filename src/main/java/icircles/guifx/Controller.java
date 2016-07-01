@@ -22,6 +22,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Shape;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -315,6 +316,8 @@ public class Controller {
             return diagram;
         }
 
+        private double fieldSize = 4000.0;
+
         @Override
         protected void succeeded() {
             ConcreteDiagram diagram = getValue();
@@ -322,7 +325,9 @@ public class Controller {
             MED modifiedDual = newCreator.getModifiedDual();
             Collection<Contour> contours = newCreator.getCurveToContour().values();
 
-            renderer.setCanvasSize(1000, 1000);
+            renderer.setPrefSize(fieldSize, fieldSize);
+
+            renderer.setCanvasSize(fieldSize, fieldSize);
             renderer.clearRenderer();
 
             renderer.rootSceneGraph.getChildren().clear();
@@ -339,9 +344,14 @@ public class Controller {
 
             List<Point2D> points = modifiedDual.getNodes().stream().map(EulerDualNode::getPoint).collect(Collectors.toList());
 
+            points.forEach(p -> {
+                Circle point = new Circle(p.getX(), p.getY(), 2.5, Color.RED);
+                renderer.rootSceneGraph.getChildren().addAll(point);
+            });
+
             //System.out.println(points);
 
-            renderer.drawPoints(points);
+            //renderer.drawPoints(points);
             modifiedDual.getEdges().forEach(e -> {
                 e.getCurve().setStroke(Color.RED);
                 renderer.rootSceneGraph.getChildren().addAll(e.getCurve());
