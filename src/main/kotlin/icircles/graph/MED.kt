@@ -172,6 +172,18 @@ class MED(allZones: List<ConcreteZone>, allContours: List<Contour>, val bounding
         edges.forEach { graph.addEdge(it.v1, it.v2, it) }
 
         return graph.computeCycles().filter { cycle ->
+
+            println("Checking cycle: $cycle")
+
+            // this ensures that we do not allow same vertices in the cycle
+            // unless it's the outside vertex
+            cycle.nodes.groupBy { it.zone.abstractZone.toString() }.forEach {
+                if (it.key != "{}" && it.value.size > 1) {
+                    log.debug("Discarding cycle because ${it.key} is present ${it.value.size} times")
+                    return@filter false
+                }
+            }
+
             val path = Path()
             val moveTo = MoveTo(cycle.nodes.get(0).point.x, cycle.nodes.get(0).point.y)
             path.elements.addAll(moveTo)
@@ -204,7 +216,26 @@ class MED(allZones: List<ConcreteZone>, allContours: List<Contour>, val bounding
 
             cycle.path = path
 
-            return@filter nodes.filter { !cycle.nodes.contains(it) }.none { path.contains(it.zone.center) }
+            // we filter those vertices that are not part of the cycle
+            // then we check if filtered vertices are inside the cycle
+            nodes.filter {
+
+                !cycle.contains(it)
+                // fails for some reason
+                //!cycle.nodes.contains(it) 
+
+            }.forEach {
+
+                println("Checking vertex $it")
+
+                if (path.contains(it.point)) {
+                    log.debug("Discarding cycle because of inside vertex: ${it.point}")
+                    return@filter false
+                }
+            }
+
+            log.debug("Cycle is valid")
+            return@filter true
         }
     }
 

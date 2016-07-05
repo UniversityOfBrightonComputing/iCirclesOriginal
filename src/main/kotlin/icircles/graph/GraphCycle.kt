@@ -15,6 +15,16 @@ data class GraphCycle<V, E>(val nodes: List<V>, val edges: List<E>) {
 
     fun length() = nodes.size
 
+    fun contains(node: V): Boolean {
+        for (n in nodes) {
+            if (n.toString() == node.toString()) {
+                return true
+            }
+        }
+
+        return false
+    }
+
 //    fun contains(zones: List<AbstractBasicRegion>): Boolean {
 //        val mappedNodes = nodes.map { it.zone.abstractZone }
 //

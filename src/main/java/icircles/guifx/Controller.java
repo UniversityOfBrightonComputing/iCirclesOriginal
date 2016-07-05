@@ -357,7 +357,12 @@ public class Controller {
 
             points.forEach(p -> {
                 Circle point = new Circle(p.getX(), p.getY(), 2.5, Color.RED);
-                renderer.rootSceneGraph.getChildren().addAll(point);
+
+                Text coord = new Text((int)p.getX() + "," + (int)p.getY());
+                coord.setTranslateX(p.getX());
+                coord.setTranslateY(p.getY() - 10);
+
+                renderer.rootSceneGraph.getChildren().addAll(point, coord);
             });
 
             //System.out.println(points);
@@ -407,6 +412,8 @@ public class Controller {
                 showError(error);
             else
                 showError(new RuntimeException("Unresolved error. Exception returned null"));
+
+            succeeded();
         }
     }
 }
