@@ -75,8 +75,16 @@ class HamiltonianDiagramCreator
                         data.splitZones
                 ).orElseThrow { Exception("Failed to find cycle") }
 
-                // AP cycle
-                val contour = PathContour(data.addedCurve, cycle.path)
+                // AP cycle USING QUAD CURVES
+                var contour = PathContour(data.addedCurve, cycle.path)
+
+                // SMOOTHED AP CYCLE THRU NODE POINTS
+
+                // TODO: THIS FAILS WHEN THE CYCLE IS A LINE
+                if (cycle.nodes.map { it.zone.abstractZone.toString() }.none { it == "{}" }) {
+                    contour = PathContour(data.addedCurve, BezierApproximation.pathThruPoints(cycle.nodes.map { it.point }.toMutableList()))
+                }
+
                 curveToContour[data.addedCurve] = contour
 
                 // ADD NEW ZONES

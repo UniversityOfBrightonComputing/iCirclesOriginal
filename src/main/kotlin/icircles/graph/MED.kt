@@ -220,9 +220,10 @@ class MED(allZones: List<ConcreteZone>, allContours: List<Contour>, val bounding
             // then we check if filtered vertices are inside the cycle
             nodes.filter {
 
+                // we do not need to check for ouside zone right?
                 !cycle.contains(it)
                 // fails for some reason
-                //!cycle.nodes.contains(it) 
+                //!cycle.nodes.contains(it)
 
             }.forEach {
 
