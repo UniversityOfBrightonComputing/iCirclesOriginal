@@ -11,6 +11,7 @@ import icircles.graph.MED
 import icircles.recomposition.BetterBasicRecomposer
 import icircles.recomposition.RecomposerFactory
 import icircles.recomposition.RecompositionStrategyType
+import javafx.collections.FXCollections
 import javafx.geometry.Point2D
 import javafx.scene.paint.Color
 import javafx.scene.shape.Circle
@@ -28,7 +29,7 @@ class HamiltonianDiagramCreator
         //RecomposerFactory.newRecomposer(RecompositionStrategyType.DOUBLY_PIERCED_EXTRA_ZONES)
         BetterBasicRecomposer(null)) {
 
-    val curveToContour = LinkedHashMap<AbstractCurve, Contour>()
+    val curveToContour = FXCollections.observableMap(LinkedHashMap<AbstractCurve, Contour>())
 
     private val abstractZones = ArrayList<AbstractBasicRegion>()
 
@@ -36,9 +37,15 @@ class HamiltonianDiagramCreator
 
     private var firstCurve = true
 
-    private val BASE_CURVE_RADIUS = 200.0
-    private val MED_RADIUS = 100.0
-    private val CONTROL_POINT_STEP = 5
+    companion object {
+        @JvmField val BASE_CURVE_RADIUS = 1000.0
+
+        private val MED_RADIUS = 500.0
+
+        private val OFFSET = 1000.0
+
+        private val CONTROL_POINT_STEP = BASE_CURVE_RADIUS / 20
+    }
 
     override fun createDiagram(description: AbstractDescription, size: Int): ConcreteDiagram? {
 
@@ -53,7 +60,7 @@ class HamiltonianDiagramCreator
             if (i == 0) {
 
                 // BASE CASE
-                val contour = CircleContour(BASE_CURVE_RADIUS + 300, BASE_CURVE_RADIUS + 300, BASE_CURVE_RADIUS, data.addedCurve)
+                val contour = CircleContour(BASE_CURVE_RADIUS + OFFSET, BASE_CURVE_RADIUS + OFFSET, BASE_CURVE_RADIUS, data.addedCurve)
                 curveToContour[data.addedCurve] = contour
 
                 abstractZones.addAll(data.newZones)
@@ -61,7 +68,7 @@ class HamiltonianDiagramCreator
             } else if (i == 1) {
 
                 // BASE CASE
-                val contour = CircleContour((BASE_CURVE_RADIUS + 0) * 2 + 300, BASE_CURVE_RADIUS + 300, BASE_CURVE_RADIUS, data.addedCurve)
+                val contour = CircleContour((BASE_CURVE_RADIUS + 0) * 2 + OFFSET, BASE_CURVE_RADIUS + OFFSET, BASE_CURVE_RADIUS, data.addedCurve)
                 curveToContour[data.addedCurve] = contour
 
                 abstractZones.addAll(data.newZones)

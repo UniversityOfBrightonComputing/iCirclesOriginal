@@ -22,8 +22,8 @@ public class ConcreteZone {
 
     private static final Logger log = LogManager.getLogger(ConcreteZone.class);
 
-    private static final int RADIUS_STEP = 5;
-    private static final int SCAN_STEP = 5;
+    private static final double RADIUS_STEP = HamiltonianDiagramCreator.BASE_CURVE_RADIUS / 20;
+    private static final int SCAN_STEP = (int) RADIUS_STEP;
 
     /**
      * The abstract basic region of this concrete zone.
@@ -144,9 +144,11 @@ public class ConcreteZone {
         int radius = (int) ((width < height ? width : height) * 0.45);
 
         // limit max radius
-        if (radius > 100) {
-            radius = 100;
+        if (radius > HamiltonianDiagramCreator.BASE_CURVE_RADIUS) {
+            radius = (int) HamiltonianDiagramCreator.BASE_CURVE_RADIUS;
         }
+
+
 
 //        System.out.println("Zone: " + zone + " Radius: " + radius + " Layout Bounds: " + shape.getLayoutBounds());
 //

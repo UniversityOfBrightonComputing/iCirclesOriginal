@@ -48,8 +48,8 @@
     </center>
 
     <left>
-        <VBox prefWidth="200" spacing="10">
-            <TextArea fx:id="areaInfo" editable="false" />
-        </VBox>
+        <!--<VBox prefWidth="200" spacing="10">-->
+            <!--<TextArea fx:id="areaInfo" editable="false" />-->
+        <!--</VBox>-->
     </left>
 </BorderPane>

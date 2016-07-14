@@ -1,5 +1,6 @@
 package icircles.guifx;
 
+import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
 import icircles.concrete.*;
 import icircles.decomposition.DecomposerFactory;
@@ -10,7 +11,9 @@ import icircles.recomposition.RecomposerFactory;
 import icircles.recomposition.RecompositionStrategyType;
 import icircles.util.ExampleData;
 import icircles.util.ExampleDiagram;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
 import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
@@ -58,8 +61,8 @@ public class Controller {
     @FXML
     private TextField fieldInput;
 
-    @FXML
-    private TextArea areaInfo;
+//    @FXML
+//    private TextArea areaInfo;
 
     @FXML
     private CheckMenuItem cbBruteforce;
@@ -77,7 +80,9 @@ public class Controller {
     private AbstractDescription currentDescription = AbstractDescription.from("");
 
     public void initialize() {
-        areaInfo.setVisible(false);
+        //areaInfo.setVisible(false);
+        renderer.setTranslateX(-1000);
+        renderer.setTranslateY(-1000);
 
 
         RadioMenuItem item1 = new RadioMenuItem("Original Creator");
@@ -292,6 +297,14 @@ public class Controller {
         public CreateDiagramTask(AbstractDescription description, int size) {
             this.description = description;
             this.size = size;
+
+            renderer.setPrefSize(fieldSize, fieldSize);
+            renderer.setCanvasSize(fieldSize, fieldSize);
+
+            renderer.setScaleX(0.25);
+            renderer.setScaleY(0.25);
+
+            renderer.rootSceneGraph.getChildren().clear();
         }
 
         @Override
@@ -308,7 +321,48 @@ public class Controller {
                         RecomposerFactory.newRecomposer(rType)).createDiagram(description, size);
             } else {
                 //diagram = new TwoStepDiagramCreator().createDiagram(description, size);
+
                 newCreator = new HamiltonianDiagramCreator();
+
+                newCreator.getCurveToContour().addListener((MapChangeListener<? super AbstractCurve, ? super Contour>) change -> {
+                    if (change.wasAdded()) {
+                        Contour c = change.getValueAdded();
+
+                        Shape s = c.getShape();
+                        s.setStrokeWidth(6);
+                        s.setStroke(Color.color(Math.random(), Math.random(), Math.random()));
+                        s.setFill(null);
+
+                        Text label = new Text(c.getCurve().getLabel());
+                        label.setTranslateX(s.getLayoutBounds().getMaxX());
+                        label.setTranslateY(s.getLayoutBounds().getMinY());
+
+                        Platform.runLater(() -> renderer.rootSceneGraph.getChildren().addAll(s, label));
+
+//                        labels.forEach(renderer.rootSceneGraph.getChildren()::add);
+//
+//                        List<Point2D> points = modifiedDual.getNodes().stream().map(EulerDualNode::getPoint).collect(Collectors.toList());
+//
+//                        points.forEach(p -> {
+//                            Circle point = new Circle(p.getX(), p.getY(), 2.5, Color.RED);
+//
+//                            Text coord = new Text((int)p.getX() + "," + (int)p.getY());
+//                            coord.setTranslateX(p.getX());
+//                            coord.setTranslateY(p.getY() - 10);
+//
+//                            renderer.rootSceneGraph.getChildren().addAll(point, coord);
+//                        });
+
+//            modifiedDual.getEdges().forEach(e -> {
+//                e.getCurve().setStroke(Color.RED);
+//                renderer.rootSceneGraph.getChildren().addAll(e.getCurve());
+//            });
+
+                        //renderer.rootSceneGraph.getChildren().addAll(modifiedDual.getBoundingCircle());
+                    }
+                });
+
+
                 diagram = newCreator.createDiagram(description, size);
             }
 
@@ -326,37 +380,33 @@ public class Controller {
             MED modifiedDual = newCreator.getModifiedDual();
             Collection<Contour> contours = newCreator.getCurveToContour().values();
 
-            renderer.setPrefSize(fieldSize, fieldSize);
-
-            renderer.setCanvasSize(fieldSize, fieldSize);
-            renderer.clearRenderer();
-
-            renderer.rootSceneGraph.getChildren().clear();
-
-            renderer.rootSceneGraph.relocate(300, 300);
-
-            List<Text> labels = new ArrayList<>();
-
-            renderer.rootSceneGraph.getChildren().addAll(contours.stream().map(c -> {
-                Shape s = c.getShape();
-                s.setStrokeWidth(2);
-                s.setStroke(Color.BLUE);
-                s.setFill(null);
-
-                Text label = new Text(c.getCurve().getLabel());
-                label.setTranslateX(s.getLayoutBounds().getMaxX());
-                label.setTranslateY(s.getLayoutBounds().getMinY());
-                labels.add(label);
-
-                return s;
-            }).collect(Collectors.toList()));
-
-            labels.forEach(renderer.rootSceneGraph.getChildren()::add);
-
+//
+//
+//
+//
+//
+//            List<Text> labels = new ArrayList<>();
+//
+//            renderer.rootSceneGraph.getChildren().addAll(contours.stream().map(c -> {
+//                Shape s = c.getShape();
+//                s.setStrokeWidth(2);
+//                s.setStroke(Color.color(Math.random(), Math.random(), Math.random()));
+//                s.setFill(null);
+//
+//                Text label = new Text(c.getCurve().getLabel());
+//                label.setTranslateX(s.getLayoutBounds().getMaxX());
+//                label.setTranslateY(s.getLayoutBounds().getMinY());
+//                labels.add(label);
+//
+//                return s;
+//            }).collect(Collectors.toList()));
+//
+//            labels.forEach(renderer.rootSceneGraph.getChildren()::add);
+//
             List<Point2D> points = modifiedDual.getNodes().stream().map(EulerDualNode::getPoint).collect(Collectors.toList());
 
             points.forEach(p -> {
-                Circle point = new Circle(p.getX(), p.getY(), 2.5, Color.RED);
+                Circle point = new Circle(p.getX(), p.getY(), 10, Color.RED);
 
                 Text coord = new Text((int)p.getX() + "," + (int)p.getY());
                 coord.setTranslateX(p.getX());
@@ -364,16 +414,17 @@ public class Controller {
 
                 renderer.rootSceneGraph.getChildren().addAll(point, coord);
             });
-
-            //System.out.println(points);
-
-            //renderer.drawPoints(points);
+//
             modifiedDual.getEdges().forEach(e -> {
                 e.getCurve().setStroke(Color.RED);
+                e.getCurve().setStrokeWidth(6);
                 renderer.rootSceneGraph.getChildren().addAll(e.getCurve());
             });
+//
+//            renderer.rootSceneGraph.getChildren().addAll(modifiedDual.getBoundingCircle());
 
-            renderer.rootSceneGraph.getChildren().addAll(modifiedDual.getBoundingCircle());
+
+
 
 //            try {
 //                long startTime = System.nanoTime();
