@@ -27,6 +27,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Shape;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -334,6 +335,7 @@ public class Controller {
                         s.setFill(null);
 
                         Text label = new Text(c.getCurve().getLabel());
+                        label.setFont(Font.font(72));
                         label.setTranslateX(s.getLayoutBounds().getMaxX());
                         label.setTranslateY(s.getLayoutBounds().getMinY());
 
@@ -403,23 +405,27 @@ public class Controller {
 //
 //            labels.forEach(renderer.rootSceneGraph.getChildren()::add);
 //
-            List<Point2D> points = modifiedDual.getNodes().stream().map(EulerDualNode::getPoint).collect(Collectors.toList());
 
-            points.forEach(p -> {
-                Circle point = new Circle(p.getX(), p.getY(), 10, Color.RED);
+            if (cbEulerDual.isSelected()) {
 
-                Text coord = new Text((int)p.getX() + "," + (int)p.getY());
-                coord.setTranslateX(p.getX());
-                coord.setTranslateY(p.getY() - 10);
+                modifiedDual.getNodes().stream().map(EulerDualNode::getPoint).forEach(p -> {
+                    Circle point = new Circle(p.getX(), p.getY(), 10, Color.RED);
 
-                renderer.rootSceneGraph.getChildren().addAll(point, coord);
-            });
-//
-            modifiedDual.getEdges().forEach(e -> {
-                e.getCurve().setStroke(Color.RED);
-                e.getCurve().setStrokeWidth(6);
-                renderer.rootSceneGraph.getChildren().addAll(e.getCurve());
-            });
+                    Text coord = new Text((int) p.getX() + "," + (int) p.getY());
+                    coord.setTranslateX(p.getX());
+                    coord.setTranslateY(p.getY() - 10);
+
+                    renderer.rootSceneGraph.getChildren().addAll(point, coord);
+                });
+
+                modifiedDual.getEdges().forEach(e -> {
+                    e.getCurve().setStroke(Color.RED);
+                    e.getCurve().setStrokeWidth(6);
+                    renderer.rootSceneGraph.getChildren().addAll(e.getCurve());
+                });
+            }
+
+
 //
 //            renderer.rootSceneGraph.getChildren().addAll(modifiedDual.getBoundingCircle());
 

@@ -73,6 +73,14 @@ class HamiltonianDiagramCreator
 
                 abstractZones.addAll(data.newZones)
 
+            } else if (i == 2) {
+
+                // TODO: HARDCODED
+                val contour = CircleContour((BASE_CURVE_RADIUS + 0) * 1.5 + OFFSET, BASE_CURVE_RADIUS * 2 + OFFSET, BASE_CURVE_RADIUS, data.addedCurve)
+                curveToContour[data.addedCurve] = contour
+
+                abstractZones.addAll(data.newZones)
+
             } else {
 
                 // MED
@@ -146,7 +154,9 @@ class HamiltonianDiagramCreator
         val maxY = bounds.map { it.maxY }.max()
 
         val center = Point2D((minX!! + maxX!!) / 2, (minY!! + maxY!!) / 2)
-        val radius = Math.max(maxX - minX, maxY - minY) / 2 + MED_RADIUS   // how much bigger is the MED
+        val radius = Math.max(maxX - minX, maxY - minY) / 2 + 2 * MED_RADIUS   // how much bigger is the MED
+
+        // TODO: instead of radius we need half of the diagonal of a rect
 
         //println(center)
         //println(radius)
