@@ -2,24 +2,20 @@ package icircles.guifx;
 
 import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
-import icircles.concrete.*;
-import icircles.decomposition.DecomposerFactory;
-import icircles.decomposition.DecompositionStrategyType;
+import icircles.concrete.ConcreteDiagram;
+import icircles.concrete.Contour;
+import icircles.concrete.HamiltonianDiagramCreator;
 import icircles.graph.EulerDualNode;
 import icircles.graph.MED;
-import icircles.recomposition.RecomposerFactory;
-import icircles.recomposition.RecompositionStrategyType;
 import icircles.util.ExampleData;
 import icircles.util.ExampleDiagram;
 import icircles.util.Examples;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Point2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -27,8 +23,6 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.scene.shape.Shape;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -39,10 +33,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Almas Baimagambetov (AlmasB) (almaslvl@gmail.com)
@@ -50,14 +41,6 @@ import java.util.stream.Collectors;
 public class Controller {
 
     private SettingsController settings;
-
-
-
-
-
-
-
-
 
     @FXML
     private FXRenderer renderer;
@@ -83,10 +66,6 @@ public class Controller {
 
     private Alert progressDialog = new Alert(Alert.AlertType.INFORMATION);
 
-    private ToggleGroup diagramCreatorToggle = new ToggleGroup();
-    private ToggleGroup decompositionToggle = new ToggleGroup();
-    private ToggleGroup recompositionToggle = new ToggleGroup();
-
     private List<AbstractDescription> historyUndo = new ArrayList<>();
     private List<AbstractDescription> historyRedo = new ArrayList<>();
     private AbstractDescription currentDescription = AbstractDescription.from("");
@@ -109,47 +88,9 @@ public class Controller {
         }
 
 
-
-
-
-
-
         //areaInfo.setVisible(false);
         renderer.setTranslateX(-1000);
         renderer.setTranslateY(-1000);
-
-
-        RadioMenuItem item1 = new RadioMenuItem("Original Creator");
-        RadioMenuItem item2 = new RadioMenuItem("TwoStep Creator");
-
-        item1.setToggleGroup(diagramCreatorToggle);
-        item2.setToggleGroup(diagramCreatorToggle);
-
-        item2.setSelected(true);
-
-        for (DecompositionStrategyType dType : DecompositionStrategyType.values()) {
-            RadioMenuItem item = new RadioMenuItem(dType.getUiName());
-            item.setToggleGroup(decompositionToggle);
-
-            if (dType == DecompositionStrategyType.INNERMOST) {
-                item.setSelected(true);
-            }
-
-            item.setUserData(dType);
-
-            drTypes.getItems().add(item);
-        }
-
-        drTypes.getItems().add(new SeparatorMenuItem());
-
-        for (RecompositionStrategyType rType : RecompositionStrategyType.values()) {
-            RadioMenuItem item = new RadioMenuItem(rType.getUiName());
-            item.setToggleGroup(recompositionToggle);
-            item.setSelected(true);
-            item.setUserData(rType);
-
-            drTypes.getItems().add(item);
-        }
 
         fieldInput.setOnAction(e -> {
             AbstractDescription ad = AbstractDescription.from(fieldInput.getText());
@@ -165,18 +106,10 @@ public class Controller {
 
         historyUndo.add(currentDescription);
 
-        decompositionToggle.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> {
-            if (newToggle != null)
-                visualize(currentDescription);
-        });
-        recompositionToggle.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> {
-            if (newToggle != null)
-                visualize(currentDescription);
-        });
-
         initMenuDiagrams();
 
         progressDialog.setTitle("Working...");
+        progressDialog.setHeaderText("Generating...");
 
         ProgressIndicator progressIndicator = new ProgressIndicator();
         progressDialog.getDialogPane().setContent(progressIndicator);
@@ -321,7 +254,7 @@ public class Controller {
         currentDescription = description;
         int size = (int) Math.min(renderer.getWidth(), renderer.getHeight());
 
-        Task<ConcreteDiagram> task = new CreateDiagramTask(description, size);
+        Task<ConcreteDiagram> task = new CreateDiagramTask(description);
 
         Thread t = new Thread(task, "Diagram Creation Thread");
         t.start();
@@ -333,15 +266,15 @@ public class Controller {
     private class CreateDiagramTask extends Task<ConcreteDiagram> {
 
         private AbstractDescription description;
-        private int size;
 
         private long generationTime;
 
         private HamiltonianDiagramCreator newCreator;
 
-        public CreateDiagramTask(AbstractDescription description, int size) {
+        private double fieldSize = 4000.0;
+
+        public CreateDiagramTask(AbstractDescription description) {
             this.description = description;
-            this.size = size;
 
             renderer.setPrefSize(fieldSize, fieldSize);
             renderer.setCanvasSize(fieldSize, fieldSize);
@@ -349,106 +282,37 @@ public class Controller {
             renderer.setScaleX(0.25);
             renderer.setScaleY(0.25);
 
-            renderer.rootSceneGraph.getChildren().clear();
+            renderer.clearSceneGraph();
         }
 
         @Override
         protected ConcreteDiagram call() throws Exception {
             long startTime = System.nanoTime();
 
-            DecompositionStrategyType dType = (DecompositionStrategyType) decompositionToggle.getSelectedToggle().getUserData();
-            RecompositionStrategyType rType = (RecompositionStrategyType) recompositionToggle.getSelectedToggle().getUserData();
+            newCreator = new HamiltonianDiagramCreator(settings);
 
-            ConcreteDiagram diagram;
+            newCreator.getCurveToContour().addListener((MapChangeListener<? super AbstractCurve, ? super Contour>) change -> {
+                if (change.wasAdded()) {
+                    Contour c = change.getValueAdded();
 
-            if (rType == RecompositionStrategyType.DOUBLY_PIERCED) {
-                diagram = new DiagramCreator(DecomposerFactory.newDecomposer(dType),
-                        RecomposerFactory.newRecomposer(rType)).createDiagram(description, size);
-            } else {
-                //diagram = new TwoStepDiagramCreator().createDiagram(description, size);
+                    renderer.addContour(c);
+                }
+            });
 
-                newCreator = new HamiltonianDiagramCreator();
-
-                newCreator.getCurveToContour().addListener((MapChangeListener<? super AbstractCurve, ? super Contour>) change -> {
-                    if (change.wasAdded()) {
-                        Contour c = change.getValueAdded();
-
-                        Shape s = c.getShape();
-                        s.setStrokeWidth(6);
-                        s.setStroke(Color.color(Math.random(), Math.random(), Math.random()));
-                        s.setFill(null);
-
-                        Text label = new Text(c.getCurve().getLabel());
-                        label.setFont(Font.font(72));
-                        label.setTranslateX(s.getLayoutBounds().getMaxX());
-                        label.setTranslateY(s.getLayoutBounds().getMinY());
-
-                        Platform.runLater(() -> renderer.rootSceneGraph.getChildren().addAll(s, label));
-
-//                        labels.forEach(renderer.rootSceneGraph.getChildren()::add);
-//
-//                        List<Point2D> points = modifiedDual.getNodes().stream().map(EulerDualNode::getPoint).collect(Collectors.toList());
-//
-//                        points.forEach(p -> {
-//                            Circle point = new Circle(p.getX(), p.getY(), 2.5, Color.RED);
-//
-//                            Text coord = new Text((int)p.getX() + "," + (int)p.getY());
-//                            coord.setTranslateX(p.getX());
-//                            coord.setTranslateY(p.getY() - 10);
-//
-//                            renderer.rootSceneGraph.getChildren().addAll(point, coord);
-//                        });
-
-//            modifiedDual.getEdges().forEach(e -> {
-//                e.getCurve().setStroke(Color.RED);
-//                renderer.rootSceneGraph.getChildren().addAll(e.getCurve());
-//            });
-
-                        //renderer.rootSceneGraph.getChildren().addAll(modifiedDual.getBoundingCircle());
-                    }
-                });
-
-
-                diagram = newCreator.createDiagram(description, size);
-            }
+            newCreator.createDiagram(description);
 
             generationTime = System.nanoTime() - startTime;
 
-            return diagram;
-        }
+            System.out.println("Diagram generation took: " + generationTime / 1000000000.0 + " sec");
 
-        private double fieldSize = 4000.0;
+            return null;
+        }
 
         @Override
         protected void succeeded() {
-            ConcreteDiagram diagram = getValue();
-
             MED modifiedDual = newCreator.getModifiedDual();
-            Collection<Contour> contours = newCreator.getCurveToContour().values();
 
-//
-//
-//
-//
-//
-//            List<Text> labels = new ArrayList<>();
-//
-//            renderer.rootSceneGraph.getChildren().addAll(contours.stream().map(c -> {
-//                Shape s = c.getShape();
-//                s.setStrokeWidth(2);
-//                s.setStroke(Color.color(Math.random(), Math.random(), Math.random()));
-//                s.setFill(null);
-//
-//                Text label = new Text(c.getCurve().getLabel());
-//                label.setTranslateX(s.getLayoutBounds().getMaxX());
-//                label.setTranslateY(s.getLayoutBounds().getMinY());
-//                labels.add(label);
-//
-//                return s;
-//            }).collect(Collectors.toList()));
-//
-//            labels.forEach(renderer.rootSceneGraph.getChildren()::add);
-
+            // draw any debug points
             newCreator.getDebugPoints().forEach(p -> {
                 Circle point = new Circle(p.getX(), p.getY(), 10, Color.LIGHTSKYBLUE);
 
@@ -458,10 +322,10 @@ public class Controller {
 
                 renderer.rootSceneGraph.getChildren().addAll(point, coord);
             });
-//
 
-            if (cbEulerDual.isSelected()) {
+            if (settings.showMED()) {
 
+                // draw MED nodes
                 modifiedDual.getNodes().stream().map(EulerDualNode::getPoint).forEach(p -> {
                     Circle point = new Circle(p.getX(), p.getY(), 10, Color.RED);
 
@@ -472,19 +336,13 @@ public class Controller {
                     renderer.rootSceneGraph.getChildren().addAll(point, coord);
                 });
 
+                // draw MED edges
                 modifiedDual.getEdges().forEach(e -> {
                     e.getCurve().setStroke(Color.RED);
                     e.getCurve().setStrokeWidth(6);
                     renderer.rootSceneGraph.getChildren().addAll(e.getCurve());
                 });
             }
-
-
-//
-//            renderer.rootSceneGraph.getChildren().addAll(modifiedDual.getBoundingCircle());
-
-
-
 
 //            try {
 //                long startTime = System.nanoTime();

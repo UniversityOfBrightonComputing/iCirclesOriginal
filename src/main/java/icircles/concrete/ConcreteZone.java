@@ -74,8 +74,6 @@ public class ConcreteZone {
     }
 
     public Shape getShape() {
-        //Shape shape = new javafx.scene.shape.Rectangle(600, 600);
-        //Shape shape = new javafx.scene.shape.Rectangle(1000, 1000);
         Shape shape = bbox;
 
         for (Contour contour : getContainingContours()) {
@@ -137,8 +135,6 @@ public class ConcreteZone {
         double width = shape.getLayoutBounds().getWidth();
         double height = shape.getLayoutBounds().getHeight();
 
-
-
         // radius is width/height * 0.5
         // we use 0.45 for heuristics
         int radius = (int) ((width < height ? width : height) * 0.45);
@@ -150,23 +146,7 @@ public class ConcreteZone {
 
         int scanStep = SCAN_STEP;
 
-//        System.out.println("Zone: " + zone + " Radius: " + radius + " Layout Bounds: " + shape.getLayoutBounds());
-//
-//        Set<AbstractCurve> set = new TreeSet<>();
-//        set.add(new AbstractCurve("c"));
-//
-//        if (zone.equals(new AbstractBasicRegion(set))) {
-//            Rectangle rect = new Rectangle(5, 5, Color.BLUE);
-//            rect.setX(550);
-//            rect.setY(300);
-//            rect.setStroke(Color.YELLOW);
-//
-//            System.out.println("Empty: " + Shape.subtract(rect, shape).getLayoutBounds().isEmpty());
-//        }
-
-
-
-
+        // TODO: this needs to be read from settings
         boolean useCircleApprox = false;
 
         while (true) {
@@ -211,7 +191,7 @@ public class ConcreteZone {
                     scanStep -= 5;
                 }
 
-                System.out.println("Checking:" + radius + " scan step: " + scanStep);
+                //System.out.println("Checking:" + radius + " scan step: " + scanStep);
 
             } else {
                 radius -= RADIUS_STEP;
@@ -223,77 +203,6 @@ public class ConcreteZone {
         }
     }
 
-//    private Point2D getCenterOld() {
-//        Shape shape = getShape();
-//
-//        double minX = shape.getLayoutBounds().getMinX();
-//        double minY = shape.getLayoutBounds().getMinY();
-//        double width = shape.getLayoutBounds().getWidth();
-//        double height = shape.getLayoutBounds().getHeight();
-//
-//        Point2D center = new Point2D(minX + width / 2, minY + height / 2);
-//        Point2D newCenter = center;
-//
-//        // this regulates preciseness
-//        int step = 5;
-//
-//        Point2D delta = new Point2D(step, 0);
-//        int i = 0;
-//
-//        int safetyCount = 0;
-//
-//        while (!shape.contains(newCenter) && safetyCount < 100) {
-//            newCenter = center.add(delta);
-//            i++;
-//
-//            switch (i) {
-//                case 1:
-//                    delta = new Point2D(step, step);
-//                    break;
-//                case 2:
-//                    delta = new Point2D(0, step);
-//                    break;
-//                case 3:
-//                    delta = new Point2D(-step, step);
-//                    break;
-//                case 4:
-//                    delta = new Point2D(-step, 0);
-//                    break;
-//                case 5:
-//                    delta = new Point2D(-step, -step);
-//                    break;
-//                case 6:
-//                    delta = new Point2D(0, -step);
-//                    break;
-//                case 7:
-//                    delta = new Point2D(step, -step);
-//                    break;
-//            }
-//
-//            if (i == 8) {
-//                i = 0;
-//                delta = new Point2D(step, 0);
-//                step *= 2;
-//            }
-//
-//            safetyCount++;
-//        }
-//
-//        if (safetyCount == 100) {
-//            System.out.println("Failed to find center");
-//            return center;
-//        } else {
-//            delta = newCenter.subtract(center);
-//
-//            if (shape.contains(newCenter.add(delta.multiply(3)))) {
-//                //System.out.println("returning new");
-//                //return newCenter.add(delta.multiply(3));
-//            }
-//        }
-//
-//        return newCenter;
-//    }
-
     public boolean isTopologicallyAdjacent(ConcreteZone other) {
         if (zone.getStraddledContour(other.zone).isPresent()) {
             Shape shape2 = other.getShape();
@@ -301,12 +210,15 @@ public class ConcreteZone {
             shape2.setTranslateX(shape2.getTranslateX() - 5);
 
             if (intersects(shape2)) {
+                // put it back
+                shape2.setTranslateX(shape2.getTranslateX() + 5);
                 return true;
             }
 
             shape2.setTranslateX(shape2.getTranslateX() + 10);
 
             if (intersects(shape2)) {
+                shape2.setTranslateX(shape2.getTranslateX() - 5);
                 return true;
             }
 
@@ -314,12 +226,14 @@ public class ConcreteZone {
             shape2.setTranslateY(shape2.getTranslateY() - 5);
 
             if (intersects(shape2)) {
+                shape2.setTranslateY(shape2.getTranslateY() + 5);
                 return true;
             }
 
             shape2.setTranslateY(shape2.getTranslateY() + 10);
 
             if (intersects(shape2)) {
+                shape2.setTranslateY(shape2.getTranslateY() - 5);
                 return true;
             }
         }

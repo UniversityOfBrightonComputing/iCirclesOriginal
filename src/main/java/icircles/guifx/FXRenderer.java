@@ -5,6 +5,7 @@ import icircles.abstractdescription.AbstractCurve;
 import icircles.concrete.*;
 import icircles.graph.EulerDualGraph;
 import icircles.gui.Renderer;
+import javafx.application.Platform;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
@@ -16,6 +17,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -23,7 +26,7 @@ import java.util.stream.Collectors;
 /**
  * @author Almas Baimagambetov (AlmasB) (almaslvl@gmail.com)
  */
-public class FXRenderer extends Pane implements Renderer {
+public class FXRenderer extends Pane {
 
     private Pane rootShadedZones = new Pane();
     private Canvas canvas = new Canvas();
@@ -40,6 +43,45 @@ public class FXRenderer extends Pane implements Renderer {
 
         getChildren().addAll(rootShadedZones, rootSceneGraph, canvas);
     }
+
+    public void clearSceneGraph() {
+        rootSceneGraph.getChildren().clear();
+    }
+
+    public void addContour(Contour contour) {
+        Shape s = contour.getShape();
+        s.setStrokeWidth(6);
+        s.setStroke(Color.color(Math.random(), Math.random(), Math.random()));
+        s.setFill(null);
+
+        Text label = new Text(contour.getCurve().getLabel());
+        label.setFont(Font.font(72));
+        label.setFill(s.getStroke());
+        label.setTranslateX(s.getLayoutBounds().getMaxX());
+        label.setTranslateY(s.getLayoutBounds().getMinY());
+
+        Platform.runLater(() -> rootSceneGraph.getChildren().addAll(s, label));
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public void setCanvasSize(double w, double h) {
         canvas.setWidth(w);
@@ -61,7 +103,6 @@ public class FXRenderer extends Pane implements Renderer {
         });
     }
 
-    @Override
     public void draw(ConcreteDiagram diagram) {
         Rectangle bbox = toFXRectangle(diagram.getBoundingBox());
         setCanvasSize(bbox.getWidth(), bbox.getHeight());

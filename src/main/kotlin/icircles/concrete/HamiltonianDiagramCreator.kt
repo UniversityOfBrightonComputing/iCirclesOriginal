@@ -8,6 +8,7 @@ import icircles.decomposition.DecompositionStrategyType
 import icircles.graph.EulerDualEdge
 import icircles.graph.EulerDualNode
 import icircles.graph.MED
+import icircles.guifx.SettingsController
 import icircles.recomposition.BetterBasicRecomposer
 import icircles.recomposition.RecomposerFactory
 import icircles.recomposition.RecompositionStrategyType
@@ -22,22 +23,18 @@ import org.apache.logging.log4j.LogManager
 import java.util.*
 
 /**
- *
+ * Diagram creator that uses Hamiltonian cycles to ensure
+ * that any diagram description is drawable.
  *
  * @author Almas Baimagambetov (almaslvl@gmail.com)
  */
-class HamiltonianDiagramCreator
-: DiagramCreator(DecomposerFactory.newDecomposer(DecompositionStrategyType.INNERMOST),
-        //RecomposerFactory.newRecomposer(RecompositionStrategyType.DOUBLY_PIERCED_EXTRA_ZONES)
-        BetterBasicRecomposer(null)) {
+class HamiltonianDiagramCreator(val settings: SettingsController) {
 
     val curveToContour = FXCollections.observableMap(LinkedHashMap<AbstractCurve, Contour>())
 
     private val abstractZones = ArrayList<AbstractBasicRegion>()
 
     lateinit var modifiedDual: MED
-
-    private var firstCurve = true
 
     val debugPoints = ArrayList<Point2D>()
 
@@ -53,10 +50,10 @@ class HamiltonianDiagramCreator
         private val CONTROL_POINT_STEP = BASE_CURVE_RADIUS / 20
     }
 
-    override fun createDiagram(description: AbstractDescription, size: Int): ConcreteDiagram? {
+    fun createDiagram(description: AbstractDescription) {
 
-        dSteps = decomposer.decompose(description)
-        rSteps = recomposer.recompose(dSteps)
+        val dSteps = DecomposerFactory.newDecomposer(settings.decompType).decompose(description)
+        val rSteps = RecomposerFactory.newRecomposer(settings.recompType).recompose(dSteps)
 
         var i = 0
         for (step in rSteps) {
@@ -149,9 +146,9 @@ class HamiltonianDiagramCreator
             i++
         }
 
-        createMED()
-
-        return null
+        // create MED for final diagram if needed
+        if (settings.showMED())
+            createMED()
     }
 
     /**
