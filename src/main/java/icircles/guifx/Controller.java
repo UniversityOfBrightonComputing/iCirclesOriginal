@@ -11,6 +11,7 @@ import icircles.recomposition.RecomposerFactory;
 import icircles.recomposition.RecompositionStrategyType;
 import icircles.util.ExampleData;
 import icircles.util.ExampleDiagram;
+import icircles.util.Examples;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
@@ -48,6 +49,16 @@ import java.util.stream.Collectors;
  */
 public class Controller {
 
+    private SettingsController settings;
+
+
+
+
+
+
+
+
+
     @FXML
     private FXRenderer renderer;
 
@@ -81,6 +92,28 @@ public class Controller {
     private AbstractDescription currentDescription = AbstractDescription.from("");
 
     public void initialize() {
+
+        dialogSettings = new Dialog<>();
+        dialogSettings.setTitle("Settings");
+        dialogSettings.getDialogPane().getButtonTypes().add(ButtonType.OK);
+
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("ui_settings.fxml"));
+
+            Parent root = fxmlLoader.load();
+            settings = fxmlLoader.getController();
+
+            dialogSettings.getDialogPane().setContent(root);
+        } catch (Exception e) {
+            showError(e);
+        }
+
+
+
+
+
+
+
         //areaInfo.setVisible(false);
         renderer.setTranslateX(-1000);
         renderer.setTranslateY(-1000);
@@ -150,8 +183,12 @@ public class Controller {
     }
 
     private void initMenuDiagrams() {
-        MenuItem itemVenn = new MenuItem("Venn3");
-        itemVenn.setOnAction(e -> visualize(AbstractDescription.from("a b c abc ab ac bc")));
+        Examples.INSTANCE.getList().forEach(pair -> {
+            MenuItem item = new MenuItem(pair.getFirst());
+            item.setOnAction(e -> visualize(pair.getSecond()));
+
+            menuDiagrams.getItems().addAll(item);
+        });
 
         MenuItem itemExamples = new MenuItem("Examples");
         itemExamples.setOnAction(e -> {
@@ -171,7 +208,7 @@ public class Controller {
             });
         });
 
-        menuDiagrams.getItems().addAll(itemVenn, itemExamples);
+        menuDiagrams.getItems().addAll(itemExamples);
     }
 
     @FXML
@@ -258,6 +295,13 @@ public class Controller {
         alert.setHeaderText(null);
         alert.setContentText("iCirclesFX is a set visualization library.");
         alert.show();
+    }
+
+    private Dialog<ButtonType> dialogSettings;
+
+    @FXML
+    private void settings() {
+        dialogSettings.showAndWait();
     }
 
     private void showError(Throwable e) {

@@ -23,7 +23,7 @@ public class ConcreteZone {
     private static final Logger log = LogManager.getLogger(ConcreteZone.class);
 
     private static final double RADIUS_STEP = HamiltonianDiagramCreator.BASE_CURVE_RADIUS / 20;
-    private static final int SCAN_STEP = (int) RADIUS_STEP;
+    private static final int SCAN_STEP = (int) RADIUS_STEP / 4;
 
     /**
      * The abstract basic region of this concrete zone.
@@ -148,7 +148,7 @@ public class ConcreteZone {
             radius = (int) HamiltonianDiagramCreator.BASE_CURVE_RADIUS;
         }
 
-
+        int scanStep = SCAN_STEP;
 
 //        System.out.println("Zone: " + zone + " Radius: " + radius + " Layout Bounds: " + shape.getLayoutBounds());
 //
@@ -174,10 +174,10 @@ public class ConcreteZone {
                 Circle circle = new Circle(radius, radius, radius);
                 circle.setStroke(Color.BLACK);
 
-                for (int y = (int) minY + radius; y < minY + height - radius; y += SCAN_STEP) {
+                for (int y = (int) minY + radius; y < minY + height - radius; y += scanStep) {
                     circle.setCenterY(y);
 
-                    for (int x = (int) minX + radius; x < minX + width - radius; x += SCAN_STEP) {
+                    for (int x = (int) minX + radius; x < minX + width - radius; x += scanStep) {
                         circle.setCenterX(x);
 
                         // if circle is completely enclosed by this zone
@@ -190,10 +190,10 @@ public class ConcreteZone {
                 Rectangle rect = new Rectangle(radius*2, radius*2);
                 rect.setStroke(Color.BLACK);
 
-                for (int y = (int) minY; y < minY + height - radius*2; y += SCAN_STEP) {
+                for (int y = (int) minY; y < minY + height - radius*2; y += scanStep) {
                     rect.setY(y);
 
-                    for (int x = (int) minX; x < minX + width - radius*2; x += SCAN_STEP) {
+                    for (int x = (int) minX; x < minX + width - radius*2; x += scanStep) {
                         rect.setX(x);
 
                         // if square is completely enclosed by this zone
@@ -204,7 +204,18 @@ public class ConcreteZone {
                 }
             }
 
-            radius -= RADIUS_STEP;
+            if (radius <= RADIUS_STEP) {
+                radius -= 5;
+
+                if (scanStep > 10) {
+                    scanStep -= 5;
+                }
+
+                System.out.println("Checking:" + radius + " scan step: " + scanStep);
+
+            } else {
+                radius -= RADIUS_STEP;
+            }
 
             if (radius <= 0) {
                 throw new RuntimeException("Cannot find zone center: " + zone);

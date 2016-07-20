@@ -20,10 +20,10 @@
                     <MenuItem mnemonicParsing="false" text="Quit" onAction="#quit"/>
                 </Menu>
 
-                <Menu mnemonicParsing="false" text="Edit">
-                    <MenuItem mnemonicParsing="false" text="Undo" onAction="#undo"/>
-                    <MenuItem mnemonicParsing="false" text="Redo" onAction="#redo"/>
-                </Menu>
+                <!--<Menu mnemonicParsing="false" text="Edit">-->
+                    <!--<MenuItem mnemonicParsing="false" text="Undo" onAction="#undo"/>-->
+                    <!--<MenuItem mnemonicParsing="false" text="Redo" onAction="#redo"/>-->
+                <!--</Menu>-->
 
                 <Menu fx:id="drTypes" text="Decomposition/Recomposition">
                     <CheckMenuItem fx:id="cbBruteforce" text="Bruteforce" />
@@ -37,6 +37,9 @@
                     <MenuItem mnemonicParsing="false" text="About" onAction="#about"/>
                 </Menu>
             </MenuBar>
+
+            <Button text="Settings" onAction="#settings"></Button>
+
             <TextField prefWidth="400" fx:id="fieldInput" />
         </HBox>
     </top>

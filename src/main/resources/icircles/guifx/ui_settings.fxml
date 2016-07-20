@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import icircles.guifx.FXRenderer?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import icircles.decomposition.DecompositionStrategyType?>
+
+<ScrollPane prefWidth="400.0" prefHeight="400.0"
+            xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="icircles.guifx.SettingsController">
+
+    <fx:define>
+        <ToggleGroup fx:id="toggleDecomp" />
+        <ToggleGroup fx:id="toggleRecomp" />
+    </fx:define>
+
+    <VBox spacing="5" alignment="CENTER_LEFT">
+
+        <Label text="Curves" />
+
+        <HBox spacing="10" alignment="TOP_LEFT">
+            <Label text="Base curve radius (px)" />
+            <TextField fx:id="fieldCurveRadius" text="1000" prefWidth="100" />
+        </HBox>
+
+        <Separator orientation="HORIZONTAL" />
+
+
+
+
+
+        <Label text="Modified Euler dual" />
+
+        <CheckBox fx:id="cbShowMED" text="Show final modified Euler dual (slower)" selected="true" />
+
+        <CheckBox fx:id="cbUseCircleApprox" text="Use circle approximation for zone centers (slower)" selected="true" />
+
+        <Separator orientation="HORIZONTAL" />
+
+
+
+
+
+        <Label text="Decomposition" />
+
+        <RadioButton text="Fewest-zone contours first" toggleGroup="$toggleDecomp" userData="DecompositionStrategyType.INNERMOST" selected="true" />
+
+        <Separator orientation="HORIZONTAL" />
+
+
+
+
+        <Label text="Recomposition" />
+
+        <RadioButton text="Shortest cycle first" toggleGroup="$toggleRecomp" selected="true" />
+
+        <Separator orientation="HORIZONTAL" />
+
+    </VBox>
+
+</ScrollPane>
