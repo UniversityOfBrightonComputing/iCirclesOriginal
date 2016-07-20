@@ -21,7 +21,11 @@ public class PathContour extends Contour {
 
     @Override
     public Shape getShape() {
-        Shape shape = Shape.intersect(new Rectangle(5000, 5000), path);
+        Rectangle bbox = new Rectangle(10000, 10000);
+        bbox.setTranslateX(-3000);
+        bbox.setTranslateY(-3000);
+
+        Shape shape = Shape.intersect(bbox, path);
         shape.setFill(Color.TRANSPARENT);
         shape.setStroke(Color.DARKBLUE);
         shape.setStrokeWidth(2);

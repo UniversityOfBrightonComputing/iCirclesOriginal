@@ -11,12 +11,14 @@ import icircles.graph.MED
 import icircles.recomposition.BetterBasicRecomposer
 import icircles.recomposition.RecomposerFactory
 import icircles.recomposition.RecompositionStrategyType
+import icircles.util.CannotDrawException
 import javafx.collections.FXCollections
 import javafx.geometry.Point2D
 import javafx.scene.paint.Color
 import javafx.scene.shape.Circle
 import javafx.scene.shape.QuadCurve
 import javafx.scene.shape.Shape
+import org.apache.logging.log4j.LogManager
 import java.util.*
 
 /**
@@ -37,12 +39,16 @@ class HamiltonianDiagramCreator
 
     private var firstCurve = true
 
+    val debugPoints = ArrayList<Point2D>()
+
     companion object {
-        @JvmField val BASE_CURVE_RADIUS = 1000.0
+        private val log = LogManager.getLogger(HamiltonianDiagramCreator::class.java)
 
-        private val MED_RADIUS = 500.0
+        @JvmField val BASE_CURVE_RADIUS = 1500.0
 
-        private val OFFSET = 1000.0
+        private val MED_RADIUS = BASE_CURVE_RADIUS / 2
+
+        private val OFFSET = 0
 
         private val CONTROL_POINT_STEP = BASE_CURVE_RADIUS / 20
     }
@@ -91,14 +97,46 @@ class HamiltonianDiagramCreator
                 ).orElseThrow { Exception("Failed to find cycle") }
 
                 // AP cycle USING QUAD CURVES
-                var contour = PathContour(data.addedCurve, cycle.path)
+                var contour: Contour = PathContour(data.addedCurve, cycle.path)
+
+                // a 4 node cluster is currently a minimum, since 2 nodes not a cycle
+//                if (cycle.nodes.size == 4) {
+//
+//                    // scale to make it larger to check intersection
+//                    val bounds = cycle.nodes
+//                            .map { it.zone.shape }
+//                            .map {
+//                                it.scaleX = 1.2
+//                                it.scaleY = 1.2
+//                                it
+//                            }
+//                            .reduceRight { s1, s2 -> Shape.intersect(s1, s2) }
+//                            .layoutBounds
+//
+//                    // scale back
+//                    cycle.nodes.map { it.zone.shape }.forEach {
+//                        it.scaleX = 1.0
+//                        it.scaleY = 1.0
+//                    }
+//
+//                    val center = Point2D(bounds.minX + bounds.width / 2, bounds.minY + bounds.height / 2)
+//
+//                    //val minRadius = BASE_CURVE_RADIUS / 5
+//
+//                    val minRadius = Math.min(bounds.width, bounds.height) / 2
+//
+//                    //println(center)
+//                    //debugPoints.add(center)
+//
+//                    contour = CircleContour(center.x, center.y, minRadius, data.addedCurve)
+//                }
 
                 // SMOOTHED AP CYCLE THRU NODE POINTS
 
                 // TODO: THIS FAILS WHEN THE CYCLE IS A LINE
-                if (cycle.nodes.map { it.zone.abstractZone.toString() }.none { it == "{}" }) {
-                    contour = PathContour(data.addedCurve, BezierApproximation.pathThruPoints(cycle.nodes.map { it.point }.toMutableList()))
-                }
+//                if (cycle.nodes.map { it.zone.abstractZone.toString() }.none { it == "{}" }) {
+//                    contour = PathContour(data.addedCurve, BezierApproximation.pathThruPoints(cycle.nodes.map { it.point }.toMutableList()))
+//                }
 
                 curveToContour[data.addedCurve] = contour
 
@@ -134,7 +172,11 @@ class HamiltonianDiagramCreator
         }
 
         val cz = ConcreteZone(zone, includingCircles, excludingCircles)
-        cz.bbox = javafx.scene.shape.Rectangle(5000.0, 5000.0)
+
+        // TODO: make global bbox
+        cz.bbox = javafx.scene.shape.Rectangle(10000.0, 10000.0)
+        cz.bbox.translateX = -3000.0
+        cz.bbox.translateY = -3000.0
 
         return cz
     }
@@ -154,9 +196,14 @@ class HamiltonianDiagramCreator
         val maxY = bounds.map { it.maxY }.max()
 
         val center = Point2D((minX!! + maxX!!) / 2, (minY!! + maxY!!) / 2)
-        val radius = Math.max(maxX - minX, maxY - minY) / 2 + 2 * MED_RADIUS   // how much bigger is the MED
 
-        // TODO: instead of radius we need half of the diagonal of a rect
+        val w = (maxX - minX) / 2
+        val h = (maxY - minY) / 2
+
+
+
+        // half diagonal of the bounds rectangle
+        val radius = Math.sqrt(w*w + h*h) + 100  // how much bigger is the MED
 
         //println(center)
         //println(radius)
@@ -166,9 +213,13 @@ class HamiltonianDiagramCreator
 
         modifiedDual = MED(concreteZones, curveToContour.values.toList(), boundingCircle)
 
+        log.trace("MED is constructed")
+
         val outside = makeConcreteZone(AbstractBasicRegion.OUTSIDE)
 
         val nodesMED = ArrayList<EulerDualNode>()
+
+        log.trace("Adding extra nodes")
 
         modifiedDual.nodes
                 .filter { it.zone.isTopologicallyAdjacent(outside) }
@@ -211,6 +262,8 @@ class HamiltonianDiagramCreator
 
             (angle1 - angle2).toInt()
         })
+
+        log.trace("Adding extra edges")
 
         // ADD EDGES
         for (i in nodesMED.indices) {
@@ -273,11 +326,13 @@ class HamiltonianDiagramCreator
             }
 
             if (safetyCount == 500) {
-                println("FAILED, NO CONTROL POINT")
+                throw CannotDrawException("Failed to add MED edge: ${node1.zone} - ${node2.zone}")
             }
 
             modifiedDual.edges.add(EulerDualEdge(node1, node2, q))
         }
+
+        log.trace("Generating cycles")
 
         // ASK MED TO GEN CYCLES
         modifiedDual.initCycles()

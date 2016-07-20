@@ -6,6 +6,7 @@ import icircles.concrete.ConcreteDiagram
 import icircles.concrete.ConcreteZone
 import icircles.concrete.Contour
 import icircles.graph.cycles.CycleFinder
+import icircles.util.CannotDrawException
 import javafx.geometry.Point2D
 import javafx.scene.paint.Color
 import javafx.scene.shape.*
@@ -102,7 +103,12 @@ class MED(allZones: List<ConcreteZone>, allContours: List<Contour>, val bounding
 
                     // we failed to find the correct spot
                     if (safetyCount == 500) {
+
+                        throw CannotDrawException("Failed to add EGD edge: ${node1.zone} - ${node2.zone}")
+
                         println("Failed to find correct control point: ${node1.zone} - ${node2.zone}")
+
+
                         q.controlX = x
                         q.controlY = y
 

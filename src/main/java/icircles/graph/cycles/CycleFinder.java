@@ -1,8 +1,11 @@
 package icircles.graph.cycles;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import icircles.graph.GraphCycle;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.graph.SimpleGraph;
 
@@ -12,6 +15,8 @@ import org.jgrapht.graph.SimpleGraph;
  * from 13 Jan 2013.
  */
 public class CycleFinder<V, E> {
+
+    private static final Logger log = LogManager.getLogger(CycleFinder.class);
 
     private UndirectedGraph<V, E> graph;
     private List<V> vertexList;
@@ -80,6 +85,8 @@ public class CycleFinder<V, E> {
             }
         }
 
+        log.trace("Cleaned cycles of size 2");
+
         // remove repeated cycles (two cycles are repeated if they have the same vertex (no matter the order)
         List<List<V>> cycles1 = removeRepeatedLists(cycles0);
 
@@ -106,30 +113,66 @@ public class CycleFinder<V, E> {
     /* Here repeated lists are those with the same elements, no matter the order,
      * and it is assumed that there are no repeated elements on any of the lists*/
     private List<List<V>> removeRepeatedLists(List<List<V>> listOfLists) {
-        List<List<V>> inputListOfLists = new ArrayList<>(listOfLists);
-        List<List<V>> outputListOfLists = new ArrayList<>();
+        log.trace("Removing repeated cycles");
 
-        while (!inputListOfLists.isEmpty()) {
-            // get the first element
-            List<V> thisList = inputListOfLists.get(0);
-            // remove it
-            inputListOfLists.remove(0);
-            outputListOfLists.add(thisList);
-            // look for duplicates
-            Integer nEl = thisList.size();
-            Iterator<List<V>> listIt = inputListOfLists.iterator();
-            while (listIt.hasNext()) {
-                List<V> remainingList = listIt.next();
+        return listOfLists.stream()
+                .map(Cycle::new)
+                .distinct()
+                .map(c -> c.vertices)
+                .collect(Collectors.toList());
 
-                if (remainingList.size() == nEl) {
-                    if (remainingList.containsAll(thisList)) {
-                        listIt.remove();
-                    }
-                }
-            }
+//        List<List<V>> inputListOfLists = new ArrayList<>(listOfLists);
+//        List<List<V>> outputListOfLists = new ArrayList<>();
 
+//        while (!inputListOfLists.isEmpty()) {
+//            // get the first element
+//            List<V> thisList = inputListOfLists.get(0);
+//            // remove it
+//            inputListOfLists.remove(0);
+//            outputListOfLists.add(thisList);
+//            // look for duplicates
+//            Integer nEl = thisList.size();
+//            Iterator<List<V>> listIt = inputListOfLists.iterator();
+//            while (listIt.hasNext()) {
+//                List<V> remainingList = listIt.next();
+//
+//                if (remainingList.size() == nEl) {
+//                    if (remainingList.containsAll(thisList)) {
+//                        listIt.remove();
+//                    }
+//                }
+//            }
+//
+//        }
+//
+//        log.trace("Finished removing repeated cycles");
+//
+//        return outputListOfLists;
+
+        //return listOfLists;
+    }
+
+    private static class Cycle<V> {
+        private List<V> vertices;
+
+        public Cycle(List<V> vertices) {
+            this.vertices = vertices;
         }
 
-        return outputListOfLists;
+        @Override
+        public boolean equals(Object obj) {
+            Cycle<V> other = (Cycle<V>) obj;
+
+            if (vertices.size() != other.vertices.size())
+                return false;
+
+            List<V> copyVertices = new ArrayList<V>(vertices);
+
+            for (V vertex : other.vertices) {
+                copyVertices.removeIf(v -> v == vertex);
+            }
+
+            return copyVertices.isEmpty();
+        }
     }
 }

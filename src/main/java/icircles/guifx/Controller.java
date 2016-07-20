@@ -404,6 +404,16 @@ public class Controller {
 //            }).collect(Collectors.toList()));
 //
 //            labels.forEach(renderer.rootSceneGraph.getChildren()::add);
+
+            newCreator.getDebugPoints().forEach(p -> {
+                Circle point = new Circle(p.getX(), p.getY(), 10, Color.LIGHTSKYBLUE);
+
+                Text coord = new Text((int) p.getX() + "," + (int) p.getY());
+                coord.setTranslateX(p.getX());
+                coord.setTranslateY(p.getY() - 10);
+
+                renderer.rootSceneGraph.getChildren().addAll(point, coord);
+            });
 //
 
             if (cbEulerDual.isSelected()) {
