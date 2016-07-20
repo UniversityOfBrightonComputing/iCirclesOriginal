@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  */
 public class FXRenderer extends Pane {
 
-    private Pane rootShadedZones = new Pane();
+    Pane rootShadedZones = new Pane();
     private Canvas canvas = new Canvas();
 
     Pane rootSceneGraph = new Pane();
@@ -46,6 +46,7 @@ public class FXRenderer extends Pane {
 
     public void clearSceneGraph() {
         rootSceneGraph.getChildren().clear();
+        rootShadedZones.getChildren().clear();
     }
 
     public void addContour(Contour contour) {

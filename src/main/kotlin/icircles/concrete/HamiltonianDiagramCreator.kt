@@ -33,6 +33,7 @@ class HamiltonianDiagramCreator(val settings: SettingsController) {
     val curveToContour = FXCollections.observableMap(LinkedHashMap<AbstractCurve, Contour>())
 
     private val abstractZones = ArrayList<AbstractBasicRegion>()
+    val concreteShadedZones = ArrayList<ConcreteZone>()
 
     lateinit var modifiedDual: MED
 
@@ -149,6 +150,10 @@ class HamiltonianDiagramCreator(val settings: SettingsController) {
         // create MED for final diagram if needed
         if (settings.showMED())
             createMED()
+
+        val shaded = abstractZones.minus(description.zones)
+
+        concreteShadedZones.addAll(shaded.map { makeConcreteZone(it) })
     }
 
     /**

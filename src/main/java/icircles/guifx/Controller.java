@@ -23,6 +23,7 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Shape;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -303,14 +304,13 @@ public class Controller {
 
             generationTime = System.nanoTime() - startTime;
 
-            System.out.println("Diagram generation took: " + generationTime / 1000000000.0 + " sec");
+            System.out.printf("Diagram creation took: %.3f sec\n", generationTime / 1000000000.0);
 
             return null;
         }
 
         @Override
         protected void succeeded() {
-            MED modifiedDual = newCreator.getModifiedDual();
 
             // draw any debug points
             newCreator.getDebugPoints().forEach(p -> {
@@ -324,6 +324,8 @@ public class Controller {
             });
 
             if (settings.showMED()) {
+                
+                MED modifiedDual = newCreator.getModifiedDual();
 
                 // draw MED nodes
                 modifiedDual.getNodes().stream().map(EulerDualNode::getPoint).forEach(p -> {
@@ -343,6 +345,14 @@ public class Controller {
                     renderer.rootSceneGraph.getChildren().addAll(e.getCurve());
                 });
             }
+
+            // add shaded zones
+            newCreator.getConcreteShadedZones().forEach(zone -> {
+                Shape shape = zone.getShape();
+                shape.setFill(Color.GRAY);
+
+                renderer.rootShadedZones.getChildren().addAll(shape);
+            });
 
 //            try {
 //                long startTime = System.nanoTime();
