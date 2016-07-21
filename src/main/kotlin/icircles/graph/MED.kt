@@ -179,13 +179,13 @@ class MED(allZones: List<ConcreteZone>, allContours: List<Contour>, val bounding
 
         return graph.computeCycles().filter { cycle ->
 
-            println("Checking cycle: $cycle")
+            //println("Checking cycle: $cycle")
 
             // this ensures that we do not allow same vertices in the cycle
             // unless it's the outside vertex
             cycle.nodes.groupBy { it.zone.abstractZone.toString() }.forEach {
                 if (it.key != "{}" && it.value.size > 1) {
-                    log.debug("Discarding cycle because ${it.key} is present ${it.value.size} times")
+                    //log.debug("Discarding cycle because ${it.key} is present ${it.value.size} times")
                     return@filter false
                 }
             }
@@ -197,24 +197,80 @@ class MED(allZones: List<ConcreteZone>, allContours: List<Contour>, val bounding
             tmpPoint = cycle.nodes.get(0).point
 
             cycle.edges.map { it.curve }.forEach { q ->
-                // TODO: cubicCurveTo if necessary
-                val quadCurveTo = QuadCurveTo()
 
-                // we do this coz source and end vertex might be swapped
-                if (tmpPoint == Point2D(q.startX, q.startY)) {
-                    quadCurveTo.x = q.endX
-                    quadCurveTo.y = q.endY
-                } else {
-                    quadCurveTo.x = q.startX
-                    quadCurveTo.y = q.startY
+                when(q) {
+                    is QuadCurve -> {
+                        val quadCurveTo = QuadCurveTo()
+
+                        // we do this coz source and end vertex might be swapped
+                        if (tmpPoint == Point2D(q.startX, q.startY)) {
+                            quadCurveTo.x = q.endX
+                            quadCurveTo.y = q.endY
+                        } else {
+                            quadCurveTo.x = q.startX
+                            quadCurveTo.y = q.startY
+                        }
+
+                        tmpPoint = Point2D(quadCurveTo.x, quadCurveTo.y)
+
+                        quadCurveTo.controlX = q.controlX
+                        quadCurveTo.controlY = q.controlY
+
+                        path.elements.addAll(quadCurveTo)
+                    }
+
+                    is Arc -> {
+
+                        //println(q.startAngle)
+
+                        val p1 = (q.userData as Pair<Point2D, Point2D>).first
+                        val p2 = (q.userData as Pair<Point2D, Point2D>).second
+
+                        // a b c d ab ac bc bd cd abc bcd
+                        // a b c d ab ac bc bd cd ce abc ace bcd bce abce
+
+                        val arcTo = ArcTo()
+                        arcTo.radiusX = q.radiusX
+                        arcTo.radiusY = q.radiusY
+                        arcTo.xAxisRotation = q.startAngle
+
+                        val arcCenter = Point2D(q.centerX, q.centerY)
+
+                        // p1 is start then
+                        if (tmpPoint == p1) {
+                            arcTo.x = p2.x
+                            arcTo.y = p2.y
+
+//                            val vector = p1.subtract(arcCenter)
+//
+//                            if (vector.x < 0) {
+//
+//                                if (vector.y < 0) {
+//
+//                                } else {
+//
+//                                }
+//
+//                            } else {
+//
+//                            }
+
+                        } else {
+                            arcTo.x = p1.x
+                            arcTo.y = p1.y
+                        }
+
+                        arcTo.isSweepFlag = true
+
+                        tmpPoint = Point2D(arcTo.x, arcTo.y)
+
+                        path.elements.add(arcTo)
+                    }
+
+                    else -> {
+                        throw IllegalArgumentException("Unknown edge shape: $q")
+                    }
                 }
-
-                tmpPoint = Point2D(quadCurveTo.x, quadCurveTo.y)
-
-                quadCurveTo.controlX = q.controlX
-                quadCurveTo.controlY = q.controlY
-
-                path.elements.addAll(quadCurveTo)
             }
 
             path.elements.add(ClosePath())
@@ -233,15 +289,15 @@ class MED(allZones: List<ConcreteZone>, allContours: List<Contour>, val bounding
 
             }.forEach {
 
-                println("Checking vertex $it")
+                //println("Checking vertex $it")
 
                 if (path.contains(it.point)) {
-                    log.debug("Discarding cycle because of inside vertex: ${it.point}")
+                    //log.debug("Discarding cycle because of inside vertex: ${it.point}")
                     return@filter false
                 }
             }
 
-            log.debug("Cycle is valid")
+            //log.debug("Cycle is valid")
             return@filter true
         }
     }

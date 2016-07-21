@@ -16,6 +16,7 @@ import icircles.util.CannotDrawException
 import javafx.collections.FXCollections
 import javafx.geometry.Point2D
 import javafx.scene.paint.Color
+import javafx.scene.shape.Arc
 import javafx.scene.shape.Circle
 import javafx.scene.shape.QuadCurve
 import javafx.scene.shape.Shape
@@ -54,7 +55,7 @@ class HamiltonianDiagramCreator(val settings: SettingsController) {
     fun createDiagram(description: AbstractDescription) {
 
         val dSteps = DecomposerFactory.newDecomposer(settings.decompType).decompose(description)
-        val rSteps = RecomposerFactory.newRecomposer(settings.recompType).recompose(dSteps)
+        val rSteps = BetterBasicRecomposer(null).recompose(dSteps)
 
         var i = 0
         for (step in rSteps) {
@@ -89,6 +90,8 @@ class HamiltonianDiagramCreator(val settings: SettingsController) {
 
                 // MED
                 createMED()
+
+                println("Searching cycle with zones: ${data.splitZones}")
 
                 val cycle = modifiedDual.computeCycle(
                         data.splitZones
@@ -150,6 +153,8 @@ class HamiltonianDiagramCreator(val settings: SettingsController) {
         // create MED for final diagram if needed
         if (settings.showMED())
             createMED()
+
+        log.trace("Generating shaded zones")
 
         val shaded = abstractZones.minus(description.zones)
 
@@ -257,10 +262,10 @@ class HamiltonianDiagramCreator(val settings: SettingsController) {
         // SORT NODES ALONG THE MED RING
         Collections.sort(nodesMED, { node1, node2 ->
             val v1 = node1.point.subtract(center)
-            val angle1 = -Math.toDegrees(Math.atan2(v1.y, v1.x))
+            val angle1 = vectorToAngle(v1)
 
             val v2 = node2.point.subtract(center)
-            val angle2 = -Math.toDegrees(Math.atan2(v2.y, v2.x))
+            val angle2 = vectorToAngle(v2)
 
             (angle1 - angle2).toInt()
         })
@@ -275,63 +280,88 @@ class HamiltonianDiagramCreator(val settings: SettingsController) {
             val p1 = node1.point
             val p2 = node2.point
 
-            val q = QuadCurve()
-            q.fill = null
-            q.stroke = Color.BLACK
-            q.startX = p1.x
-            q.startY = p1.y
-            q.endX = p2.x
-            q.endY = p2.y
+            val v1 = node1.point.subtract(center)
+            val angle1 = vectorToAngle(v1)
 
-            q.controlX = p1.midpoint(p2).x
-            q.controlY = p1.midpoint(p2).y
+            val v2 = node2.point.subtract(center)
+            val angle2 = vectorToAngle(v2)
 
-            // ATTEMPT TO ROUTE THE EDGE
-            val x = q.controlX
-            val y = q.controlY
+            // extent of arc in degrees
+            var extent = angle2 - angle1
 
-            var step = CONTROL_POINT_STEP
-            var safetyCount = 0
-
-            var delta = Point2D(step.toDouble(), 0.0)
-            var s = 0
-
-            // the new curve segment must pass through the straddled curve
-            // and only through that curve
-            //val curve = node1.zone.abstractZone.getStraddledContour(node2.zone.abstractZone).get()
-
-            //log.trace("Searching ${node1.zone} - ${node2.zone} : $curve")
-
-            while (!isOKMED(q) && safetyCount < 500) {
-                q.controlX = x + delta.x
-                q.controlY = y + delta.y
-
-                s++
-
-                when (s) {
-                    1 -> delta = Point2D(step.toDouble(), step.toDouble())
-                    2 -> delta = Point2D(0.0, step.toDouble())
-                    3 -> delta = Point2D((-step).toDouble(), step.toDouble())
-                    4 -> delta = Point2D((-step).toDouble(), 0.0)
-                    5 -> delta = Point2D((-step).toDouble(), (-step).toDouble())
-                    6 -> delta = Point2D(0.0, (-step).toDouble())
-                    7 -> delta = Point2D(step.toDouble(), (-step).toDouble())
-                }
-
-                if (s == 8) {
-                    s = 0
-                    delta = Point2D(step.toDouble(), 0.0)
-                    step *= 2
-                }
-
-                safetyCount++
+            if (extent < 0) {
+                extent += 360
             }
 
-            if (safetyCount == 500) {
-                throw CannotDrawException("Failed to add MED edge: ${node1.zone} - ${node2.zone}")
+            val arc = Arc(center.x, center.y, radius, radius, angle1, extent)
+
+            with(arc) {
+                fill = null
+                stroke = Color.BLACK
+
+                userData = p1.to(p2)
             }
 
-            modifiedDual.edges.add(EulerDualEdge(node1, node2, q))
+
+
+
+//            val q = QuadCurve()
+//            q.fill = null
+//            q.stroke = Color.BLACK
+//            q.startX = p1.x
+//            q.startY = p1.y
+//            q.endX = p2.x
+//            q.endY = p2.y
+//
+//            q.controlX = p1.midpoint(p2).x
+//            q.controlY = p1.midpoint(p2).y
+//
+//            // ATTEMPT TO ROUTE THE EDGE
+//            val x = q.controlX
+//            val y = q.controlY
+//
+//            var step = CONTROL_POINT_STEP
+//            var safetyCount = 0
+//
+//            var delta = Point2D(step.toDouble(), 0.0)
+//            var s = 0
+//
+//            // the new curve segment must pass through the straddled curve
+//            // and only through that curve
+//            //val curve = node1.zone.abstractZone.getStraddledContour(node2.zone.abstractZone).get()
+//
+//            //log.trace("Searching ${node1.zone} - ${node2.zone} : $curve")
+//
+//            while (!isOKMED(q) && safetyCount < 500) {
+//                q.controlX = x + delta.x
+//                q.controlY = y + delta.y
+//
+//                s++
+//
+//                when (s) {
+//                    1 -> delta = Point2D(step.toDouble(), step.toDouble())
+//                    2 -> delta = Point2D(0.0, step.toDouble())
+//                    3 -> delta = Point2D((-step).toDouble(), step.toDouble())
+//                    4 -> delta = Point2D((-step).toDouble(), 0.0)
+//                    5 -> delta = Point2D((-step).toDouble(), (-step).toDouble())
+//                    6 -> delta = Point2D(0.0, (-step).toDouble())
+//                    7 -> delta = Point2D(step.toDouble(), (-step).toDouble())
+//                }
+//
+//                if (s == 8) {
+//                    s = 0
+//                    delta = Point2D(step.toDouble(), 0.0)
+//                    step *= 2
+//                }
+//
+//                safetyCount++
+//            }
+//
+//            if (safetyCount == 500) {
+//                throw CannotDrawException("Failed to add MED edge: ${node1.zone} - ${node2.zone}")
+//            }
+
+            modifiedDual.edges.add(EulerDualEdge(node1, node2, arc))
         }
 
         log.trace("Generating cycles")
@@ -350,5 +380,19 @@ class HamiltonianDiagramCreator(val settings: SettingsController) {
         }
 
         return list.isEmpty()
+    }
+
+    /**
+     * @return angle in [0..360]
+     */
+    private fun vectorToAngle(v: Point2D): Double {
+        var angle = -Math.toDegrees(Math.atan2(v.y, v.x))
+
+        if (angle < 0) {
+            val delta = 180 - (-angle)
+            angle = delta + 180
+        }
+
+        return angle
     }
 }

@@ -171,19 +171,19 @@ class EulerDualGraph(val diagram: ConcreteDiagram) {
                 // TODO: cubicCurveTo if necessary
                 val quadCurveTo = QuadCurveTo()
 
-                // we do this coz source and end vertex might be swapped
-                if (tmpPoint == Point2D(q.startX, q.startY)) {
-                    quadCurveTo.x = q.endX
-                    quadCurveTo.y = q.endY
-                } else {
-                    quadCurveTo.x = q.startX
-                    quadCurveTo.y = q.startY
-                }
-
-                tmpPoint = Point2D(quadCurveTo.x, quadCurveTo.y)
-
-                quadCurveTo.controlX = q.controlX
-                quadCurveTo.controlY = q.controlY
+//                // we do this coz source and end vertex might be swapped
+//                if (tmpPoint == Point2D(q.startX, q.startY)) {
+//                    quadCurveTo.x = q.endX
+//                    quadCurveTo.y = q.endY
+//                } else {
+//                    quadCurveTo.x = q.startX
+//                    quadCurveTo.y = q.startY
+//                }
+//
+//                tmpPoint = Point2D(quadCurveTo.x, quadCurveTo.y)
+//
+//                quadCurveTo.controlX = q.controlX
+//                quadCurveTo.controlY = q.controlY
 
                 path.elements.addAll(quadCurveTo)
             }

@@ -324,7 +324,7 @@ public class Controller {
             });
 
             if (settings.showMED()) {
-                
+
                 MED modifiedDual = newCreator.getModifiedDual();
 
                 // draw MED nodes
@@ -343,6 +343,10 @@ public class Controller {
                     e.getCurve().setStroke(Color.RED);
                     e.getCurve().setStrokeWidth(6);
                     renderer.rootSceneGraph.getChildren().addAll(e.getCurve());
+
+//                    e.getCurve().setOnMouseClicked(event -> {
+//                        e.getCurve().setStroke(Color.YELLOW);
+//                    });
                 });
             }
 
