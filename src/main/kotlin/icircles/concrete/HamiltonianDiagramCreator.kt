@@ -13,9 +13,7 @@ import icircles.util.CannotDrawException
 import javafx.collections.FXCollections
 import javafx.geometry.Point2D
 import javafx.scene.paint.Color
-import javafx.scene.shape.Arc
-import javafx.scene.shape.Circle
-import javafx.scene.shape.QuadCurve
+import javafx.scene.shape.*
 import org.apache.logging.log4j.LogManager
 import java.util.*
 
@@ -100,9 +98,52 @@ class HamiltonianDiagramCreator(val settings: SettingsController) {
                 // smooth curves if required
                 // TODO: this fails when the cycle is a geometric line & does not honor zone integrity
                 if (settings.useSmooth()) {
-                    if (cycle.nodes.map { it.zone.abstractZone.toString() }.none { it == "{}" }) {
-                        contour = PathContour(data.addedCurve, BezierApproximation.pathThruPoints(cycle.nodes.map { it.point }.toMutableList()))
+
+                    val pathSegments = BezierApproximation.pathThruPoints(cycle.nodes.map { it.point }.toMutableList())
+
+                    val newPath = Path()
+
+                    // add moveTo
+                    newPath.elements.add(cycle.path.elements[0])
+
+                    for (j in cycle.nodes.indices) {
+                        val node1 = cycle.nodes[j]
+                        val node2 = if (j == cycle.nodes.size - 1) cycle.nodes[0] else cycle.nodes[j + 1]
+
+                        // check if this is the MED ring segment
+                        if (node1.zone.abstractZone == AbstractBasicRegion.OUTSIDE && node2.zone.abstractZone == AbstractBasicRegion.OUTSIDE) {
+                            // j + 1 because we skip the first moveTo
+                            newPath.elements.addAll(cycle.path.elements[j + 1])
+                            continue
+                        }
+
+                        // the new curve segment must pass through the straddled curve
+                        // and only through that curve
+                        val curve = node1.zone.abstractZone.getStraddledContour(node2.zone.abstractZone).get()
+
+                        if (isOK(pathSegments[j], curve, curveToContour.values.toList())) {
+                            // remove first moveTo
+                            pathSegments[j].elements.removeAt(0)
+
+                            // add to new path
+                            newPath.elements.addAll(pathSegments[j].elements)
+                        } else {
+                            // j + 1 because we skip the first moveTo
+                            newPath.elements.addAll(cycle.path.elements[j + 1])
+                        }
                     }
+
+                    newPath.fill = Color.TRANSPARENT
+                    newPath.elements.add(ClosePath())
+
+                    contour = PathContour(data.addedCurve, newPath)
+
+                    // we can generate full path but with segments, test each segment for integrity
+                    // if fails then use from the cycle.path as they would have passed the check
+
+                    //if (cycle.nodes.map { it.zone.abstractZone.toString() }.none { it == "{}" }) {
+                        //contour = PathContour(data.addedCurve, BezierApproximation.pathThruPoints(cycle.nodes.map { it.point }.toMutableList()))
+                    //}
                 }
 
                 curveToContour[data.addedCurve] = contour
@@ -173,10 +214,7 @@ class HamiltonianDiagramCreator(val settings: SettingsController) {
         // half diagonal of the bounds rectangle
         val radius = Math.sqrt(w*w + h*h) + settings.medSize  // how much bigger is the MED
 
-        val boundingCircle = Circle(center.x, center.y, radius, null)
-        boundingCircle.stroke = Color.GREEN
-
-        modifiedDual = MED(concreteZones, curveToContour.values.toList(), boundingCircle)
+        modifiedDual = MED(concreteZones, curveToContour.values.toList())
 
         log.trace("MED is constructed")
 
@@ -246,6 +284,8 @@ class HamiltonianDiagramCreator(val settings: SettingsController) {
             val v2 = node2.point.subtract(center)
             val angle2 = vectorToAngle(v2)
 
+            println("Angle1: $angle1")
+
             // extent of arc in degrees
             var extent = angle2 - angle1
 
@@ -260,6 +300,7 @@ class HamiltonianDiagramCreator(val settings: SettingsController) {
                 stroke = Color.BLACK
 
                 userData = p1.to(p2)
+                properties["sweep"] = angle1 < angle2
             }
 
             modifiedDual.edges.add(EulerDualEdge(node1, node2, arc))
@@ -284,8 +325,23 @@ class HamiltonianDiagramCreator(val settings: SettingsController) {
         return angle
     }
 
+    /**
+     * Does curve segment [q] only pass through [actual] curve.
+     */
+    fun isOK(q: Shape, actual: AbstractCurve, curves: List<Contour>): Boolean {
+        val list = curves.filter {
+            val s = it.shape
+            s.fill = null
+            s.stroke = Color.BROWN
 
+            !Shape.intersect(s, q).getLayoutBounds().isEmpty()
+        }
 
+        if (list.size != 1)
+            return false
+
+        return list.get(0).curve == actual
+    }
 
 
 

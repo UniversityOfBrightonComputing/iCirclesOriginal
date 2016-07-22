@@ -18,7 +18,7 @@ import java.util.*
  *
  * @author Almas Baimagambetov (almaslvl@gmail.com)
  */
-class MED(allZones: List<ConcreteZone>, allContours: List<Contour>, val boundingCircle: Circle) {
+class MED(allZones: List<ConcreteZone>, allContours: List<Contour>) {
 
     private val log = LogManager.getLogger(javaClass)
 
@@ -103,39 +103,6 @@ class MED(allZones: List<ConcreteZone>, allContours: List<Contour>, val bounding
 
                         throw CannotDrawException("Failed to add EGD edge: ${node1.zone} - ${node2.zone}")
 
-//                        println("Failed to find correct control point: ${node1.zone} - ${node2.zone}")
-//
-//
-//                        q.controlX = x
-//                        q.controlY = y
-//
-//                        val c = CubicCurve()
-//                        c.fill = null
-//                        c.stroke = Color.BROWN
-//                        c.startX = q.startX
-//                        c.startY = q.startY
-//                        c.endX = q.endX
-//                        c.endY = q.endY
-//
-//                        val vector = p2.subtract(p1)
-//                        val perpen = Point2D(-vector.y, vector.x).multiply(-1.0).normalize()
-//
-//                        val perpen2 = Point2D(-perpen.y, perpen.x).multiply(-1.0).normalize()
-//
-//                        c.controlX1 = x + perpen.x * 300 + perpen2.x * 300
-//                        c.controlY1 = y + perpen.y * 300 + perpen2.y * 300
-//
-//                        c.controlX2 = x + perpen.x * 300 - perpen2.x * 300
-//                        c.controlY2 = y + perpen.y * 300 - perpen2.y * 300
-//
-//                        // TODO: find algorithm
-//                        c.controlX1 = 300.0
-//                        c.controlY1 = 0.0
-//
-//                        c.controlX2 = 500.0
-//                        c.controlY2 = 50.0
-//
-//                        //edges.add(EulerDualEdge(node1, node2, c))
                     } else {
                         edges.add(EulerDualEdge(node1, node2, q))
                     }
@@ -144,8 +111,6 @@ class MED(allZones: List<ConcreteZone>, allContours: List<Contour>, val bounding
                 j++
             }
         }
-
-
     }
 
     private var tmpPoint = Point2D.ZERO
@@ -238,27 +203,12 @@ class MED(allZones: List<ConcreteZone>, allContours: List<Contour>, val bounding
                         if (tmpPoint == p1) {
                             arcTo.x = p2.x
                             arcTo.y = p2.y
-
-//                            val vector = p1.subtract(arcCenter)
-//
-//                            if (vector.x < 0) {
-//
-//                                if (vector.y < 0) {
-//
-//                                } else {
-//
-//                                }
-//
-//                            } else {
-//
-//                            }
-
                         } else {
                             arcTo.x = p1.x
                             arcTo.y = p1.y
                         }
 
-                        arcTo.isSweepFlag = true
+                        arcTo.isSweepFlag = q.properties["sweep"] as Boolean
 
                         tmpPoint = Point2D(arcTo.x, arcTo.y)
 
@@ -309,3 +259,54 @@ class MED(allZones: List<ConcreteZone>, allContours: List<Contour>, val bounding
         return Optional.ofNullable(cycles.filter { it.nodes.map { it.zone.abstractZone }.containsAll(zonesToSplit) }.firstOrNull())
     }
 }
+
+
+// some cubic curve stuff
+//                        println("Failed to find correct control point: ${node1.zone} - ${node2.zone}")
+//
+//
+//                        q.controlX = x
+//                        q.controlY = y
+//
+//                        val c = CubicCurve()
+//                        c.fill = null
+//                        c.stroke = Color.BROWN
+//                        c.startX = q.startX
+//                        c.startY = q.startY
+//                        c.endX = q.endX
+//                        c.endY = q.endY
+//
+//                        val vector = p2.subtract(p1)
+//                        val perpen = Point2D(-vector.y, vector.x).multiply(-1.0).normalize()
+//
+//                        val perpen2 = Point2D(-perpen.y, perpen.x).multiply(-1.0).normalize()
+//
+//                        c.controlX1 = x + perpen.x * 300 + perpen2.x * 300
+//                        c.controlY1 = y + perpen.y * 300 + perpen2.y * 300
+//
+//                        c.controlX2 = x + perpen.x * 300 - perpen2.x * 300
+//                        c.controlY2 = y + perpen.y * 300 - perpen2.y * 300
+//
+//                        // TODO: find algorithm
+//                        c.controlX1 = 300.0
+//                        c.controlY1 = 0.0
+//
+//                        c.controlX2 = 500.0
+//                        c.controlY2 = 50.0
+//
+//                        //edges.add(EulerDualEdge(node1, node2, c))
+
+
+//                            val vector = p1.subtract(arcCenter)
+//
+//                            if (vector.x < 0) {
+//
+//                                if (vector.y < 0) {
+//
+//                                } else {
+//
+//                                }
+//
+//                            } else {
+//
+//                            }

@@ -10,7 +10,8 @@ import javafx.scene.shape.Path
 import java.util.*
 
 /**
- *
+ * The algorithm is adapted from AS3
+ * http://www.cartogrammar.com/blog/actionscript-curves-update/
  *
  * @author Almas Baimagambetov (almaslvl@gmail.com)
  */
@@ -18,14 +19,12 @@ object BezierApproximation {
 
     private val SEGMENT_INC = 0.1
 
-    fun pathThruPoints(points:MutableList<Point2D>, z:Double = .5, angleFactor:Double = .75): Path {
+    fun pathThruPoints(points: MutableList<Point2D>, closedCycle: Boolean = true, z: Double = .5, angleFactor: Double = .75): List<Path> {
 
-        //println("Points are: $points")
+        if (closedCycle)
+            points.add(points[0])
 
-        points.add(points[0])
-
-
-        val path = Path()
+        val result = ArrayList<Path>()
 
         // Ordinarily, curve calculations will start with the second point and go through the second-to-last point
         var firstPt = 1;
@@ -42,7 +41,6 @@ object BezierApproximation {
         for (i in 0..points.size - 1) {
             controlPts.add(Pair(Point2D.ZERO, Point2D.ZERO))
         }
-
 
         // Loop through all the points (except the first and last if not a closed line) to get curve control points for each.
         for (i in firstPt..lastPt - 1) {
@@ -114,7 +112,8 @@ object BezierApproximation {
                 rx = 1.0;
                 ry = 0.0;
             }
-            var r = Math.sqrt(rx*rx+ry*ry);	// length of the summed vector - not being used, but there it is anyway
+
+            //var r = Math.sqrt(rx*rx+ry*ry);	// length of the summed vector - not being used, but there it is anyway
             var theta = Math.atan2(ry,rx);	// angle of the new vector
 
             var controlDist = Math.min(a,b)*z;	// Distance of curve control points from current point: a fraction the length of the shorter adjacent triangle side
@@ -125,8 +124,8 @@ object BezierApproximation {
             var controlAngle = theta+Math.PI/2;	// The angle from the current point to control points: the new vector angle plus 90 degrees (tangent to the curve).
 
 
-            var controlPoint2 = polar(controlDist, controlAngle);	// Control point 2, curving to the next point.
-            var controlPoint1 = polar(controlDist, controlAngle+Math.PI);	// Control point 1, curving from the previous point (180 degrees away from control point 2).
+            var controlPoint2 = polarToCartesian(controlDist, controlAngle);	// Control point 2, curving to the next point.
+            var controlPoint1 = polarToCartesian(controlDist, controlAngle+Math.PI);	// Control point 1, curving from the previous point (180 degrees away from control point 2).
 
             // Offset control points to put them in the correct absolute position
             controlPoint1 = controlPoint1.add(p1.x,p1.y);
@@ -157,7 +156,7 @@ object BezierApproximation {
         // CURVE CONSTRUCTION VIA ELEMENTS
         //
 
-        path.elements.add(MoveTo(points[0].x, points[0].y))
+        //path.elements.add(MoveTo(points[0].x, points[0].y))
 
 
 
@@ -165,6 +164,11 @@ object BezierApproximation {
 
         // Loop through points to draw cubic Bézier curves through the penultimate point, or through the last point if the line is closed.
         for (i in firstPt..lastPt - 2){
+
+            val path = Path()
+
+            path.elements.add(MoveTo(points[i].x, points[i].y))
+
             // Determine if multiple points in a row are in a straight line
             var isStraight:Boolean = ( ( i > 0 && Math.atan2(points[i].y-points[i-1].y, points[i].x-points[i-1].x)
                     == Math.atan2(points[i+1].y-points[i].y, points[i+1].x - points[i].x) )
@@ -189,22 +193,36 @@ object BezierApproximation {
                     t += SEGMENT_INC
                 }
             }
+
+            path.fill = Color.TRANSPARENT
+            result.add(path)
         }
 
+        // moveTo
+        // lineTo * 10 * numPoints
+        // closePath
 
+        //println("Path elements: ${path.elements}")
 
+//        if (closedCycle)
+//            path.elements.add(ClosePath())
 
-        path.elements.add(ClosePath())
+        //path.fill = Color.TRANSPARENT
 
-        path.fill = Color.TRANSPARENT
-
-        return path
+        return result
     }
 
-    private fun polar(len: Double, angle: Double): Point2D {
+    /**
+     * Polar to Cartesian conversion.
+     */
+    private fun polarToCartesian(len: Double, angle: Double): Point2D {
         return Point2D(len * Math.cos(angle), len * Math.sin(angle))
     }
 
+    /**
+     * Cubic bezier equation from
+     * http://stackoverflow.com/questions/5634460/quadratic-bezier-curve-calculate-point
+     */
     private fun getBezierValue(p1: Point2D, p2: Point2D, p3: Point2D, p4: Point2D, t: Double): Point2D {
         val x = Math.pow(1 - t, 3.0) * p1.x + 3 * t * Math.pow(1 - t, 2.0) * p2.x + 3 * t*t * (1 - t) * p3.x + t*t*t*p4.x
         val y = Math.pow(1 - t, 3.0) * p1.y + 3 * t * Math.pow(1 - t, 2.0) * p2.y + 3 * t*t * (1 - t) * p3.y + t*t*t*p4.y

@@ -280,8 +280,8 @@ public class Controller {
             renderer.setPrefSize(fieldSize, fieldSize);
             renderer.setCanvasSize(fieldSize, fieldSize);
 
-            renderer.setScaleX(0.25);
-            renderer.setScaleY(0.25);
+            renderer.setScaleX(0.15);
+            renderer.setScaleY(0.15);
 
             renderer.clearSceneGraph();
         }
