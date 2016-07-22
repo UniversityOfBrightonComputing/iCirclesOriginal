@@ -19,6 +19,20 @@ public class SettingsController {
     }
 
     @FXML
+    private CheckBox cbSmooth;
+
+    public boolean useSmooth() {
+        return cbSmooth.isSelected();
+    }
+
+    @FXML
+    private TextField fieldMEDSize;
+
+    public double getMEDSize() {
+        return Double.parseDouble(fieldMEDSize.getText());
+    }
+
+    @FXML
     private CheckBox cbShowMED;
 
     public boolean showMED() {

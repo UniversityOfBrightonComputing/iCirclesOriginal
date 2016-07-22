@@ -55,9 +55,6 @@ class MED(allZones: List<ConcreteZone>, allContours: List<Contour>, val bounding
 
                     q.controlX = p1.midpoint(p2).x
                     q.controlY = p1.midpoint(p2).y
-                    //q.controlX = (p1.x + p2.x) / 2
-                    //q.controlY = (p1.y + p2.y) / 2
-
 
                     val x = q.controlX
                     val y = q.controlY
@@ -106,39 +103,39 @@ class MED(allZones: List<ConcreteZone>, allContours: List<Contour>, val bounding
 
                         throw CannotDrawException("Failed to add EGD edge: ${node1.zone} - ${node2.zone}")
 
-                        println("Failed to find correct control point: ${node1.zone} - ${node2.zone}")
-
-
-                        q.controlX = x
-                        q.controlY = y
-
-                        val c = CubicCurve()
-                        c.fill = null
-                        c.stroke = Color.BROWN
-                        c.startX = q.startX
-                        c.startY = q.startY
-                        c.endX = q.endX
-                        c.endY = q.endY
-
-                        val vector = p2.subtract(p1)
-                        val perpen = Point2D(-vector.y, vector.x).multiply(-1.0).normalize()
-
-                        val perpen2 = Point2D(-perpen.y, perpen.x).multiply(-1.0).normalize()
-
-                        c.controlX1 = x + perpen.x * 300 + perpen2.x * 300
-                        c.controlY1 = y + perpen.y * 300 + perpen2.y * 300
-
-                        c.controlX2 = x + perpen.x * 300 - perpen2.x * 300
-                        c.controlY2 = y + perpen.y * 300 - perpen2.y * 300
-
-                        // TODO: find algorithm
-                        c.controlX1 = 300.0
-                        c.controlY1 = 0.0
-
-                        c.controlX2 = 500.0
-                        c.controlY2 = 50.0
-
-                        //edges.add(EulerDualEdge(node1, node2, c))
+//                        println("Failed to find correct control point: ${node1.zone} - ${node2.zone}")
+//
+//
+//                        q.controlX = x
+//                        q.controlY = y
+//
+//                        val c = CubicCurve()
+//                        c.fill = null
+//                        c.stroke = Color.BROWN
+//                        c.startX = q.startX
+//                        c.startY = q.startY
+//                        c.endX = q.endX
+//                        c.endY = q.endY
+//
+//                        val vector = p2.subtract(p1)
+//                        val perpen = Point2D(-vector.y, vector.x).multiply(-1.0).normalize()
+//
+//                        val perpen2 = Point2D(-perpen.y, perpen.x).multiply(-1.0).normalize()
+//
+//                        c.controlX1 = x + perpen.x * 300 + perpen2.x * 300
+//                        c.controlY1 = y + perpen.y * 300 + perpen2.y * 300
+//
+//                        c.controlX2 = x + perpen.x * 300 - perpen2.x * 300
+//                        c.controlY2 = y + perpen.y * 300 - perpen2.y * 300
+//
+//                        // TODO: find algorithm
+//                        c.controlX1 = 300.0
+//                        c.controlY1 = 0.0
+//
+//                        c.controlX2 = 500.0
+//                        c.controlY2 = 50.0
+//
+//                        //edges.add(EulerDualEdge(node1, node2, c))
                     } else {
                         edges.add(EulerDualEdge(node1, node2, q))
                     }
@@ -153,6 +150,9 @@ class MED(allZones: List<ConcreteZone>, allContours: List<Contour>, val bounding
 
     private var tmpPoint = Point2D.ZERO
 
+    /**
+     * Does curve segment [q] only pass through [actual] curve.
+     */
     fun isOK(q: QuadCurve, actual: AbstractCurve, curves: List<Contour>): Boolean {
         val list = curves.filter {
             val s = it.shape
@@ -179,13 +179,13 @@ class MED(allZones: List<ConcreteZone>, allContours: List<Contour>, val bounding
 
         return graph.computeCycles().filter { cycle ->
 
-            //println("Checking cycle: $cycle")
+            log.trace("Checking cycle: $cycle")
 
             // this ensures that we do not allow same vertices in the cycle
             // unless it's the outside vertex
             cycle.nodes.groupBy { it.zone.abstractZone.toString() }.forEach {
                 if (it.key != "{}" && it.value.size > 1) {
-                    //log.debug("Discarding cycle because ${it.key} is present ${it.value.size} times")
+                    log.trace("Discarding cycle because ${it.key} is present ${it.value.size} times")
                     return@filter false
                 }
             }
@@ -220,8 +220,6 @@ class MED(allZones: List<ConcreteZone>, allContours: List<Contour>, val bounding
                     }
 
                     is Arc -> {
-
-                        //println(q.startAngle)
 
                         val p1 = (q.userData as Pair<Point2D, Point2D>).first
                         val p2 = (q.userData as Pair<Point2D, Point2D>).second
@@ -289,15 +287,15 @@ class MED(allZones: List<ConcreteZone>, allContours: List<Contour>, val bounding
 
             }.forEach {
 
-                //println("Checking vertex $it")
+                log.trace("Checking vertex $it")
 
                 if (path.contains(it.point)) {
-                    //log.debug("Discarding cycle because of inside vertex: ${it.point}")
+                    log.trace("Discarding cycle because of inside vertex: ${it.point}")
                     return@filter false
                 }
             }
 
-            //log.debug("Cycle is valid")
+            log.trace("Cycle is valid")
             return@filter true
         }
     }
@@ -309,6 +307,5 @@ class MED(allZones: List<ConcreteZone>, allContours: List<Contour>, val bounding
 
     fun computeCycle(zonesToSplit: List<AbstractBasicRegion>): Optional<GraphCycle<EulerDualNode, EulerDualEdge>> {
         return Optional.ofNullable(cycles.filter { it.nodes.map { it.zone.abstractZone }.containsAll(zonesToSplit) }.firstOrNull())
-        //return Optional.ofNullable(cycles.filter { containsAll(it.nodes.map { it.zone.abstractZone }, zonesToSplit) }.firstOrNull())
     }
 }
