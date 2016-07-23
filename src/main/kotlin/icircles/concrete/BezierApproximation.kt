@@ -17,9 +17,9 @@ import java.util.*
  */
 object BezierApproximation {
 
-    private val SEGMENT_INC = 0.1
+    //private val SEGMENT_INC = 0.1
 
-    fun pathThruPoints(points: MutableList<Point2D>, closedCycle: Boolean = true, z: Double = .5, angleFactor: Double = .75): List<Path> {
+    fun pathThruPoints(points: MutableList<Point2D>, smoothFactor: Int, closedCycle: Boolean = true, z: Double = .5, angleFactor: Double = .75): List<Path> {
 
         if (closedCycle)
             points.add(points[0])
@@ -190,7 +190,7 @@ object BezierApproximation {
                     val point = getBezierValue(points[i], controlPts[i].second, controlPts[i+1].first, points[i+1], t)
                     path.elements.add(LineTo(point.x, point.y))
 
-                    t += SEGMENT_INC
+                    t += 1.0 / smoothFactor
                 }
             }
 

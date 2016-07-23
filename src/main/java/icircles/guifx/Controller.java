@@ -50,7 +50,8 @@ public class Controller {
     private ScrollPane scrollPane;
 
     @FXML
-    private Menu drTypes;
+    private Slider sliderZoom;
+
     @FXML
     private Menu menuDiagrams;
 
@@ -59,11 +60,6 @@ public class Controller {
 
 //    @FXML
 //    private TextArea areaInfo;
-
-    @FXML
-    private CheckMenuItem cbBruteforce;
-    @FXML
-    private CheckMenuItem cbEulerDual;
 
     private Alert progressDialog = new Alert(Alert.AlertType.INFORMATION);
 
@@ -92,6 +88,12 @@ public class Controller {
         //areaInfo.setVisible(false);
         renderer.setTranslateX(-1000);
         renderer.setTranslateY(-1000);
+
+        //renderer.prefWidthProperty().bind(sliderZoom.valueProperty().divide(100).multiply(4000));
+        //renderer.prefHeightProperty().bind(sliderZoom.valueProperty().divide(100).multiply(4000));
+
+        renderer.scaleXProperty().bind(sliderZoom.valueProperty().divide(100));
+        renderer.scaleYProperty().bind(sliderZoom.valueProperty().divide(100));
 
         fieldInput.setOnAction(e -> {
             AbstractDescription ad = AbstractDescription.from(fieldInput.getText());
@@ -280,8 +282,8 @@ public class Controller {
             renderer.setPrefSize(fieldSize, fieldSize);
             renderer.setCanvasSize(fieldSize, fieldSize);
 
-            renderer.setScaleX(0.15);
-            renderer.setScaleY(0.15);
+            //renderer.setScaleX(0.15);
+            //renderer.setScaleY(0.15);
 
             renderer.clearSceneGraph();
         }

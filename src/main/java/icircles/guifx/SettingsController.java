@@ -26,6 +26,13 @@ public class SettingsController {
     }
 
     @FXML
+    private TextField fieldSmoothFactor;
+
+    public int getSmoothFactor() {
+        return Integer.parseInt(fieldSmoothFactor.getText());
+    }
+
+    @FXML
     private TextField fieldMEDSize;
 
     public double getMEDSize() {

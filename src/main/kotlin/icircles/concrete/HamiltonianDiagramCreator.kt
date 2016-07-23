@@ -99,7 +99,7 @@ class HamiltonianDiagramCreator(val settings: SettingsController) {
                 // TODO: this fails when the cycle is a geometric line & does not honor zone integrity
                 if (settings.useSmooth()) {
 
-                    val pathSegments = BezierApproximation.pathThruPoints(cycle.nodes.map { it.point }.toMutableList())
+                    val pathSegments = BezierApproximation.pathThruPoints(cycle.nodes.map { it.point }.toMutableList(), settings.smoothFactor)
 
                     val newPath = Path()
 

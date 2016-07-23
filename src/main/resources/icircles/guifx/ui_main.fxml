@@ -44,6 +44,13 @@
         </ScrollPane>
     </center>
 
+    <bottom>
+        <HBox spacing="10" alignment="CENTER_RIGHT">
+            <Slider fx:id="sliderZoom" min="0" max="100" value="15" blockIncrement="5"
+                    showTickLabels="true" showTickMarks="true" />
+        </HBox>
+    </bottom>
+
     <left>
         <!--<VBox prefWidth="200" spacing="10">-->
             <!--<TextArea fx:id="areaInfo" editable="false" />-->

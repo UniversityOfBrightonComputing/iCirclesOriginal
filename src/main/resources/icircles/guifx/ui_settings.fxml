@@ -27,6 +27,11 @@
 
         <CheckBox fx:id="cbSmooth" text="Smooth using Bezier approximation (slower)" selected="false" />
 
+        <HBox spacing="10" alignment="TOP_LEFT">
+            <Label text="Smooth factor [1-100]" />
+            <TextField fx:id="fieldSmoothFactor" text="10" prefWidth="100" />
+        </HBox>
+
         <Separator orientation="HORIZONTAL" />
 
 
