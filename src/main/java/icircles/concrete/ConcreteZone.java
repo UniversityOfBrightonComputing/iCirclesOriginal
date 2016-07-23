@@ -14,10 +14,7 @@ import javafx.scene.shape.Shape;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.IntStream;
 
 /**
@@ -62,6 +59,32 @@ public class ConcreteZone {
         this.excludingContours = excludingContours;
 
         settings = FXApplication.getInstance().getSettings();
+
+        // TODO: make global bbox
+        bbox = new javafx.scene.shape.Rectangle(10000.0, 10000.0);
+        bbox.setTranslateX(-3000);
+        bbox.setTranslateY(-3000);
+    }
+
+    public ConcreteZone(AbstractBasicRegion zone, Map<AbstractCurve, Contour> curveToContour) {
+        this.zone = zone;
+
+        containingContours = new ArrayList<>();
+        excludingContours = new ArrayList<>(curveToContour.values());
+
+        for (AbstractCurve curve : zone.getInSet()) {
+            Contour contour = curveToContour.get(curve);
+
+            excludingContours.remove(contour);
+            containingContours.add(contour);
+        }
+
+        settings = FXApplication.getInstance().getSettings();
+
+        // TODO: make global bbox
+        bbox = new javafx.scene.shape.Rectangle(10000.0, 10000.0);
+        bbox.setTranslateX(-3000);
+        bbox.setTranslateY(-3000);
     }
 
     public AbstractBasicRegion getAbstractZone() {

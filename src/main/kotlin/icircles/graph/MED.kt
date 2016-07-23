@@ -26,7 +26,7 @@ import java.util.stream.Stream
  *
  * @author Almas Baimagambetov (almaslvl@gmail.com)
  */
-class MED(private val allZones: List<ConcreteZone>, private val allContours: List<Contour>) {
+class MED(private val allZones: List<ConcreteZone>, private val allContours: Map<AbstractCurve, Contour>) {
 
     private val log = LogManager.getLogger(javaClass)
 
@@ -40,8 +40,6 @@ class MED(private val allZones: List<ConcreteZone>, private val allContours: Lis
 
     init {
         settings = FXApplication.getInstance().settings
-
-        //Profiler.start("MED init")
 
         Profiler.start("Creating EGD nodes")
 
@@ -70,7 +68,44 @@ class MED(private val allZones: List<ConcreteZone>, private val allContours: Lis
 
         Profiler.end("Creating EGD edges")
 
-        //Profiler.end("MED init")
+        /*
+         * MED generation
+         * 1. get bounds of the diagram
+         * 2. find center and radius
+         * 3. get regions adjacent to outside and create edges
+         * 4. create extra "arc" edges around the diagram
+         */
+
+        val bounds = allZones.map { it.shape.layoutBounds }
+
+        val minX = bounds.map { it.minX }.min()
+        val minY = bounds.map { it.minY }.min()
+        val maxX = bounds.map { it.maxX }.max()
+        val maxY = bounds.map { it.maxY }.max()
+
+        val center = Point2D((minX!! + maxX!!) / 2, (minY!! + maxY!!) / 2)
+
+        val w = (maxX - minX) / 2
+        val h = (maxY - minY) / 2
+
+        // half diagonal of the bounds rectangle + distance between diagram and MED
+        val radius = Math.sqrt(w*w + h*h) + settings.medSize
+
+        Profiler.start("Creating MED nodes")
+
+        val nodesMED = computeMEDNodes(center, radius)
+
+        nodes.addAll(nodesMED)
+
+        Profiler.end("Creating MED nodes")
+
+        Profiler.start("Creating MED edges")
+
+        computeMEDRingEdges(nodesMED, center, radius)
+
+        Profiler.end("Creating MED edges")
+
+        initCycles()
     }
 
     private fun computeNodesSequential(): MutableList<EulerDualNode> {
@@ -153,7 +188,7 @@ class MED(private val allZones: List<ConcreteZone>, private val allContours: Lis
 
         log.trace("Searching ${node1.zone} - ${node2.zone} : $curve")
 
-        while (!isOK(q, curve, allContours) && safetyCount < 500) {
+        while (!isOK(q, curve, allContours.values.toList()) && safetyCount < 500) {
             q.controlX = x + delta.x
             q.controlY = y + delta.y
 
@@ -193,7 +228,7 @@ class MED(private val allZones: List<ConcreteZone>, private val allContours: Lis
     /**
      * Does curve segment [q] only pass through [actual] curve.
      */
-    fun isOK(q: QuadCurve, actual: AbstractCurve, curves: List<Contour>): Boolean {
+    private fun isOK(q: QuadCurve, actual: AbstractCurve, curves: List<Contour>): Boolean {
         val list = curves.filter {
             val s = it.shape
             s.fill = null
@@ -206,6 +241,107 @@ class MED(private val allZones: List<ConcreteZone>, private val allContours: Lis
             return false
 
         return list.get(0).curve == actual
+    }
+
+    private fun computeMEDNodes(center: Point2D, radius: Double): List<EulerDualNode> {
+
+        log.trace("Computing MED nodes")
+
+        val outside = ConcreteZone(AbstractBasicRegion.OUTSIDE, allContours)
+
+        var stream = Stream.of(*nodes.toTypedArray())
+
+        if (settings.isParallel) {
+            stream = stream.parallel()
+        }
+
+        return stream.filter { it.zone.isTopologicallyAdjacent(outside) }
+                .map {
+                    val vectorToMED = it.zone.center.subtract(center)
+                    val length = radius - vectorToMED.magnitude()
+
+                    // from zone center to closest point on MED
+                    val vector = vectorToMED.normalize().multiply(length)
+
+                    val p1 = it.zone.center
+                    val p2 = it.zone.center.add(vector)
+
+                    // TODO: this can be replaced with a line
+
+                    val q = QuadCurve()
+                    q.fill = null
+                    q.stroke = Color.BLACK
+                    q.startX = p1.x
+                    q.startY = p1.y
+                    q.endX = p2.x
+                    q.endY = p2.y
+
+                    q.controlX = p1.midpoint(p2).x
+                    q.controlY = p1.midpoint(p2).y
+
+                    // make "distinct" nodes so that jgrapht doesn't think it's a loop
+                    val node = EulerDualNode(ConcreteZone(AbstractBasicRegion.OUTSIDE, allContours), p2)
+
+                    edges.add(EulerDualEdge(it, node, q))
+
+                    return@map node
+                }
+                .collect(Collectors.toList()) as List<EulerDualNode>
+    }
+
+    /**
+     * @param nodesMED nodes of MED placed in the outside zone
+     * @param center center of the MED bounding circle
+     * @param radius radius of the MED bounding circle
+     */
+    private fun computeMEDRingEdges(nodesMED: List<EulerDualNode>, center: Point2D, radius: Double) {
+
+        // sort nodes along the MED ring
+        // sorting is CCW from 0 (right) to 360
+        Collections.sort(nodesMED, { node1, node2 ->
+            val v1 = node1.point.subtract(center)
+            val angle1 = vectorToAngle(v1)
+
+            val v2 = node2.point.subtract(center)
+            val angle2 = vectorToAngle(v2)
+
+            (angle1 - angle2).toInt()
+        })
+
+        for (i in nodesMED.indices) {
+            val node1 = nodesMED[i]
+            val node2 = if (i == nodesMED.size - 1) nodesMED[0] else nodesMED[i+1]
+
+            val p1 = node1.point
+            val p2 = node2.point
+
+            val v1 = node1.point.subtract(center)
+            val angle1 = vectorToAngle(v1)
+
+            val v2 = node2.point.subtract(center)
+            val angle2 = vectorToAngle(v2)
+
+            //println("$angle1 -> $angle2")
+
+            // extent of arc in degrees
+            var extent = angle2 - angle1
+
+            if (extent < 0) {
+                extent += 360
+            }
+
+            val arc = Arc(center.x, center.y, radius, radius, angle1, extent)
+
+            with(arc) {
+                fill = null
+                stroke = Color.BLACK
+
+                userData = p1.to(p2)
+                properties["sweep"] = angle1 < angle2
+            }
+
+            edges.add(EulerDualEdge(node1, node2, arc))
+        }
     }
 
     /**
@@ -292,6 +428,7 @@ class MED(private val allZones: List<ConcreteZone>, private val allContours: Lis
                             arcTo.y = p1.y
                         }
 
+                        // TODO: we could alternatively check if arc is fine?
                         arcTo.isSweepFlag = q.properties["sweep"] as Boolean
 
                         tmpPoint = Point2D(arcTo.x, arcTo.y)
@@ -458,6 +595,20 @@ class MED(private val allZones: List<ConcreteZone>, private val allContours: Lis
 
     fun computeCycle(zonesToSplit: List<AbstractBasicRegion>): Optional<GraphCycle<EulerDualNode, EulerDualEdge>> {
         return Optional.ofNullable(cycles.filter { it.nodes.map { it.zone.abstractZone }.containsAll(zonesToSplit) }.firstOrNull())
+    }
+
+    /**
+     * @return angle in [0..360]
+     */
+    private fun vectorToAngle(v: Point2D): Double {
+        var angle = -Math.toDegrees(Math.atan2(v.y, v.x))
+
+        if (angle < 0) {
+            val delta = 180 - (-angle)
+            angle = delta + 180
+        }
+
+        return angle
     }
 }
 

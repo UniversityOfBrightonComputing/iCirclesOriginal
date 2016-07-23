@@ -159,7 +159,7 @@ class HamiltonianDiagramCreator(val settings: SettingsController) {
 
         val shaded = abstractZones.minus(description.zones)
 
-        concreteShadedZones.addAll(shaded.map { makeConcreteZone(it) })
+        concreteShadedZones.addAll(shaded.map { ConcreteZone(it, curveToContour) })
     }
 
     /**
@@ -168,26 +168,26 @@ class HamiltonianDiagramCreator(val settings: SettingsController) {
      * @param zone the abstract zone
      * @return the concrete zone
      */
-    private fun makeConcreteZone(zone: AbstractBasicRegion): ConcreteZone {
-        val includingCircles = ArrayList<Contour>()
-        val excludingCircles = ArrayList<Contour>(curveToContour.values)
-
-        for (curve in zone.inSet) {
-            val contour = curveToContour[curve]
-
-            excludingCircles.remove(contour)
-            includingCircles.add(contour!!)
-        }
-
-        val cz = ConcreteZone(zone, includingCircles, excludingCircles)
-
-        // TODO: make global bbox
-        cz.bbox = javafx.scene.shape.Rectangle(10000.0, 10000.0)
-        cz.bbox.translateX = -3000.0
-        cz.bbox.translateY = -3000.0
-
-        return cz
-    }
+//    private fun makeConcreteZone(zone: AbstractBasicRegion): ConcreteZone {
+//        val includingCircles = ArrayList<Contour>()
+//        val excludingCircles = ArrayList<Contour>(curveToContour.values)
+//
+//        for (curve in zone.inSet) {
+//            val contour = curveToContour[curve]
+//
+//            excludingCircles.remove(contour)
+//            includingCircles.add(contour!!)
+//        }
+//
+//        val cz = ConcreteZone(zone, includingCircles, excludingCircles)
+//
+//        // TODO: make global bbox
+//        cz.bbox = javafx.scene.shape.Rectangle(10000.0, 10000.0)
+//        cz.bbox.translateX = -3000.0
+//        cz.bbox.translateY = -3000.0
+//
+//        return cz
+//    }
 
     /**
      * Needs to be generated every time because contours change zones.
@@ -197,136 +197,9 @@ class HamiltonianDiagramCreator(val settings: SettingsController) {
     private fun createMED() {
         log.trace("Creating MED")
 
-        Profiler.start("Creating MED")
+        val concreteZones = abstractZones.map { ConcreteZone(it, curveToContour) }
 
-        val concreteZones = abstractZones.map { makeConcreteZone(it) }
-
-        val bounds = concreteZones.map { it.shape.layoutBounds }
-
-        val minX = bounds.map { it.minX }.min()
-        val minY = bounds.map { it.minY }.min()
-        val maxX = bounds.map { it.maxX }.max()
-        val maxY = bounds.map { it.maxY }.max()
-
-        val center = Point2D((minX!! + maxX!!) / 2, (minY!! + maxY!!) / 2)
-
-        val w = (maxX - minX) / 2
-        val h = (maxY - minY) / 2
-
-        // half diagonal of the bounds rectangle
-        val radius = Math.sqrt(w*w + h*h) + settings.medSize  // how much bigger is the MED
-
-        modifiedDual = MED(concreteZones, curveToContour.values.toList())
-
-        log.trace("MED is constructed")
-
-        val outside = makeConcreteZone(AbstractBasicRegion.OUTSIDE)
-
-        val nodesMED = ArrayList<EulerDualNode>()
-
-        log.trace("Adding extra nodes")
-
-        modifiedDual.nodes
-                .filter { it.zone.isTopologicallyAdjacent(outside) }
-                .forEach {
-                    val vectorToMED = it.zone.center.subtract(center)
-                    val length = radius - vectorToMED.magnitude()
-
-                    // from zone center to closest point on MED
-                    val vector = vectorToMED.normalize().multiply(length)
-
-                    val p1 = it.zone.center
-                    val p2 = it.zone.center.add(vector)
-
-                    // TODO: this can be replaced with a line
-
-                    val q = QuadCurve()
-                    q.fill = null
-                    q.stroke = Color.BLACK
-                    q.startX = p1.x
-                    q.startY = p1.y
-                    q.endX = p2.x
-                    q.endY = p2.y
-
-                    q.controlX = p1.midpoint(p2).x
-                    q.controlY = p1.midpoint(p2).y
-
-                    // make "distinct" nodes so that jgrapht doesn't think it's a loop
-                    val node = EulerDualNode(makeConcreteZone(AbstractBasicRegion.OUTSIDE), p2)
-                    nodesMED.add(node)
-                    modifiedDual.edges.add(EulerDualEdge(it, node, q))
-                }
-
-        modifiedDual.nodes.addAll(nodesMED)
-
-        // sort nodes along the MED ring
-        // sorting is CCW from 0 (right) to 360
-        Collections.sort(nodesMED, { node1, node2 ->
-            val v1 = node1.point.subtract(center)
-            val angle1 = vectorToAngle(v1)
-
-            val v2 = node2.point.subtract(center)
-            val angle2 = vectorToAngle(v2)
-
-            (angle1 - angle2).toInt()
-        })
-
-        log.trace("Adding extra edges")
-
-        for (i in nodesMED.indices) {
-            val node1 = nodesMED[i]
-            val node2 = if (i == nodesMED.size - 1) nodesMED[0] else nodesMED[i+1]
-
-            val p1 = node1.point
-            val p2 = node2.point
-
-            val v1 = node1.point.subtract(center)
-            val angle1 = vectorToAngle(v1)
-
-            val v2 = node2.point.subtract(center)
-            val angle2 = vectorToAngle(v2)
-
-            println("Angle1: $angle1")
-
-            // extent of arc in degrees
-            var extent = angle2 - angle1
-
-            if (extent < 0) {
-                extent += 360
-            }
-
-            val arc = Arc(center.x, center.y, radius, radius, angle1, extent)
-
-            with(arc) {
-                fill = null
-                stroke = Color.BLACK
-
-                userData = p1.to(p2)
-                properties["sweep"] = angle1 < angle2
-            }
-
-            modifiedDual.edges.add(EulerDualEdge(node1, node2, arc))
-        }
-
-        Profiler.end("Creating MED")
-
-        log.trace("Generating cycles")
-
-        modifiedDual.initCycles()
-    }
-
-    /**
-     * @return angle in [0..360]
-     */
-    private fun vectorToAngle(v: Point2D): Double {
-        var angle = -Math.toDegrees(Math.atan2(v.y, v.x))
-
-        if (angle < 0) {
-            val delta = 180 - (-angle)
-            angle = delta + 180
-        }
-
-        return angle
+        modifiedDual = MED(concreteZones, curveToContour)
     }
 
     /**
