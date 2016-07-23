@@ -7,6 +7,8 @@ import icircles.concrete.ConcreteZone
 import icircles.concrete.Contour
 import icircles.concrete.HamiltonianDiagramCreator
 import icircles.graph.cycles.CycleFinder
+import icircles.guifx.FXApplication
+import icircles.guifx.SettingsController
 import icircles.util.CannotDrawException
 import icircles.util.Profiler
 import javafx.geometry.Point2D
@@ -24,33 +26,31 @@ import java.util.stream.Stream
  *
  * @author Almas Baimagambetov (almaslvl@gmail.com)
  */
-class MED(allZones: List<ConcreteZone>, allContours: List<Contour>) {
+class MED(private val allZones: List<ConcreteZone>, private val allContours: List<Contour>) {
 
     private val log = LogManager.getLogger(javaClass)
 
     private val CONTROL_POINT_STEP = 5
 
     val nodes: MutableList<EulerDualNode>
-    val edges = ArrayList<EulerDualEdge>()
+    val edges: MutableList<EulerDualEdge>
     lateinit var cycles: List<GraphCycle<EulerDualNode, EulerDualEdge>>
 
+    private val settings: SettingsController
+
     init {
-        Profiler.start("MED init")
+        settings = FXApplication.getInstance().settings
 
-        Profiler.start("Mapping zones to nodes")
+        //Profiler.start("MED init")
 
-        //Stream.of("", "").parallel()
+        Profiler.start("Creating EGD nodes")
 
-        // this is sequential
-        //nodes = allZones.map { EulerDualNode(it, it.center) }.toMutableList()
+        nodes = if (settings.isParallel) computeNodesParallel() else computeNodesSequential()
 
-        // hack that allows us to do parallel stream in kotlin
-        nodes = IntStream.range(0, allZones.size)
-                .parallel()
-                .mapToObj { EulerDualNode(allZones[it], allZones[it].center) }
-                .collect(Collectors.toList()) as MutableList<EulerDualNode>
+        Profiler.end("Creating EGD nodes")
 
-        Profiler.end("Mapping zones to nodes")
+        // go through each pair of nodes
+        val pairs = ArrayList< Pair<EulerDualNode, EulerDualNode> >()
 
         for (i in nodes.indices) {
             var j = i + 1
@@ -58,97 +58,137 @@ class MED(allZones: List<ConcreteZone>, allContours: List<Contour>) {
                 val node1 = nodes[i]
                 val node2 = nodes[j]
 
-                //Profiler.start("Checking topological adjacency")
-
-                // if zones are topologically adjacent then there exists
-                // a curve segment between zone centers
-                if (node1.zone.isTopologicallyAdjacent(node2.zone)) {
-
-                    //Profiler.end("Checking topological adjacency")
-
-                    log.trace("${node1.zone} and ${node2.zone} are adjacent")
-
-                    //Profiler.start("Creating edge")
-
-                    val p1 = node1.zone.center
-                    val p2 = node2.zone.center
-
-                    val q = QuadCurve()
-                    q.fill = null
-                    q.stroke = Color.BLACK
-                    q.startX = p1.x
-                    q.startY = p1.y
-                    q.endX = p2.x
-                    q.endY = p2.y
-
-                    q.controlX = p1.midpoint(p2).x
-                    q.controlY = p1.midpoint(p2).y
-
-                    val x = q.controlX
-                    val y = q.controlY
-
-                    var step = CONTROL_POINT_STEP
-                    var safetyCount = 0
-
-                    var delta = Point2D(step.toDouble(), 0.0)
-                    var s = 0
-
-                    // the new curve segment must pass through the straddled curve
-                    // and only through that curve
-                    val curve = node1.zone.abstractZone.getStraddledContour(node2.zone.abstractZone).get()
-
-                    log.trace("Searching ${node1.zone} - ${node2.zone} : $curve")
-
-                    while (!isOK(q, curve, allContours) && safetyCount < 500) {
-                        q.controlX = x + delta.x
-                        q.controlY = y + delta.y
-
-                        s++
-
-                        when (s) {
-                            1 -> delta = Point2D(step.toDouble(), step.toDouble())
-                            2 -> delta = Point2D(0.0, step.toDouble())
-                            3 -> delta = Point2D((-step).toDouble(), step.toDouble())
-                            4 -> delta = Point2D((-step).toDouble(), 0.0)
-                            5 -> delta = Point2D((-step).toDouble(), (-step).toDouble())
-                            6 -> delta = Point2D(0.0, (-step).toDouble())
-                            7 -> delta = Point2D(step.toDouble(), (-step).toDouble())
-                        }
-
-                        if (s == 8) {
-                            s = 0
-                            delta = Point2D(step.toDouble(), 0.0)
-                            step *= 2
-                        }
-
-                        safetyCount++
-                    }
-
-                    log.trace("End Searching with $safetyCount tries")
-
-                    // we failed to find the correct spot
-                    if (safetyCount == 500) {
-
-                        throw CannotDrawException("Failed to add EGD edge: ${node1.zone} - ${node2.zone}")
-
-                    } else {
-                        edges.add(EulerDualEdge(node1, node2, q))
-                    }
-
-                    //Profiler.end("Creating edge")
-
-                } else {
-                    //Profiler.end("Checking topological adjacency")
-                }
+                pairs.add(node1.to(node2))
 
                 j++
             }
         }
 
-        Profiler.end("MED init")
+        Profiler.start("Creating EGD edges")
+
+        edges = computeEdges(pairs)
+
+        Profiler.end("Creating EGD edges")
+
+        //Profiler.end("MED init")
     }
 
-    //private var tmpPoint = Point2D.ZERO
+    private fun computeNodesSequential(): MutableList<EulerDualNode> {
+        return allZones.map { createNode(it) }.toMutableList()
+    }
+
+    private fun computeNodesParallel(): MutableList<EulerDualNode> {
+        return Stream.of(*allZones.toTypedArray())
+                .parallel()
+                .map { createNode(it) }
+                .collect(Collectors.toList()) as MutableList<EulerDualNode>
+
+        // hack that allows us to do parallel stream in kotlin
+
+        //        return IntStream.range(0, allZones.size)
+        //                .parallel()
+        //                .mapToObj { EulerDualNode(allZones[it], allZones[it].center) }
+        //                .collect(Collectors.toList()) as MutableList<EulerDualNode>
+    }
+
+    /**
+     * Computes EGD edges based on given pairs of nodes.
+     * An edge is constructed if zones of nodes are topologically adjacent.
+     * Runs in parallel mode based on settings.
+     */
+    private fun computeEdges(pairs: List< Pair<EulerDualNode, EulerDualNode> >): MutableList<EulerDualEdge> {
+
+        log.trace("Computing edges")
+
+        var stream = Stream.of(*pairs.toTypedArray())
+
+        if (settings.isParallel) {
+            stream = stream.parallel()
+        }
+
+        return stream.filter { it.first.zone.isTopologicallyAdjacent(it.second.zone) }
+                .map { createEdge(it.first, it.second) }
+                .collect(Collectors.toList()) as MutableList<EulerDualEdge>
+    }
+
+    private fun createNode(zone: ConcreteZone): EulerDualNode {
+        return EulerDualNode(zone, zone.center)
+    }
+
+    /**
+     * Creates an Euler dual edge between [node1] and [node2] represented by
+     * a Bezier curve.
+     */
+    private fun createEdge(node1: EulerDualNode, node2: EulerDualNode): EulerDualEdge {
+        log.trace("Creating edge: ${node1.zone} - ${node2.zone}")
+
+        //Profiler.start("Creating edge")
+
+        val p1 = node1.zone.center
+        val p2 = node2.zone.center
+
+        val q = QuadCurve()
+        q.fill = null
+        q.stroke = Color.BLACK
+        q.startX = p1.x
+        q.startY = p1.y
+        q.endX = p2.x
+        q.endY = p2.y
+
+        q.controlX = p1.midpoint(p2).x
+        q.controlY = p1.midpoint(p2).y
+
+        val x = q.controlX
+        val y = q.controlY
+
+        var step = CONTROL_POINT_STEP
+        var safetyCount = 0
+
+        var delta = Point2D(step.toDouble(), 0.0)
+        var s = 0
+
+        // the new curve segment must pass through the straddled curve
+        // and only through that curve
+        val curve = node1.zone.abstractZone.getStraddledContour(node2.zone.abstractZone).get()
+
+        log.trace("Searching ${node1.zone} - ${node2.zone} : $curve")
+
+        while (!isOK(q, curve, allContours) && safetyCount < 500) {
+            q.controlX = x + delta.x
+            q.controlY = y + delta.y
+
+            s++
+
+            when (s) {
+                1 -> delta = Point2D(step.toDouble(), step.toDouble())
+                2 -> delta = Point2D(0.0, step.toDouble())
+                3 -> delta = Point2D((-step).toDouble(), step.toDouble())
+                4 -> delta = Point2D((-step).toDouble(), 0.0)
+                5 -> delta = Point2D((-step).toDouble(), (-step).toDouble())
+                6 -> delta = Point2D(0.0, (-step).toDouble())
+                7 -> delta = Point2D(step.toDouble(), (-step).toDouble())
+            }
+
+            if (s == 8) {
+                s = 0
+                delta = Point2D(step.toDouble(), 0.0)
+                step *= 2
+            }
+
+            safetyCount++
+        }
+
+        log.trace("End Searching with $safetyCount tries")
+
+        //Profiler.end("Creating edge")
+
+        // we failed to find the correct spot
+        if (safetyCount == 500) {
+            throw CannotDrawException("Failed to add EGD edge: ${node1.zone} - ${node2.zone}")
+        }
+
+        return EulerDualEdge(node1, node2, q)
+    }
 
     /**
      * Does curve segment [q] only pass through [actual] curve.

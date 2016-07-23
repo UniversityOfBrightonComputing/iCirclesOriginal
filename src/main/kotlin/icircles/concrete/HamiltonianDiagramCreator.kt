@@ -191,6 +191,8 @@ class HamiltonianDiagramCreator(val settings: SettingsController) {
 
     /**
      * Needs to be generated every time because contours change zones.
+     *
+     * TODO: we could potentially only compute zones that have been changed by the curve
      */
     private fun createMED() {
         log.trace("Creating MED")

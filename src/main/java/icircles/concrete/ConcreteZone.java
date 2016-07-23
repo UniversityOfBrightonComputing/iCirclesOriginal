@@ -2,6 +2,8 @@ package icircles.concrete;
 
 import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdescription.AbstractCurve;
+import icircles.guifx.FXApplication;
+import icircles.guifx.SettingsController;
 import icircles.util.Profiler;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
@@ -45,6 +47,8 @@ public class ConcreteZone {
 
     public Shape bbox = null;
 
+    private SettingsController settings;
+
     /**
      * Constructs a concrete zone from abstract zone given containing and excluding contours.
      *
@@ -56,6 +60,8 @@ public class ConcreteZone {
         this.zone = zone;
         this.containingContours = containingContours;
         this.excludingContours = excludingContours;
+
+        settings = FXApplication.getInstance().getSettings();
     }
 
     public AbstractBasicRegion getAbstractZone() {
@@ -151,14 +157,11 @@ public class ConcreteZone {
 
         int scanStep = SCAN_STEP;
 
-        // TODO: this needs to be read from settings
-        boolean useCircleApprox = false;
-
         // TODO: we might be better off by computing the approx area
         // of the part that is outside of this, if large -> then skip the whole line?
 
         while (true) {
-            if (useCircleApprox) {
+            if (settings.useCircleApproxCenter()) {
                 Circle circle = new Circle(radius, radius, radius);
                 circle.setStroke(Color.BLACK);
 
@@ -178,57 +181,61 @@ public class ConcreteZone {
                     }
                 }
             } else {
-//                Rectangle rect = new Rectangle(radius*2, radius*2);
-//                rect.setStroke(Color.BLACK);
-//
-//                for (int y = (int) minY; y < minY + height - radius*2; y += scanStep) {
-//                    rect.setY(y);
-//
-//                    for (int x = (int) minX; x < minX + width - radius*2; x += scanStep) {
-//                        rect.setX(x);
-//
-//                        // if square is completely enclosed by this zone
-//                        if (Shape.subtract(rect, shape).getLayoutBounds().isEmpty()) {
-//
-//                            Profiler.INSTANCE.end("Computing center: " + zone);
-//
-//                            return new Point2D(x + radius, y + radius);
-//                        }
-//                    }
-//                }
 
-                final int scanForThisStep = scanStep;
-                final int radiusForThisStep = radius;
+                if (settings.isParallel()) {
+                    final int scanForThisStep = scanStep;
+                    final int radiusForThisStep = radius;
 
-                Optional<Point2D> maybeCenter = IntStream.range(0, (int)((minY + height - radiusForThisStep*2) / scanForThisStep))
-                        .parallel()
-                        .mapToObj(dy -> {
-                            int y = (int)minY + dy * scanForThisStep;
+                    Optional<Point2D> maybeCenter = IntStream.range(0, (int)((minY + height - radiusForThisStep*2) / scanForThisStep))
+                            .parallel()
+                            .mapToObj(dy -> {
+                                int y = (int)minY + dy * scanForThisStep;
 
-                            Rectangle rect = new Rectangle(radiusForThisStep*2, radiusForThisStep*2);
-                            rect.setStroke(Color.BLACK);
-                            rect.setY(y);
+                                Rectangle rect = new Rectangle(radiusForThisStep*2, radiusForThisStep*2);
+                                rect.setStroke(Color.BLACK);
+                                rect.setY(y);
 
-                            for (int x = (int) minX; x < minX + width - radiusForThisStep*2; x += scanForThisStep) {
-                                rect.setX(x);
+                                for (int x = (int) minX; x < minX + width - radiusForThisStep*2; x += scanForThisStep) {
+                                    rect.setX(x);
 
-                                // if square is completely enclosed by this zone
-                                if (Shape.subtract(rect, shape).getLayoutBounds().isEmpty()) {
+                                    // if square is completely enclosed by this zone
+                                    if (Shape.subtract(rect, shape).getLayoutBounds().isEmpty()) {
 
-                                    return new Point2D(x + radiusForThisStep, y + radiusForThisStep);
+                                        return new Point2D(x + radiusForThisStep, y + radiusForThisStep);
+                                    }
                                 }
+
+                                return Point2D.ZERO;
+                            })
+                            .filter(p -> p != Point2D.ZERO)
+                            .findAny();
+
+
+                    if (maybeCenter.isPresent()) {
+                        return maybeCenter.get();
+                    }
+                } else {
+
+                    Rectangle rect = new Rectangle(radius*2, radius*2);
+                    rect.setStroke(Color.BLACK);
+
+                    for (int y = (int) minY; y < minY + height - radius*2; y += scanStep) {
+                        rect.setY(y);
+
+                        for (int x = (int) minX; x < minX + width - radius*2; x += scanStep) {
+                            rect.setX(x);
+
+                            // if square is completely enclosed by this zone
+                            if (Shape.subtract(rect, shape).getLayoutBounds().isEmpty()) {
+
+                                //Profiler.INSTANCE.end("Computing center: " + zone);
+
+                                return new Point2D(x + radius, y + radius);
                             }
-
-                            return Point2D.ZERO;
-                        })
-                        .filter(p -> p != Point2D.ZERO)
-                        .findAny();
-
-                //System.out.println("Computed");
-
-                if (maybeCenter.isPresent()) {
-                    return maybeCenter.get();
+                        }
+                    }
                 }
+
             }
 
             if (radius <= RADIUS_STEP) {

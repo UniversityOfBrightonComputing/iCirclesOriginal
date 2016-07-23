@@ -79,6 +79,9 @@ public class Controller {
             Parent root = fxmlLoader.load();
             settings = fxmlLoader.getController();
 
+            // set global settings hack
+            FXApplication.getInstance().setSettings(settings);
+
             dialogSettings.getDialogPane().setContent(root);
         } catch (Exception e) {
             showError(e);
