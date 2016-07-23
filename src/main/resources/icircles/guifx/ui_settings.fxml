@@ -18,6 +18,12 @@
 
     <VBox spacing="5" alignment="CENTER_LEFT">
 
+        <CheckBox fx:id="cbParallel" text="Use multiple threads (faster)" selected="false" />
+
+
+
+
+
         <Label text="Curves" />
 
         <HBox spacing="10" alignment="TOP_LEFT">

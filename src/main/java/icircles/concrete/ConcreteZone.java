@@ -2,6 +2,7 @@ package icircles.concrete;
 
 import icircles.abstractdescription.AbstractBasicRegion;
 import icircles.abstractdescription.AbstractCurve;
+import icircles.util.Profiler;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
@@ -12,8 +13,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.IntStream;
 
 /**
  * Concrete form of AbstractBasicRegion.
@@ -127,6 +130,8 @@ public class ConcreteZone {
      * @return zone center
      */
     private Point2D computeCenter() {
+        //Profiler.INSTANCE.start("Computing center: " + zone);
+
         Shape shape = getShape();
         shape.setFill(Color.RED);
 
@@ -149,6 +154,9 @@ public class ConcreteZone {
         // TODO: this needs to be read from settings
         boolean useCircleApprox = false;
 
+        // TODO: we might be better off by computing the approx area
+        // of the part that is outside of this, if large -> then skip the whole line?
+
         while (true) {
             if (useCircleApprox) {
                 Circle circle = new Circle(radius, radius, radius);
@@ -162,25 +170,64 @@ public class ConcreteZone {
 
                         // if circle is completely enclosed by this zone
                         if (Shape.subtract(circle, shape).getLayoutBounds().isEmpty()) {
+
+                            //Profiler.INSTANCE.end("Computing center: " + zone);
+
                             return new Point2D(x, y);
                         }
                     }
                 }
             } else {
-                Rectangle rect = new Rectangle(radius*2, radius*2);
-                rect.setStroke(Color.BLACK);
+//                Rectangle rect = new Rectangle(radius*2, radius*2);
+//                rect.setStroke(Color.BLACK);
+//
+//                for (int y = (int) minY; y < minY + height - radius*2; y += scanStep) {
+//                    rect.setY(y);
+//
+//                    for (int x = (int) minX; x < minX + width - radius*2; x += scanStep) {
+//                        rect.setX(x);
+//
+//                        // if square is completely enclosed by this zone
+//                        if (Shape.subtract(rect, shape).getLayoutBounds().isEmpty()) {
+//
+//                            Profiler.INSTANCE.end("Computing center: " + zone);
+//
+//                            return new Point2D(x + radius, y + radius);
+//                        }
+//                    }
+//                }
 
-                for (int y = (int) minY; y < minY + height - radius*2; y += scanStep) {
-                    rect.setY(y);
+                final int scanForThisStep = scanStep;
+                final int radiusForThisStep = radius;
 
-                    for (int x = (int) minX; x < minX + width - radius*2; x += scanStep) {
-                        rect.setX(x);
+                Optional<Point2D> maybeCenter = IntStream.range(0, (int)((minY + height - radiusForThisStep*2) / scanForThisStep))
+                        .parallel()
+                        .mapToObj(dy -> {
+                            int y = (int)minY + dy * scanForThisStep;
 
-                        // if square is completely enclosed by this zone
-                        if (Shape.subtract(rect, shape).getLayoutBounds().isEmpty()) {
-                            return new Point2D(x + radius, y + radius);
-                        }
-                    }
+                            Rectangle rect = new Rectangle(radiusForThisStep*2, radiusForThisStep*2);
+                            rect.setStroke(Color.BLACK);
+                            rect.setY(y);
+
+                            for (int x = (int) minX; x < minX + width - radiusForThisStep*2; x += scanForThisStep) {
+                                rect.setX(x);
+
+                                // if square is completely enclosed by this zone
+                                if (Shape.subtract(rect, shape).getLayoutBounds().isEmpty()) {
+
+                                    return new Point2D(x + radiusForThisStep, y + radiusForThisStep);
+                                }
+                            }
+
+                            return Point2D.ZERO;
+                        })
+                        .filter(p -> p != Point2D.ZERO)
+                        .findAny();
+
+                //System.out.println("Computed");
+
+                if (maybeCenter.isPresent()) {
+                    return maybeCenter.get();
                 }
             }
 

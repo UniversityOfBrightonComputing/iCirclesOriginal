@@ -12,6 +12,13 @@ import javafx.scene.control.TextField;
 public class SettingsController {
 
     @FXML
+    private CheckBox cbParallel;
+
+    public boolean isParallel() {
+        return cbParallel.isSelected();
+    }
+
+    @FXML
     private TextField fieldCurveRadius;
 
     public double getCurveRadius() {

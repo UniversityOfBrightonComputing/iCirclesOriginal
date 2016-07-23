@@ -10,6 +10,7 @@ import icircles.graph.MED
 import icircles.guifx.SettingsController
 import icircles.recomposition.BetterBasicRecomposer
 import icircles.util.CannotDrawException
+import icircles.util.Profiler
 import javafx.collections.FXCollections
 import javafx.geometry.Point2D
 import javafx.scene.paint.Color
@@ -96,8 +97,9 @@ class HamiltonianDiagramCreator(val settings: SettingsController) {
                 var contour: Contour = PathContour(data.addedCurve, cycle.path)
 
                 // smooth curves if required
-                // TODO: this fails when the cycle is a geometric line & does not honor zone integrity
                 if (settings.useSmooth()) {
+
+                    Profiler.start("Smoothing")
 
                     val pathSegments = BezierApproximation.pathThruPoints(cycle.nodes.map { it.point }.toMutableList(), settings.smoothFactor)
 
@@ -138,18 +140,14 @@ class HamiltonianDiagramCreator(val settings: SettingsController) {
 
                     contour = PathContour(data.addedCurve, newPath)
 
-                    // we can generate full path but with segments, test each segment for integrity
-                    // if fails then use from the cycle.path as they would have passed the check
-
-                    //if (cycle.nodes.map { it.zone.abstractZone.toString() }.none { it == "{}" }) {
-                        //contour = PathContour(data.addedCurve, BezierApproximation.pathThruPoints(cycle.nodes.map { it.point }.toMutableList()))
-                    //}
+                    Profiler.end("Smoothing")
                 }
 
                 curveToContour[data.addedCurve] = contour
 
                 // we might've used more zones to get a cycle, so we make sure we capture all of the used ones
-                abstractZones.addAll(cycle.nodes.map { it.zone.abstractZone.moveInside(data.addedCurve) })
+                // we also call distinct() to ensure we don't reuse the outside zone more than once
+                abstractZones.addAll(cycle.nodes.map { it.zone.abstractZone.moveInside(data.addedCurve) }.distinct())
             }
         }
 
@@ -196,6 +194,8 @@ class HamiltonianDiagramCreator(val settings: SettingsController) {
      */
     private fun createMED() {
         log.trace("Creating MED")
+
+        Profiler.start("Creating MED")
 
         val concreteZones = abstractZones.map { makeConcreteZone(it) }
 
@@ -305,6 +305,8 @@ class HamiltonianDiagramCreator(val settings: SettingsController) {
 
             modifiedDual.edges.add(EulerDualEdge(node1, node2, arc))
         }
+
+        Profiler.end("Creating MED")
 
         log.trace("Generating cycles")
 

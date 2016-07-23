@@ -5,14 +5,20 @@ import icircles.abstractdescription.AbstractCurve
 import icircles.concrete.ConcreteDiagram
 import icircles.concrete.ConcreteZone
 import icircles.concrete.Contour
+import icircles.concrete.HamiltonianDiagramCreator
 import icircles.graph.cycles.CycleFinder
 import icircles.util.CannotDrawException
+import icircles.util.Profiler
 import javafx.geometry.Point2D
 import javafx.scene.paint.Color
 import javafx.scene.shape.*
 import org.apache.logging.log4j.LogManager
 import java.util.*
+import java.util.stream.Collectors
+import java.util.stream.IntStream
+import java.util.stream.Stream
 
+@Suppress("UNCHECKED_CAST")
 /**
  *
  *
@@ -29,7 +35,22 @@ class MED(allZones: List<ConcreteZone>, allContours: List<Contour>) {
     lateinit var cycles: List<GraphCycle<EulerDualNode, EulerDualEdge>>
 
     init {
-        nodes = allZones.map { EulerDualNode(it, it.center) }.toMutableList()
+        Profiler.start("MED init")
+
+        Profiler.start("Mapping zones to nodes")
+
+        //Stream.of("", "").parallel()
+
+        // this is sequential
+        //nodes = allZones.map { EulerDualNode(it, it.center) }.toMutableList()
+
+        // hack that allows us to do parallel stream in kotlin
+        nodes = IntStream.range(0, allZones.size)
+                .parallel()
+                .mapToObj { EulerDualNode(allZones[it], allZones[it].center) }
+                .collect(Collectors.toList()) as MutableList<EulerDualNode>
+
+        Profiler.end("Mapping zones to nodes")
 
         for (i in nodes.indices) {
             var j = i + 1
@@ -37,10 +58,17 @@ class MED(allZones: List<ConcreteZone>, allContours: List<Contour>) {
                 val node1 = nodes[i]
                 val node2 = nodes[j]
 
+                //Profiler.start("Checking topological adjacency")
+
                 // if zones are topologically adjacent then there exists
                 // a curve segment between zone centers
                 if (node1.zone.isTopologicallyAdjacent(node2.zone)) {
+
+                    //Profiler.end("Checking topological adjacency")
+
                     log.trace("${node1.zone} and ${node2.zone} are adjacent")
+
+                    //Profiler.start("Creating edge")
 
                     val p1 = node1.zone.center
                     val p2 = node2.zone.center
@@ -106,14 +134,21 @@ class MED(allZones: List<ConcreteZone>, allContours: List<Contour>) {
                     } else {
                         edges.add(EulerDualEdge(node1, node2, q))
                     }
+
+                    //Profiler.end("Creating edge")
+
+                } else {
+                    //Profiler.end("Checking topological adjacency")
                 }
 
                 j++
             }
         }
+
+        Profiler.end("MED init")
     }
 
-    private var tmpPoint = Point2D.ZERO
+    //private var tmpPoint = Point2D.ZERO
 
     /**
      * Does curve segment [q] only pass through [actual] curve.
@@ -142,7 +177,16 @@ class MED(allZones: List<ConcreteZone>, allContours: List<Contour>) {
         nodes.forEach { graph.addVertex(it) }
         edges.forEach { graph.addEdge(it.v1, it.v2, it) }
 
-        return graph.computeCycles().filter { cycle ->
+        Profiler.start("Enumerating cycles")
+
+        val allCycles = graph.computeCycles()
+
+        Profiler.end("Enumerating cycles")
+
+        return IntStream.range(0, allCycles.size)
+                .parallel()
+                .mapToObj { allCycles[it] }
+                .filter { cycle ->
 
             log.trace("Checking cycle: $cycle")
 
@@ -159,7 +203,7 @@ class MED(allZones: List<ConcreteZone>, allContours: List<Contour>) {
             val moveTo = MoveTo(cycle.nodes.get(0).point.x, cycle.nodes.get(0).point.y)
             path.elements.addAll(moveTo)
 
-            tmpPoint = cycle.nodes.get(0).point
+            var tmpPoint = cycle.nodes.get(0).point
 
             cycle.edges.map { it.curve }.forEach { q ->
 
@@ -248,10 +292,127 @@ class MED(allZones: List<ConcreteZone>, allContours: List<Contour>) {
             log.trace("Cycle is valid")
             return@filter true
         }
+        .collect(Collectors.toList()) as List<GraphCycle<EulerDualNode, EulerDualEdge>>
+
+
+
+        // SEQUENTIAL
+
+//        return allCycles.filter { cycle ->
+//
+//            log.trace("Checking cycle: $cycle")
+//
+//            // this ensures that we do not allow same vertices in the cycle
+//            // unless it's the outside vertex
+//            cycle.nodes.groupBy { it.zone.abstractZone.toString() }.forEach {
+//                if (it.key != "{}" && it.value.size > 1) {
+//                    log.trace("Discarding cycle because ${it.key} is present ${it.value.size} times")
+//                    return@filter false
+//                }
+//            }
+//
+//            val path = Path()
+//            val moveTo = MoveTo(cycle.nodes.get(0).point.x, cycle.nodes.get(0).point.y)
+//            path.elements.addAll(moveTo)
+//
+//            tmpPoint = cycle.nodes.get(0).point
+//
+//            cycle.edges.map { it.curve }.forEach { q ->
+//
+//                when(q) {
+//                    is QuadCurve -> {
+//                        val quadCurveTo = QuadCurveTo()
+//
+//                        // we do this coz source and end vertex might be swapped
+//                        if (tmpPoint == Point2D(q.startX, q.startY)) {
+//                            quadCurveTo.x = q.endX
+//                            quadCurveTo.y = q.endY
+//                        } else {
+//                            quadCurveTo.x = q.startX
+//                            quadCurveTo.y = q.startY
+//                        }
+//
+//                        tmpPoint = Point2D(quadCurveTo.x, quadCurveTo.y)
+//
+//                        quadCurveTo.controlX = q.controlX
+//                        quadCurveTo.controlY = q.controlY
+//
+//                        path.elements.addAll(quadCurveTo)
+//                    }
+//
+//                    is Arc -> {
+//
+//                        val p1 = (q.userData as Pair<Point2D, Point2D>).first
+//                        val p2 = (q.userData as Pair<Point2D, Point2D>).second
+//
+//                        // a b c d ab ac bc bd cd abc bcd
+//                        // a b c d ab ac bc bd cd ce abc ace bcd bce abce
+//
+//                        val arcTo = ArcTo()
+//                        arcTo.radiusX = q.radiusX
+//                        arcTo.radiusY = q.radiusY
+//                        arcTo.xAxisRotation = q.startAngle
+//
+//                        val arcCenter = Point2D(q.centerX, q.centerY)
+//
+//                        // p1 is start then
+//                        if (tmpPoint == p1) {
+//                            arcTo.x = p2.x
+//                            arcTo.y = p2.y
+//                        } else {
+//                            arcTo.x = p1.x
+//                            arcTo.y = p1.y
+//                        }
+//
+//                        arcTo.isSweepFlag = q.properties["sweep"] as Boolean
+//
+//                        tmpPoint = Point2D(arcTo.x, arcTo.y)
+//
+//                        path.elements.add(arcTo)
+//                    }
+//
+//                    else -> {
+//                        throw IllegalArgumentException("Unknown edge shape: $q")
+//                    }
+//                }
+//            }
+//
+//            path.elements.add(ClosePath())
+//            path.fill = Color.TRANSPARENT
+//
+//            cycle.path = path
+//
+//            // we filter those vertices that are not part of the cycle
+//            // then we check if filtered vertices are inside the cycle
+//            nodes.filter {
+//
+//                // we do not need to check for ouside zone right?
+//                !cycle.contains(it)
+//                // fails for some reason
+//                //!cycle.nodes.contains(it)
+//
+//            }.forEach {
+//
+//                log.trace("Checking vertex $it")
+//
+//                if (path.contains(it.point)) {
+//                    log.trace("Discarding cycle because of inside vertex: ${it.point}")
+//                    return@filter false
+//                }
+//            }
+//
+//            log.trace("Cycle is valid")
+//            return@filter true
+//        }
     }
 
     fun initCycles() {
+        Profiler.start("Computing all cycles")
+
         cycles = computeValidCycles()
+
+        Profiler.end("Computing all cycles")
+
         log.debug("Valid cycles: $cycles")
     }
 
