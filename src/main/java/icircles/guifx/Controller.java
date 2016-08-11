@@ -4,12 +4,18 @@ import icircles.abstractdescription.AbstractCurve;
 import icircles.abstractdescription.AbstractDescription;
 import icircles.concrete.ConcreteDiagram;
 import icircles.concrete.Contour;
+import icircles.concrete.DiagramCreator;
 import icircles.concrete.HamiltonianDiagramCreator;
+import icircles.decomposition.DecomposerFactory;
+import icircles.decomposition.DecompositionStrategyType;
 import icircles.graph.EulerDualNode;
 import icircles.graph.MED;
+import icircles.recomposition.RecomposerFactory;
+import icircles.recomposition.RecompositionStrategyType;
 import icircles.util.ExampleData;
 import icircles.util.ExampleDiagram;
 import icircles.util.Examples;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.concurrent.Task;
@@ -295,6 +301,22 @@ public class Controller {
         protected ConcreteDiagram call() throws Exception {
             long startTime = System.nanoTime();
 
+            Platform.runLater(renderer::clearRenderer);
+
+            // try modified original iCircles
+            if (settings.isTwoStep()) {
+                DiagramCreator creator = new DiagramCreator(
+                        DecomposerFactory.newDecomposer(DecompositionStrategyType.PIERCED_FIRST),
+                        RecomposerFactory.newRecomposer(RecompositionStrategyType.DOUBLY_PIERCED_EXTRA_ZONES)
+                );
+
+                ConcreteDiagram diagram0 = creator.createDiagram(description, 4000);
+                if (diagram0.findDuplicateContours().isEmpty()) {
+                    return diagram0;
+                }
+            }
+
+            // else do Hamiltonian
             newCreator = new HamiltonianDiagramCreator(settings);
 
             newCreator.getCurveToContour().addListener((MapChangeListener<? super AbstractCurve, ? super Contour>) change -> {
@@ -317,24 +339,17 @@ public class Controller {
         @Override
         protected void succeeded() {
 
-            // draw any debug points
-            newCreator.getDebugPoints().forEach(p -> {
-                Circle point = new Circle(p.getX(), p.getY(), 10, Color.LIGHTSKYBLUE);
+            ConcreteDiagram diagram = getValue();
 
-                Text coord = new Text((int) p.getX() + "," + (int) p.getY());
-                coord.setTranslateX(p.getX());
-                coord.setTranslateY(p.getY() - 10);
+            if (diagram != null) {
 
-                renderer.rootSceneGraph.getChildren().addAll(point, coord);
-            });
+                renderer.draw(diagram);
 
-            if (settings.showMED()) {
+            } else {
 
-                MED modifiedDual = newCreator.getModifiedDual();
-
-                // draw MED nodes
-                modifiedDual.getNodes().stream().map(EulerDualNode::getPoint).forEach(p -> {
-                    Circle point = new Circle(p.getX(), p.getY(), 10, Color.RED);
+                // draw any debug points
+                newCreator.getDebugPoints().forEach(p -> {
+                    Circle point = new Circle(p.getX(), p.getY(), 10, Color.LIGHTSKYBLUE);
 
                     Text coord = new Text((int) p.getX() + "," + (int) p.getY());
                     coord.setTranslateX(p.getX());
@@ -343,25 +358,41 @@ public class Controller {
                     renderer.rootSceneGraph.getChildren().addAll(point, coord);
                 });
 
-                // draw MED edges
-                modifiedDual.getEdges().forEach(e -> {
-                    e.getCurve().setStroke(Color.RED);
-                    e.getCurve().setStrokeWidth(6);
-                    renderer.rootSceneGraph.getChildren().addAll(e.getCurve());
+                if (settings.showMED()) {
+
+                    MED modifiedDual = newCreator.getModifiedDual();
+
+                    // draw MED nodes
+                    modifiedDual.getNodes().stream().map(EulerDualNode::getPoint).forEach(p -> {
+                        Circle point = new Circle(p.getX(), p.getY(), 10, Color.RED);
+
+                        Text coord = new Text((int) p.getX() + "," + (int) p.getY());
+                        coord.setTranslateX(p.getX());
+                        coord.setTranslateY(p.getY() - 10);
+
+                        renderer.rootSceneGraph.getChildren().addAll(point, coord);
+                    });
+
+                    // draw MED edges
+                    modifiedDual.getEdges().forEach(e -> {
+                        e.getCurve().setStroke(Color.RED);
+                        e.getCurve().setStrokeWidth(6);
+                        renderer.rootSceneGraph.getChildren().addAll(e.getCurve());
 
 //                    e.getCurve().setOnMouseClicked(event -> {
 //                        e.getCurve().setStroke(Color.YELLOW);
 //                    });
+                    });
+                }
+
+                // add shaded zones
+                newCreator.getConcreteShadedZones().forEach(zone -> {
+                    Shape shape = zone.getShape();
+                    shape.setFill(Color.GRAY);
+
+                    renderer.rootShadedZones.getChildren().addAll(shape);
                 });
             }
-
-            // add shaded zones
-            newCreator.getConcreteShadedZones().forEach(zone -> {
-                Shape shape = zone.getShape();
-                shape.setFill(Color.GRAY);
-
-                renderer.rootShadedZones.getChildren().addAll(shape);
-            });
 
 //            try {
 //                long startTime = System.nanoTime();
@@ -387,6 +418,7 @@ public class Controller {
 //            } catch (Exception e) {
 //                showError(e);
 //            }
+
 
             progressDialog.hide();
         }

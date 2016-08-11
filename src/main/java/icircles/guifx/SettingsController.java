@@ -12,6 +12,13 @@ import javafx.scene.control.TextField;
 public class SettingsController {
 
     @FXML
+    private CheckBox cbTwoStep;
+
+    public boolean isTwoStep() {
+        return cbTwoStep.isSelected();
+    }
+
+    @FXML
     private CheckBox cbParallel;
 
     public boolean isParallel() {

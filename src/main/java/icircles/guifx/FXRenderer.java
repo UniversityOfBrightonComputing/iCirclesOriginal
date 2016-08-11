@@ -64,25 +64,7 @@ public class FXRenderer extends Pane {
         Platform.runLater(() -> rootSceneGraph.getChildren().addAll(s, label));
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    // ORIGINAL BELOW
 
     public void setCanvasSize(double w, double h) {
         canvas.setWidth(w);
@@ -244,6 +226,7 @@ public class FXRenderer extends Pane {
     private void drawCircleContour(CircleContour contour) {
         g.setFill(Color.BLACK);
         g.setStroke(Color.BLUE);
+        g.setLineWidth(10);
 
         double radius = contour.getRadius();
         double x = contour.getCenterX() - radius;

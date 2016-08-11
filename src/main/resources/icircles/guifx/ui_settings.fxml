@@ -18,6 +18,7 @@
 
     <VBox spacing="5" alignment="CENTER_LEFT">
 
+        <CheckBox fx:id="cbTwoStep" text="Use 2-step algorithm" selected="true" />
         <CheckBox fx:id="cbParallel" text="Use multiple threads (faster)" selected="false" />
 
 
