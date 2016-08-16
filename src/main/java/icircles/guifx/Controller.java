@@ -260,6 +260,8 @@ public class Controller {
     }
 
     private void visualize(AbstractDescription description) {
+        System.out.println("Visualizing: " + description.getInformalDescription());
+
         progressDialog.show();
 
         fieldInput.setText(description.getInformalDescription());

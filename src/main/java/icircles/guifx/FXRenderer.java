@@ -227,6 +227,7 @@ public class FXRenderer extends Pane {
         g.setFill(Color.BLACK);
         g.setStroke(Color.BLUE);
         g.setLineWidth(10);
+        g.setFont(Font.font(72));
 
         double radius = contour.getRadius();
         double x = contour.getCenterX() - radius;
