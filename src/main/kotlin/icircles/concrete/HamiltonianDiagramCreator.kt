@@ -47,6 +47,7 @@ class HamiltonianDiagramCreator(val settings: SettingsController) {
     lateinit var modifiedDual: MED
 
     val debugPoints = ArrayList<Point2D>()
+    val debugShapes = arrayListOf<Shape>()
 
     fun createDiagram(description: AbstractDescription) {
 
@@ -115,7 +116,36 @@ class HamiltonianDiagramCreator(val settings: SettingsController) {
                         // check if this is the MED ring segment
                         if (node1.zone.abstractZone == AbstractBasicRegion.OUTSIDE && node2.zone.abstractZone == AbstractBasicRegion.OUTSIDE) {
                             // j + 1 because we skip the first moveTo
-                            newPath.elements.addAll(cycle.path.elements[j + 1])
+                            val arcTo = cycle.path.elements[j + 1] as ArcTo
+
+                            val start = settings.globalMap[arcTo] as Point2D
+
+                            var tmpPath = Path(MoveTo(start.x, start.y), arcTo)
+                            tmpPath.fill = null
+                            tmpPath.stroke = Color.BLACK
+
+                            //debugShapes.add(tmpPath)
+
+                            val ok = !intersects(tmpPath, curveToContour.values.toList())
+
+                            println("OK?: $ok")
+
+                            if (!ok) {
+                                arcTo.isSweepFlag = !arcTo.isSweepFlag
+
+                                tmpPath = Path(MoveTo(start.x, start.y), arcTo)
+                                tmpPath.fill = null
+                                tmpPath.stroke = Color.BLACK
+
+                                if (intersects(tmpPath, curveToContour.values.toList())) {
+                                    //debugShapes.add(tmpPath)
+                                    throw CannotDrawException("MED ring intersects with diagram")
+                                } else {
+                                    println("ALL GOOD")
+                                }
+                            }
+
+                            newPath.elements.addAll(arcTo)
                             continue
                         }
 
@@ -220,7 +250,20 @@ class HamiltonianDiagramCreator(val settings: SettingsController) {
         return list.get(0).curve == actual
     }
 
+    /**
+     * Does curve segment [q] intersect with any other curves.
+     */
+    fun intersects(q: Shape, curves: List<Contour>): Boolean {
+        val list = curves.filter {
+            val s = it.shape
+            s.fill = null
+            s.stroke = Color.BROWN
 
+            !Shape.intersect(s, q).getLayoutBounds().isEmpty()
+        }
+
+        return list.isNotEmpty()
+    }
 
 
 

@@ -360,6 +360,15 @@ public class Controller {
                     renderer.rootSceneGraph.getChildren().addAll(point, coord);
                 });
 
+                newCreator.getDebugShapes().forEach(shape -> {
+                    System.out.println("adding debug info");
+                    shape.setFill(Color.RED);
+                    shape.setStrokeWidth(5);
+                    shape.setStroke(Color.BLUE);
+
+                    renderer.rootSceneGraph.getChildren().addAll(shape);
+                });
+
                 if (settings.showMED()) {
 
                     MED modifiedDual = newCreator.getModifiedDual();
@@ -430,8 +439,18 @@ public class Controller {
             progressDialog.hide();
 
             Throwable error = getException();
-            if (error != null)
+            if (error != null) {
                 showError(error);
+
+                newCreator.getDebugShapes().forEach(shape -> {
+                    System.out.println("adding debug info");
+                    shape.setFill(Color.RED);
+                    shape.setStrokeWidth(5);
+                    shape.setStroke(Color.BLUE);
+
+                    renderer.rootSceneGraph.getChildren().addAll(shape);
+                });
+            }
             else
                 showError(new RuntimeException("Unresolved error. Exception returned null"));
 

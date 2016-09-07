@@ -3,13 +3,21 @@ package icircles.guifx;
 import icircles.decomposition.DecompositionStrategyType;
 import icircles.recomposition.RecompositionStrategyType;
 import javafx.fxml.FXML;
+import javafx.geometry.Point2D;
+import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextField;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author Almas Baimagambetov (almaslvl@gmail.com)
  */
 public class SettingsController {
+
+    public Map<Object, Object> globalMap = new HashMap<>();
 
     @FXML
     private CheckBox cbTwoStep;

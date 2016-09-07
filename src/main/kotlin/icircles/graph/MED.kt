@@ -322,6 +322,7 @@ class MED(private val allZones: List<ConcreteZone>, private val allContours: Map
             val angle2 = vectorToAngle(v2)
 
             //println("$angle1 -> $angle2")
+            // a b c d e ab ac ad bc bd de abc abcd
 
             // extent of arc in degrees
             var extent = angle2 - angle1
@@ -428,8 +429,21 @@ class MED(private val allZones: List<ConcreteZone>, private val allContours: Map
                             arcTo.y = p1.y
                         }
 
+//                        val angle1 = vectorToAngle(tmpPoint)
+//                        val angle2 = vectorToAngle(Point2D(arcTo.x, arcTo.y))
+
+                        // set start point for this arcTo
+                        settings.globalMap[arcTo] = tmpPoint
+
+//                        var angle2 = q.startAngle + q.length
+//                        if (angle2 >= 360)
+//                            angle2 -= 360
+
                         // TODO: we could alternatively check if arc is fine?
                         arcTo.isSweepFlag = q.properties["sweep"] as Boolean
+                        //arcTo.isSweepFlag = angle1 < angle2
+
+                        //println("$angle1 -> $angle2 sweep: ${arcTo.isSweepFlag}")
 
                         tmpPoint = Point2D(arcTo.x, arcTo.y)
 
