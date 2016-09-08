@@ -35,6 +35,9 @@ public class FXRenderer extends Pane {
 
     private GraphicsContext g;
 
+    private List<Color> colors = new ArrayList<>();
+    private int colorIndex = 0;
+
     public FXRenderer() {
         canvas.setMouseTransparent(true);
         g = canvas.getGraphicsContext2D();
@@ -42,17 +45,29 @@ public class FXRenderer extends Pane {
         rootSceneGraph.setMouseTransparent(true);
 
         getChildren().addAll(rootShadedZones, rootSceneGraph, canvas);
+
+        // these values are adapted from "How should we use colour in ED" Andrew Blake, et al
+        for (int i = 0; i < 10; i++) {
+            colors.add(Color.hsb(((i+1))*32,
+                    (i == 1 || i == 2) ? 0.26 : 0.55,
+                    (i == 1 || i == 2) ? 0.88 : 0.92));
+        }
+
+        Collections.swap(colors, 1, 9);
+        Collections.swap(colors, 3, 7);
     }
 
     public void clearSceneGraph() {
+        colorIndex = 0;
+
         rootSceneGraph.getChildren().clear();
         rootShadedZones.getChildren().clear();
     }
 
     public void addContour(Contour contour) {
         Shape s = contour.getShape();
-        s.setStrokeWidth(6);
-        s.setStroke(Color.color(Math.random(), Math.random(), Math.random()));
+        s.setStrokeWidth(16);
+        s.setStroke(colors.get(colorIndex++));
         s.setFill(null);
 
         Text label = new Text(contour.getCurve().getLabel());
@@ -225,8 +240,8 @@ public class FXRenderer extends Pane {
 
     private void drawCircleContour(CircleContour contour) {
         g.setFill(Color.BLACK);
-        g.setStroke(Color.BLUE);
-        g.setLineWidth(10);
+        g.setStroke(colors.get(colorIndex++));
+        g.setLineWidth(16);
         g.setFont(Font.font(72));
 
         double radius = contour.getRadius();
