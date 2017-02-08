@@ -348,6 +348,11 @@ class MED(private val allZones: List<ConcreteZone>, private val allContours: Map
     /**
      * Compute all valid cycles.
      * A cycle is valid if it can be used to embed a curve.
+     *
+     * inside:
+     * p q r pq pr qr pqrs pqs prs qrs ps qs rs
+     *
+     * p q r pq pr qr qs rs pqs prs qrs qrt pqrs (fails)
      */
     private fun computeValidCycles(): List<GraphCycle<EulerDualNode, EulerDualEdge>> {
         val graph = CycleFinder<EulerDualNode, EulerDualEdge>(EulerDualEdge::class.java)
