@@ -2,6 +2,7 @@ package icircles.graph
 
 import icircles.abstractdescription.AbstractBasicRegion
 import javafx.scene.shape.Path
+import javafx.scene.shape.Polygon
 
 
 /**

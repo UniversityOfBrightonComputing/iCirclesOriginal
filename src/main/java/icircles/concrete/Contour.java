@@ -2,6 +2,7 @@ package icircles.concrete;
 
 import icircles.abstractdescription.AbstractCurve;
 import javafx.scene.shape.Shape;
+import math.geom2d.polygon.Polygon2D;
 
 /**
  * A concrete contour.
@@ -27,6 +28,10 @@ public abstract class Contour {
     }
 
     public abstract Shape getShape();
+
+    public Polygon2D toPolygon() {
+        return null;
+    }
 
     @Override
     public String toString() {

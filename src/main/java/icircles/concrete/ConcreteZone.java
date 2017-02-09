@@ -11,6 +11,9 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
+import math.geom2d.polygon.Polygon2D;
+import math.geom2d.polygon.Polygons2D;
+import math.geom2d.polygon.SimplePolygon2D;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -159,6 +162,15 @@ public class ConcreteZone {
      * @return zone center
      */
     private Point2D computeCenter() {
+        Point2D centroid = computeCentroid();
+        if (centroid != Point2D.ZERO) {
+            System.out.println("Computed centroid: " + centroid);
+            return centroid;
+        }
+
+
+
+
         //Profiler.INSTANCE.start("Computing center: " + zone);
 
         Shape shape = getShape();
@@ -251,6 +263,7 @@ public class ConcreteZone {
                             // if square is completely enclosed by this zone
                             if (Shape.subtract(rect, shape).getLayoutBounds().isEmpty()) {
 
+                                System.out.println("Computed visual: " + new Point2D(x + radius, y + radius));
                                 //Profiler.INSTANCE.end("Computing center: " + zone);
 
                                 return new Point2D(x + radius, y + radius);
@@ -278,6 +291,42 @@ public class ConcreteZone {
                 throw new RuntimeException("Cannot find zone center: " + zone);
             }
         }
+    }
+
+    private Polygon2D polygonShape = null;
+
+    private Point2D computeCentroid() {
+        if (polygonShape == null)
+            polygonShape = getPolygonShape();
+
+        math.geom2d.Point2D centroid = polygonShape.centroid();
+
+        try {
+            if (polygonShape.contains(centroid) && !Double.isNaN(centroid.x()) && !Double.isNaN(centroid.y())) {
+                return new Point2D(centroid.x(), centroid.y());
+            } else {
+                return Point2D.ZERO;
+            }
+        } catch (Exception e) {
+            return Point2D.ZERO;
+        }
+    }
+
+    public Polygon2D getPolygonShape() {
+        polygonShape = new SimplePolygon2D(new math.geom2d.Point2D(0, 0),
+                new math.geom2d.Point2D(10000, 0),
+                new math.geom2d.Point2D(10000, 10000),
+                new math.geom2d.Point2D(0, 10000));
+
+        containingContours.stream().map(c -> c.toPolygon()).forEach(p -> {
+            polygonShape = Polygons2D.intersection(polygonShape, p);
+        });
+
+        excludingContours.stream().map(c -> c.toPolygon()).forEach(p -> {
+            polygonShape = Polygons2D.difference(polygonShape, p);
+        });
+
+        return polygonShape;
     }
 
     public boolean isTopologicallyAdjacent(ConcreteZone other) {

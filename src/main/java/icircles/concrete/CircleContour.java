@@ -1,8 +1,16 @@
 package icircles.concrete;
 
 import icircles.abstractdescription.AbstractCurve;
+import icircles.util.Converter;
+import javafx.geometry.Point2D;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Shape;
+import math.geom2d.polygon.Polygon2D;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Concrete form of AbstractCurve.
@@ -94,6 +102,11 @@ public class CircleContour extends Contour {
         // big for containing intersect
         // small for exluding subtract
         return new Circle(getCenterX(), getCenterY(), getBigRadius());
+    }
+
+    @Override
+    public Polygon2D toPolygon() {
+        return Converter.circleToPolygon(this);
     }
 
     public String toDebugString() {

@@ -10,6 +10,7 @@ import icircles.graph.cycles.CycleFinder
 import icircles.guifx.FXApplication
 import icircles.guifx.SettingsController
 import icircles.util.CannotDrawException
+import icircles.util.Converter
 import icircles.util.Profiler
 import javafx.geometry.Point2D
 import javafx.scene.paint.Color
@@ -93,15 +94,56 @@ class MED(private val allZones: List<ConcreteZone>, private val allContours: Map
 
         Profiler.start("Creating MED nodes")
 
-        val nodesMED = computeMEDNodes(center, radius)
+        val polygonMED = Converter.toPolygon2D(Converter.makePolygon(radius.toInt(), 16))
+        val outside = ConcreteZone(AbstractBasicRegion.OUTSIDE, allContours)
 
+        val nodesMED = polygonMED.vertices()
+                .map { EulerDualNode(outside, Point2D(it.x(), it.y()).subtract(w/2, h/2)) }
+
+
+        // add the adjacent edges between outside in inside
+
+        nodes.filter { it.zone.isTopologicallyAdjacent(outside) }
+                .forEach { node ->
+                    val closestMEDNode = nodesMED.sortedBy { it.point.distance(node.point) }.first()
+
+                    edges.add(EulerDualEdge(node, closestMEDNode,
+                            Line(node.point.x, node.point.y, closestMEDNode.point.x, closestMEDNode.point.y)))
+                }
+
+//        val nodesMED = computeMEDNodes(center, radius)
+
+        // then add nodesMED to nodes
         nodes.addAll(nodesMED)
 
         Profiler.end("Creating MED nodes")
 
         Profiler.start("Creating MED edges")
 
-        computeMEDRingEdges(nodesMED, center, radius)
+        // sort nodes along the MED ring
+        // sorting is CCW from 0 (right) to 360
+        Collections.sort(nodesMED, { node1, node2 ->
+            val v1 = node1.point.subtract(center)
+            val angle1 = vectorToAngle(v1)
+
+            val v2 = node2.point.subtract(center)
+            val angle2 = vectorToAngle(v2)
+
+            (angle1 - angle2).toInt()
+        })
+
+        for (i in nodesMED.indices) {
+            val node1 = nodesMED[i]
+            val node2 = if (i == nodesMED.size - 1) nodesMED[0] else nodesMED[i+1]
+
+            val p1 = node1.point
+            val p2 = node2.point
+
+            edges.add(EulerDualEdge(node1, node2, Line(p1.x, p1.y, p2.x, p2.y)))
+        }
+
+        //computeMEDRingEdges(nodesMED, center, radius)
+
 
         Profiler.end("Creating MED edges")
 
@@ -156,6 +198,12 @@ class MED(private val allZones: List<ConcreteZone>, private val allContours: Map
      */
     private fun createEdge(node1: EulerDualNode, node2: EulerDualNode): EulerDualEdge {
         log.trace("Creating edge: ${node1.zone} - ${node2.zone}")
+
+        val b = false
+
+        if (b) {
+            return EulerDualEdge(node1, node2, Line(node1.point.x, node1.point.y, node2.point.x, node2.point.y))
+        }
 
         //Profiler.start("Creating edge")
 
@@ -453,6 +501,23 @@ class MED(private val allZones: List<ConcreteZone>, private val allContours: Map
                         tmpPoint = Point2D(arcTo.x, arcTo.y)
 
                         path.elements.add(arcTo)
+                    }
+
+                    is Line -> {
+                        val lineTo = LineTo()
+
+                        // we do this coz source and end vertex might be swapped
+                        if (tmpPoint == Point2D(q.startX, q.startY)) {
+                            lineTo.x = q.endX
+                            lineTo.y = q.endY
+                        } else {
+                            lineTo.x = q.startX
+                            lineTo.y = q.startY
+                        }
+
+                        tmpPoint = Point2D(lineTo.x, lineTo.y)
+
+                        path.elements.add(lineTo)
                     }
 
                     else -> {

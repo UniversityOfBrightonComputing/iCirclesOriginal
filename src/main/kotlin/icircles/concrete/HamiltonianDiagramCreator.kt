@@ -46,7 +46,7 @@ class HamiltonianDiagramCreator(val settings: SettingsController) {
 
     lateinit var modifiedDual: MED
 
-    val debugPoints = ArrayList<Point2D>()
+    val debugPoints = arrayListOf<Point2D>()
     val debugShapes = arrayListOf<Shape>()
 
     fun createDiagram(description: AbstractDescription) {
@@ -95,7 +95,9 @@ class HamiltonianDiagramCreator(val settings: SettingsController) {
                         // if the rest of the app worked properly, this will never happen because there is >= 1 Hamiltonian cycles
                 .orElseThrow { CannotDrawException("Failed to find cycle") }
 
-                var contour: Contour = PathContour(data.addedCurve, cycle.path)
+                //var contour: Contour = PathContour(data.addedCurve, cycle.path)
+
+                var contour: Contour = PolygonContour(data.addedCurve, cycle.nodes.map { it.point })
 
                 // smooth curves if required
                 if (settings.useSmooth()) {
@@ -114,38 +116,39 @@ class HamiltonianDiagramCreator(val settings: SettingsController) {
                         val node2 = if (j == cycle.nodes.size - 1) cycle.nodes[0] else cycle.nodes[j + 1]
 
                         // check if this is the MED ring segment
+                        // No need to check if we use lines?
                         if (node1.zone.abstractZone == AbstractBasicRegion.OUTSIDE && node2.zone.abstractZone == AbstractBasicRegion.OUTSIDE) {
-                            // j + 1 because we skip the first moveTo
-                            val arcTo = cycle.path.elements[j + 1] as ArcTo
-
-                            val start = settings.globalMap[arcTo] as Point2D
-
-                            var tmpPath = Path(MoveTo(start.x, start.y), arcTo)
-                            tmpPath.fill = null
-                            tmpPath.stroke = Color.BLACK
-
-                            //debugShapes.add(tmpPath)
-
-                            val ok = !intersects(tmpPath, curveToContour.values.toList())
-
-                            println("OK?: $ok")
-
-                            if (!ok) {
-                                arcTo.isSweepFlag = !arcTo.isSweepFlag
-
-                                tmpPath = Path(MoveTo(start.x, start.y), arcTo)
-                                tmpPath.fill = null
-                                tmpPath.stroke = Color.BLACK
-
-                                if (intersects(tmpPath, curveToContour.values.toList())) {
-                                    //debugShapes.add(tmpPath)
-                                    throw CannotDrawException("MED ring intersects with diagram")
-                                } else {
-                                    println("ALL GOOD")
-                                }
-                            }
-
-                            newPath.elements.addAll(arcTo)
+//                            // j + 1 because we skip the first moveTo
+//                            val arcTo = cycle.path.elements[j + 1] as ArcTo
+//
+//                            val start = settings.globalMap[arcTo] as Point2D
+//
+//                            var tmpPath = Path(MoveTo(start.x, start.y), arcTo)
+//                            tmpPath.fill = null
+//                            tmpPath.stroke = Color.BLACK
+//
+//                            //debugShapes.add(tmpPath)
+//
+//                            val ok = !intersects(tmpPath, curveToContour.values.toList())
+//
+//                            println("OK?: $ok")
+//
+//                            if (!ok) {
+//                                arcTo.isSweepFlag = !arcTo.isSweepFlag
+//
+//                                tmpPath = Path(MoveTo(start.x, start.y), arcTo)
+//                                tmpPath.fill = null
+//                                tmpPath.stroke = Color.BLACK
+//
+//                                if (intersects(tmpPath, curveToContour.values.toList())) {
+//                                    //debugShapes.add(tmpPath)
+//                                    throw CannotDrawException("MED ring intersects with diagram")
+//                                } else {
+//                                    println("ALL GOOD")
+//                                }
+//                            }
+//
+//                            newPath.elements.addAll(arcTo)
                             continue
                         }
 
